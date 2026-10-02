@@ -67,6 +67,14 @@ pub enum VergeError {
     TableNotStaged(String),
     /// Branch aktif belum memiliki commit pertama.
     HeadUnborn(String),
+    /// Branch yang diminta tidak punya pointer.
+    UnknownBranch(String),
+    /// Branch aktif tidak boleh dihapus sebelum `HEAD` dialihkan.
+    BranchInUse(String),
+    /// Branch tujuan sudah ada sehingga operasi create tidak boleh menimpanya.
+    BranchAlreadyExists(String),
+    /// Branch yang akan digabung tidak punya commit; tidak ada yang dapat digabung.
+    NothingToMerge(String),
     /// Isi berkas pointer bukan digest yang valid.
     MalformedPointer(String),
     /// Commit ditolak karena data tabel tidak berubah sejak commit terakhir.

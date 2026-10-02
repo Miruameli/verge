@@ -48,6 +48,13 @@ impl fmt::Display for VergeError {
                 )
             }
             Self::HeadUnborn(name) => write!(f, "branch `{name}` has no commits yet"),
+            Self::UnknownBranch(name) => write!(f, "branch `{name}` does not exist"),
+            Self::BranchInUse(name) => write!(
+                f,
+                "branch `{name}` is the current branch; switch away before deleting it"
+            ),
+            Self::BranchAlreadyExists(name) => write!(f, "branch `{name}` already exists"),
+            Self::NothingToMerge(name) => write!(f, "branch `{name}` has no commits to merge"),
             Self::MalformedPointer(text) => write!(f, "malformed reference pointer: {text}"),
             Self::MalformedTreeNode { reason } => {
                 write!(f, "tree node is not canonical: {reason}")

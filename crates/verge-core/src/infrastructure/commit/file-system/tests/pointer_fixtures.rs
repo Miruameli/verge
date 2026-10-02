@@ -1,8 +1,8 @@
-//! File: `file_ref_pointer_tests.rs`
+//! File: `pointer_fixtures.rs`
 //!
-//! Deskripsi: Test integrasi `FileRefPointer` pada repository sementara.
-//! Layer: infrastructure/commit/file-system
-//! Tanggung jawab: Membuktikan round-trip pointer dan penolakan pointer rusak.
+//! Deskripsi: Repository sementara untuk test adapter pointer.
+//! Layer: infrastructure/commit/file-system/tests
+//! Tanggung jawab: Menyiapkan direktori pointer yang bersih per test.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
@@ -10,11 +10,9 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
-//! Dependencies:
-//!   - `file_ref_pointer.rs`
-//!
 //! Related issues:
-//!   - #8 (Milestone 2)
+//!   - #1 (Milestone 1)
+//!   - #22 (Milestone 4)
 //!
 //! Related ADR:
 //!   - ADR-0005 (Tabel sebagai blok content-addressed)
@@ -23,15 +21,15 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use super::file_ref_pointer::FileRefPointer;
 use crate::config::repository_layout::{RepositoryLayout, HEAD_MAIN};
 use crate::domain::commit::repositories::ports::ref_pointer::RefPointer;
 use crate::domain::ident::value_objects::digest::Digest;
 use crate::domain::ident::value_objects::digest_text::HexText;
+use crate::infrastructure::commit::file_system::file_ref_pointer::FileRefPointer;
 use crate::shared::exceptions::verge_error::VergeError;
 
 /// Direktori sementara yang unik untuk satu pengujian.
-fn scratch(name: &str) -> PathBuf {
+pub fn scratch(name: &str) -> PathBuf {
     let nanos = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_or(0, |elapsed| elapsed.as_nanos());
@@ -39,7 +37,7 @@ fn scratch(name: &str) -> PathBuf {
 }
 
 /// Menyiapkan repository baru yang `HEAD`-nya menunjuk `main`.
-fn pointer(name: &str) -> (PathBuf, FileRefPointer) {
+pub fn pointer(name: &str) -> (PathBuf, FileRefPointer) {
     let dir = scratch(name);
     let layout = RepositoryLayout::under(&dir);
     fs::create_dir_all(layout.heads()).expect("buat direktori heads");

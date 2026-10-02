@@ -18,12 +18,14 @@
 //!
 //! Related issues:
 //!   - #18 (Milestone 3)
+//!   - #22 (Milestone 4)
 //!
 //! Related ADR:
 //!   - ADR-0006 (Prolly tree untuk tabel)
 
 mod commits;
 
+pub mod branch_list;
 pub mod snapshot_content;
 pub mod staged_table;
 pub mod table_diff_report;

@@ -20,9 +20,9 @@
 //!   - ADR-0005 (Tabel sebagai blok content-addressed)
 
 #[cfg(test)]
-mod file_commit_repository_tests;
-#[cfg(test)]
-mod file_ref_pointer_tests;
+mod tests;
 
 pub mod file_commit_repository;
 pub mod file_ref_pointer;
+pub mod pointer_dir;
+pub mod pointer_file;

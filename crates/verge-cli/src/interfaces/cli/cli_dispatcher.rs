@@ -19,11 +19,14 @@
 //!   - #1 (Milestone 1)
 //!   - #8 (Milestone 2)
 //!   - #18 (Milestone 3)
+//!   - #22 (Milestone 4)
 //!
 //! Related ADR:
 //!   - ADR-0003 (Arsitektur 7-layer)
+//!   - ADR-0007 (Branch sebagai pointer dan merge tiga arah)
 
 use crate::config::cli_usage::{USAGE, VERSION};
+use crate::interfaces::cli::commands::branches::manage_branches::run_branch;
 use crate::interfaces::cli::commands::init_repository::run_init;
 use crate::interfaces::cli::commands::table_versioning::queries::diff_tables::run_diff;
 use crate::interfaces::cli::commands::table_versioning::queries::read_history::run_log;
@@ -52,6 +55,7 @@ pub fn dispatch(args: &[String]) -> Result<()> {
         Some("log") => run_log(&args[1..]),
         Some("show") => run_show(&args[1..]),
         Some("diff") => run_diff(&args[1..]),
+        Some("branch") => run_branch(&args[1..]),
         Some("--help" | "-h" | "help") | None => {
             print!("{USAGE}");
             Ok(())

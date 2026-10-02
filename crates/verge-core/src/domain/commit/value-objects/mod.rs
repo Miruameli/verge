@@ -19,5 +19,6 @@
 //! Related ADR:
 //!   - ADR-0002 (Storage immutable content-addressed)
 
+pub mod branch_name_policy;
 pub mod commit_id;
 pub mod commit_ref;

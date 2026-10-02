@@ -19,13 +19,17 @@
 //!
 //! Related issues:
 //!   - #18 (Milestone 3)
+//!   - #22 (Milestone 4)
 //!
 //! Related ADR:
 //!   - ADR-0006 (Prolly tree untuk tabel)
+//!   - ADR-0007 (Branch sebagai pointer dan merge tiga arah)
 
 #[path = "tests/mod.rs"]
 #[cfg(test)]
 mod tests;
+
+pub mod branching;
 
 mod recording;
 

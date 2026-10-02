@@ -23,12 +23,12 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use super::file_commit_repository::FileCommitRepository;
 use crate::domain::commit::entities::commit::Commit;
 use crate::domain::commit::repositories::ports::commit_repository::CommitRepository;
 use crate::domain::ident::value_objects::digest::Digest;
 use crate::domain::storage::ports::block_store::Store;
 use crate::domain::table::value_objects::table_name::TableName;
+use crate::infrastructure::commit::file_system::file_commit_repository::FileCommitRepository;
 use crate::infrastructure::storage::file_system::file_block_store::FileBlockStore;
 use crate::shared::exceptions::verge_error::VergeError;
 

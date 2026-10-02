@@ -11,4 +11,6 @@
 //! Related issues: #18 (Milestone 3)
 //! Related ADR: ADR-0006 (Prolly tree untuk tabel)
 
-mod revision_resolver_tests;
+mod fixtures;
+mod revision_prefix_tests;
+mod revision_resolution_tests;

@@ -102,19 +102,6 @@ impl Ref {
 
 /// Memvalidasi nama branch/tag yang boleh dipakai pada path refs.
 ///
-/// Args:
-/// - name — kandidat nama.
-///
-/// Returns:
-/// - Ok(()) — nama aman dipakai sebagai satu segmen path.
-///
-/// # Errors
-///
-/// Mengembalikan [`InvalidName`](crate::VergeError::InvalidName) bila nama
-/// kosong, diawali titik, atau memuat path separator.
-pub fn validate_name(name: &str) -> Result<()> {
-    if name.is_empty() || name.starts_with('.') || name.contains('/') {
-        return Err(VergeError::InvalidName(name.to_owned()));
-    }
-    Ok(())
-}
+/// Aturan nama hidup di modul sendiri supaya berkas ini tetap berfokus pada
+/// tipe `Ref`; path publiknya tidak berubah lewat re-export ini.
+pub use crate::domain::commit::value_objects::branch_name_policy::validate_name;

@@ -12,22 +12,21 @@
 //!
 //! Dependencies:
 //!   - `domain/commit/repositories/ports/ref_pointer.rs`
+//!   - `infrastructure/commit/file-system/pointer_file.rs`
 //!   - `config/repository_layout.rs`
 //!
 //! Related issues:
-//!   - #8 (Milestone 2)
+//!   - #8 (Milestone 2), #22 (Milestone 4)
 //!
 //! Related ADR:
-//!   - ADR-0005 (Tabel sebagai blok content-addressed)
-
-use std::fs;
-use std::path::{Path, PathBuf};
+//!   - ADR-0005, ADR-0007
 
 use crate::config::repository_layout::RepositoryLayout;
 use crate::domain::commit::repositories::ports::ref_pointer::RefPointer;
+use crate::domain::commit::value_objects::branch_name_policy::validate_name;
 use crate::domain::commit::value_objects::commit_id::CommitId;
-use crate::domain::commit::value_objects::commit_ref::validate_name;
-use crate::domain::ident::value_objects::digest_text::{parse_hex, HexText};
+use crate::domain::ident::value_objects::digest_text::HexText;
+use crate::infrastructure::commit::file_system::{pointer_dir, pointer_file};
 use crate::shared::exceptions::verge_error::VergeError;
 use crate::shared::kernel::result::Result;
 
@@ -36,8 +35,7 @@ const HEAD_REF_PREFIX: &str = "ref: refs/heads/";
 
 /// Pointer branch berupa berkas berisi 64 hex karakter.
 ///
-/// Satu branch = satu berkas kecil, jadi membuat branch hanya menambah satu
-/// inode: tidak ada blok yang disalin.
+/// Satu branch = satu berkas kecil, jadi membuatnya tidak menyalin blok.
 #[derive(Debug, Clone)]
 pub struct FileRefPointer {
     /// Layout repository tempat `HEAD` dan `refs/heads/` berada.
@@ -61,11 +59,9 @@ impl FileRefPointer {
     ///
     /// # Errors
     ///
-    /// Mengembalikan [`InvalidName`](VergeError::InvalidName) bila nama branch
-    /// tidak aman dipakai sebagai satu segmen path.
-    fn pointer_path(&self, branch: &str) -> Result<PathBuf> {
-        validate_name(branch)?;
-        Ok(self.layout.heads().join(branch))
+    /// [`InvalidName`](VergeError::InvalidName) bila nama tidak aman sebagai path.
+    fn pointer_path(&self, branch: &str) -> Result<std::path::PathBuf> {
+        pointer_dir::path_for(&self.layout.heads(), branch)
     }
 }
 
@@ -79,7 +75,7 @@ impl RefPointer for FileRefPointer {
     /// [`MalformedPointer`](VergeError::MalformedPointer) bila isinya bukan
     /// `ref: refs/heads/<nama>` atau nama branch-nya tidak valid.
     fn head_branch(&self) -> Result<String> {
-        let raw = read_pointer(&self.layout.head_file())?
+        let raw = pointer_file::read(&self.layout.head_file())?
             .ok_or_else(|| VergeError::NotARepository(self.layout.root.clone()))?;
         let branch = raw
             .strip_prefix(HEAD_REF_PREFIX)
@@ -90,59 +86,65 @@ impl RefPointer for FileRefPointer {
 
     /// Membaca ujung `branch`.
     ///
-    /// Returns:
-    /// - Ok(None) — branch belum punya commit.
-    ///
     /// # Errors
     ///
-    /// Mengembalikan [`InvalidName`](VergeError::InvalidName) untuk nama tidak
-    /// valid dan [`MalformedPointer`](VergeError::MalformedPointer) bila isi
-    /// pointer bukan digest yang valid.
+    /// [`InvalidName`](VergeError::InvalidName) untuk nama tidak valid dan
+    /// [`MalformedPointer`](VergeError::MalformedPointer) bila isi bukan digest.
     fn resolve(&self, branch: &str) -> Result<Option<CommitId>> {
-        let raw = read_pointer(&self.pointer_path(branch)?)?;
-        raw.map(|text| parse_pointer(&text)).transpose()
+        let raw = pointer_file::read(&self.pointer_path(branch)?)?;
+        raw.map(|text| pointer_file::parse(&text)).transpose()
     }
 
     /// Memindahkan `branch` ke `id`.
     ///
     /// # Errors
     ///
-    /// Mengembalikan [`InvalidName`](VergeError::InvalidName) untuk nama tidak
-    /// valid dan error I/O bila pointer tidak dapat ditulis.
+    /// [`InvalidName`](VergeError::InvalidName) untuk nama tidak valid dan
+    /// error I/O bila pointer tidak dapat ditulis.
     fn advance(&self, branch: &str, id: CommitId) -> Result<()> {
-        write_pointer(&self.pointer_path(branch)?, &id.to_hex())
+        pointer_file::write(&self.pointer_path(branch)?, &id.to_hex())
     }
-}
 
-/// Membaca isi pointer; `Ok(None)` bila berkasnya belum ada.
-fn read_pointer(path: &Path) -> Result<Option<String>> {
-    match fs::read_to_string(path) {
-        Ok(raw) => Ok(Some(raw.trim_end_matches(['\n', '\r']).to_owned())),
-        Err(source) if source.kind() == std::io::ErrorKind::NotFound => Ok(None),
-        Err(source) => Err(source.into()),
+    /// Mengembalikan seluruh nama branch yang punya pointer.
+    ///
+    /// # Errors
+    ///
+    /// Error I/O bila direktori pointer tidak dapat dibaca dan
+    /// [`MalformedPointer`](VergeError::MalformedPointer) bila ada entri rusak.
+    fn branches(&self) -> Result<Vec<String>> {
+        pointer_dir::list(&self.layout.heads())
     }
-}
 
-/// Mem-parse isi pointer menjadi `CommitId`.
-///
-/// # Errors
-///
-/// Mengembalikan [`MalformedPointer`](VergeError::MalformedPointer) bila isi
-/// bukan hex huruf kecil sepanjang tepat 64 karakter.
-fn parse_pointer(raw: &str) -> Result<CommitId> {
-    parse_hex(raw).map_err(|_| VergeError::MalformedPointer(raw.to_owned()))
-}
+    /// Mengalihkan `HEAD` ke `branch` yang sudah punya pointer.
+    ///
+    /// KONTEKS: hanya `HEAD` yang berubah sehingga perpindahan tetap O(1).
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan [`UnknownBranch`](VergeError::UnknownBranch) bila branch
+    /// belum ada dan error I/O bila `HEAD` tidak dapat ditulis.
+    fn switch(&self, branch: &str) -> Result<()> {
+        let path = self.pointer_path(branch)?;
+        if pointer_file::read(&path)?.is_none() {
+            return Err(VergeError::UnknownBranch(branch.to_owned()));
+        }
+        pointer_file::write(
+            &self.layout.head_file(),
+            &format!("{HEAD_REF_PREFIX}{branch}"),
+        )
+    }
 
-/// Menulis pointer secara atomik: temp file + rename di direktori yang sama.
-/// KONTEKS: `fs::write` langsung bisa meninggalkan pointer kosong bila proses
-/// mati di tengah menulis; ALTERNATIF: berkas `.tmp-` yang tertinggal saat rename
-/// gagal tidak pernah dibaca engine dan ditimpa percobaan berikutnya.
-fn write_pointer(path: &Path, hex: &str) -> Result<()> {
-    let Some(parent) = path.parent() else {
-        return Err(VergeError::Io(std::io::Error::other("tanpa induk")));
-    };
-    fs::create_dir_all(parent)?;
-    let temp = parent.join(format!("{hex}.tmp-{}", std::process::id()));
-    fs::write(&temp, format!("{hex}\n")).and_then(|()| fs::rename(&temp, path))?;
-    Ok(())
+    /// Menghapus pointer `branch`.
+    ///
+    /// # Errors
+    ///
+    /// [`BranchInUse`](VergeError::BranchInUse) bila branch aktif dan
+    /// [`UnknownBranch`](VergeError::UnknownBranch) bila pointer tidak ada.
+    fn delete(&self, branch: &str) -> Result<()> {
+        let path = self.pointer_path(branch)?;
+        if self.head_branch().map_or(false, |head| head == branch) {
+            return Err(VergeError::BranchInUse(branch.to_owned()));
+        }
+        pointer_file::remove(&path)
+    }
 }
