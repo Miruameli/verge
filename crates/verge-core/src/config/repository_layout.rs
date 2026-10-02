@@ -27,6 +27,9 @@ pub const REPO_DIR: &str = ".verge";
 /// Direktori tempat seluruh blok disimpan.
 pub const OBJECTS_DIR: &str = "objects";
 
+/// Direktori yang memuat namespace pointer (`heads/`, `tags/`).
+pub const REFS_DIR: &str = "refs";
+
 /// Direktori pointer branch.
 pub const HEADS_DIR: &str = "heads";
 
@@ -82,6 +85,3 @@ impl RepositoryLayout {
         self.root.join(HEAD_FILE)
     }
 }
-
-/// Direktori yang memuat namespace pointer (`heads/`, `tags/`).
-const REFS_DIR: &str = "refs";
