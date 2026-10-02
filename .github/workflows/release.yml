@@ -33,16 +33,20 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
             archive: tar.gz
+            linker: ""
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
             archive: tar.gz
             cross: true
+            linker: aarch64-linux-gnu-gcc
           - target: aarch64-apple-darwin
             os: macos-14
             archive: tar.gz
+            linker: ""
           - target: x86_64-pc-windows-msvc
             os: windows-latest
             archive: zip
+            linker: ""
     steps:
       - uses: actions/checkout@v7
       - name: Pasang linker silang untuk aarch64 Linux
@@ -52,8 +56,6 @@ jobs:
         #         dengan "file in wrong format".
         if: matrix.cross
         run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
-        env:
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: "1.82"
@@ -67,15 +69,19 @@ jobs:
             target
           key: release-${{ matrix.target }}-${{ github.sha }}
       - name: Bangun binary rilis
+        # KENAPA: env linker harus ada pada langkah build, bukan hanya pada
+        #         langkah pemasangan paket; tanpa ini cargo memakai ld host.
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: ${{ matrix.linker }}
         run: cargo build --release --locked --target ${{ matrix.target }}
       - name: Kemas artefak
         shell: bash
         run: .github/scripts/package-release.sh "${{ matrix.target }}" "${{ matrix.archive }}"
       - name: SBOM sikliklus komponen
-        # KENAPA: versi dipin penuh karena `cargo install` menolak nomor minor
-        #         saja, dan SBOM harus reproducible.
+        # KENAPA: versi dipin penuh agar reproducible; 0.5.9 masih butuh rustc
+        #         1.85 sedangkan toolchain proyek 1.82, jadi dipakai 0.5.8.
         run: |
-          cargo install cargo-cyclonedx --version 0.5.9 --locked
+          cargo install cargo-cyclonedx --version 0.5.8 --locked
           cargo cyclonedx --format json --target ${{ matrix.target }}
       - uses: actions/upload-artifact@v4
         with:

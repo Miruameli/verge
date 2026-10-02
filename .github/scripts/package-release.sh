@@ -28,8 +28,11 @@ if [ "$ARCHIVE" = "zip" ]; then
   if command -v zip >/dev/null 2>&1; then
     (cd "$OUT" && zip -qr "verge-$VERSION-$TARGET.zip" "verge-$VERSION-$TARGET")
   else
+    # PowerShell hanya menerima path bergaya Windows; cygpath menerjemahkannya.
+    WIN_STAGE="$(cygpath -m "$STAGE")"
+    WIN_OUT="$(cygpath -m "$OUT")"
     powershell -NoProfile -Command \
-      "Compress-Archive -Path '$STAGE' -DestinationPath '$OUT/verge-$VERSION-$TARGET.zip'"
+      "Compress-Archive -Path '$WIN_STAGE' -DestinationPath '$WIN_OUT/verge-$VERSION-$TARGET.zip'"
   fi
   rm -rf "$STAGE"
 else
