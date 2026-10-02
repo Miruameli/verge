@@ -24,7 +24,16 @@ cp "$ROOT/LICENSE" "$STAGE/LICENSE"
 cp "$ROOT/README.md" "$STAGE/README.md"
 
 if [ "$ARCHIVE" = "zip" ]; then
-  (cd "$OUT" && zip -qr "verge-$VERSION-$TARGET.zip" "verge-$VERSION-$TARGET")
+  # Runner Windows tidak menyediakan `zip`; PowerShell adalah alat bawaannya.
+  if command -v zip >/dev/null 2>&1; then
+    (cd "$OUT" && zip -qr "verge-$VERSION-$TARGET.zip" "verge-$VERSION-$TARGET")
+  else
+    # PowerShell hanya menerima path bergaya Windows; cygpath menerjemahkannya.
+    WIN_STAGE="$(cygpath -m "$STAGE")"
+    WIN_OUT="$(cygpath -m "$OUT")"
+    powershell -NoProfile -Command \
+      "Compress-Archive -Path '$WIN_STAGE' -DestinationPath '$WIN_OUT/verge-$VERSION-$TARGET.zip'"
+  fi
   rm -rf "$STAGE"
 else
   (cd "$OUT" && tar -czf "verge-$VERSION-$TARGET.tar.gz" "verge-$VERSION-$TARGET")
