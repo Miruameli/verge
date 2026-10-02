@@ -1,0 +1,84 @@
+# Quality gate Verge.
+#
+# KENAPA: setiap PR melewati gate yang sama seperti di lokal, sehingga
+#         "hijau di laptop" bukan bukti.
+# CATATAN: nilai `toolchain` di bawah wajib sama dengan `channel` di
+#         `rust-toolchain.toml` (1.82); ini satu-satunya duplikasi yang
+#         disengaja karena action CI memerlukan input eksplisit.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  format:
+    name: format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.82"
+          components: rustfmt
+      - run: cargo fmt --all --check
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.82"
+          components: clippy
+      - run: cargo clippy --all-targets --all-features -- -D warnings
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.82"
+      - run: cargo test --all --locked
+
+  audit:
+    name: audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # KENAPA: cargo-audit versi terbaru membutuhkan rustc yang lebih baru dari
+      #         MSRV proyek, jadi toolchain proyek dikoverride hanya untuk job ini.
+      - name: Audit dependency RustSec
+        uses: rustsec/audit-check@v2.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          RUSTUP_TOOLCHAIN: stable
+
+  secrets:
+    name: secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Deteksi secret dengan gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
