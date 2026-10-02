@@ -1,0 +1,26 @@
+[workspace]
+resolver = "2"
+members = ["crates/verge-core", "crates/verge-cli"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.82"
+license = "Apache-2.0"
+repository = "https://github.com/Miruameli/verge"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+# Domain types keep their domain in the name (commit::Commit, store::Store);
+# renaming them would make the API less clear, not more.
+module_name_repetitions = "allow"
+
+[workspace.dependencies]
+anyhow = "1"
+sha2 = "0.10"

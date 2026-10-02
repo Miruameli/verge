@@ -1,0 +1,15 @@
+# Konfigurasi gitleaks untuk repository Verge.
+#
+# KENAPA: aturan bawaan gitleaks sudah mencakup pola umum; konfigurasi ini
+#         hanya menambah pengecualian untuk path yang tidak bisa menjadi secret.
+title = "Verge gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Berkas yang tidak mungkin memuat secret"
+paths = [
+  '''(.*?)/?Cargo\.lock$''',
+  '''(.*?)/?\.verge/.*''',
+]
