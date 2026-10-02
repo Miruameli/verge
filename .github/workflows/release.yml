@@ -48,8 +48,12 @@ jobs:
       - name: Pasang linker silang untuk aarch64 Linux
         # KENAPA: runner ubuntu hanya punya toolchain x86_64; binary aarch64
         #         memerlukan linker target sebelum cargo build bisa linking.
+        #         Tanpa env linker, cargo memakai /usr/bin/ld host dan gagal
+        #         dengan "file in wrong format".
         if: matrix.cross
         run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: "1.82"
@@ -68,8 +72,10 @@ jobs:
         shell: bash
         run: .github/scripts/package-release.sh "${{ matrix.target }}" "${{ matrix.archive }}"
       - name: SBOM sikliklus komponen
+        # KENAPA: versi dipin penuh karena `cargo install` menolak nomor minor
+        #         saja, dan SBOM harus reproducible.
         run: |
-          cargo install cargo-cyclonedx --version 0.5 --locked
+          cargo install cargo-cyclonedx --version 0.5.9 --locked
           cargo cyclonedx --format json --target ${{ matrix.target }}
       - uses: actions/upload-artifact@v4
         with:
