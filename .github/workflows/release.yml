@@ -1,0 +1,122 @@
+# Workflow rilis Verge.
+#
+# KENAPA: kebijakan rilis melarang rilis tanpa binary lintas platform, checksum
+#         SHA256, dan SBOM; tag tanpa artefak tidak boleh lahir.
+# CATATAN: `toolchain` di bawah wajib sama dengan `channel` di
+#         `rust-toolchain.toml` (1.82) agar binary yang terbit sama dengan
+#         yang diverifikasi quality gate.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  build:
+    name: build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            archive: tar.gz
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            archive: tar.gz
+            cross: true
+          - target: aarch64-apple-darwin
+            os: macos-14
+            archive: tar.gz
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            archive: zip
+    steps:
+      - uses: actions/checkout@v7
+      - name: Pasang linker silang untuk aarch64 Linux
+        # KENAPA: runner ubuntu hanya punya toolchain x86_64; binary aarch64
+        #         memerlukan linker target sebelum cargo build bisa linking.
+        if: matrix.cross
+        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.82"
+          targets: ${{ matrix.target }}
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: release-${{ matrix.target }}-${{ github.sha }}
+      - name: Bangun binary rilis
+        run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Kemas artefak
+        shell: bash
+        run: .github/scripts/package-release.sh "${{ matrix.target }}" "${{ matrix.archive }}"
+      - name: SBOM sikliklus komponen
+        run: |
+          cargo install cargo-cyclonedx --version 0.5 --locked
+          cargo cyclonedx --format json --target ${{ matrix.target }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verge-${{ matrix.target }}
+          path: |
+            dist/verge-*
+            target/${{ matrix.target }}/release/bom.*.cdx.json
+          if-no-files-found: error
+
+  checksums:
+    name: checksum dan sbom gabungan
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Hitung SHA256 seluruh artefak
+        run: cd dist && sha256sum verge-* > SHA256SUMS && cat SHA256SUMS
+      - name: Unggah bundle rilis
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-bundle
+          path: dist
+          if-no-files-found: error
+
+  publish:
+    name: terbitkan rilis
+    needs: checksums
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-bundle
+          path: dist
+      - name: Pastikan setiap artefak punya checksum
+        # KENAPA: rilis tanpa checksum ditolak oleh kebijakan; gagal di sini
+        #         lebih baik daripada menerbitkan rilis yang tidak terverifikasi.
+        run: |
+          cd dist
+          while read -r sum file; do
+            echo "$sum  $file" | sha256sum --check --strict -
+          done < SHA256SUMS
+      - name: Terbitkan GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          fail_on_unmatched_files: true
