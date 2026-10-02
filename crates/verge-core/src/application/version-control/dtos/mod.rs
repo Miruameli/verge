@@ -23,9 +23,11 @@
 //! Related ADR:
 //!   - ADR-0006 (Prolly tree untuk tabel)
 
+pub mod branching;
+pub mod merging;
+
 mod commits;
 
-pub mod branch_list;
 pub mod snapshot_content;
 pub mod staged_table;
 pub mod table_diff_report;

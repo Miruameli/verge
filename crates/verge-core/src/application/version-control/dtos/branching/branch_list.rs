@@ -1,7 +1,7 @@
 //! File: `branch_list.rs`
 //!
 //! Deskripsi: DTO daftar branch beserta ujung commit-nya.
-//! Layer: application/version-control/dtos
+//! Layer: application/version-control/dtos/branching
 //! Tanggung jawab: Membawa hasil baca daftar branch tanpa port maupun storage.
 //!
 //! Author: Miruameli

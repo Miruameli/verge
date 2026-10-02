@@ -75,6 +75,10 @@ pub enum VergeError {
     BranchAlreadyExists(String),
     /// Branch yang akan digabung tidak punya commit; tidak ada yang dapat digabung.
     NothingToMerge(String),
+    /// Kedua branch tidak punya leluhur bersama sehingga merge tidak terdefinisi.
+    UnrelatedHistories(String),
+    /// Seluruh commit branch sumber sudah ada di branch aktif.
+    AlreadyMerged(String),
     /// Isi berkas pointer bukan digest yang valid.
     MalformedPointer(String),
     /// Commit ditolak karena data tabel tidak berubah sejak commit terakhir.

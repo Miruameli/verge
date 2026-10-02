@@ -55,6 +55,18 @@ impl fmt::Display for VergeError {
             ),
             Self::BranchAlreadyExists(name) => write!(f, "branch `{name}` already exists"),
             Self::NothingToMerge(name) => write!(f, "branch `{name}` has no commits to merge"),
+            Self::AlreadyMerged(name) => {
+                write!(
+                    f,
+                    "branch `{name}` is already merged into the current branch"
+                )
+            }
+            Self::UnrelatedHistories(name) => {
+                write!(
+                    f,
+                    "branch `{name}` shares no common ancestor with the current branch"
+                )
+            }
             Self::MalformedPointer(text) => write!(f, "malformed reference pointer: {text}"),
             Self::MalformedTreeNode { reason } => {
                 write!(f, "tree node is not canonical: {reason}")

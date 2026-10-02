@@ -42,6 +42,9 @@ Usage:
   verge branch create <NAME>                      Create a branch at the current head
   verge branch switch <NAME>                      Switch HEAD to an existing branch
   verge branch delete <NAME>                      Delete a branch pointer (data is kept)
+  verge merge <BRANCH> --table <NAME>              Three-way merge a branch into the current one
+                 [--strategy <NAME>]               manual (default), ours, theirs, last-write-wins
+                 [--message <MSG>] [--author <NAME>]
   verge --help                                    Show this message
   verge --version                                 Show the version
 
@@ -53,4 +56,5 @@ Examples:
   verge diff 67f9a3fa6f9a39b1fafe6fa621ab246b5367c2ea2bac05dbdab7f043e82ccfde..HEAD --table users
   verge branch create eksperimen
   verge branch switch eksperimen
+  verge merge eksperimen --table users --strategy ours --author ana
 ";

@@ -31,8 +31,9 @@ Target bersifat perkiraan dan dapat berubah; perubahan besar perlu ADR baru.
 ## M4 — Branch, merge, dan time travel
 
 - Branch `create`/`switch`/`list`/`delete` yang O(1) tanpa menyalin data — selesai.
-- Three-way merge dengan base dari merge-base.
-- Strategi resolusi: manual, ours, theirs, last-write-wins, custom resolver.
+- Three-way merge dengan base dari merge-base — selesai.
+- Strategi resolusi: manual, ours, theirs, last-write-wins — selesai; custom
+  resolver menyusul bersama API query.
 - Query `AS OF <commit | tag | timestamp>`.
 
 ## M5 — Query engine
