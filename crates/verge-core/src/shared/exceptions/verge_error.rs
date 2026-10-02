@@ -21,7 +21,8 @@
 
 use std::path::PathBuf;
 
-use core::fmt;
+#[path = "verge_error_display.rs"]
+mod display;
 
 use crate::domain::ident::value_objects::digest::Digest;
 use crate::shared::exceptions::parse_digest_error::ParseDigestError;
@@ -70,6 +71,20 @@ pub enum VergeError {
     MalformedPointer(String),
     /// Commit ditolak karena data tabel tidak berubah sejak commit terakhir.
     NothingToCommit(String),
+    /// Node tree tidak kanonik atau rusak saat dibaca.
+    MalformedTreeNode {
+        /// Penyebab ringkas yang aman ditampilkan ke pengguna.
+        reason: &'static str,
+    },
+    /// Tabel tidak memiliki baris sehingga tree tidak punya akar.
+    EmptyTable,
+    /// Baris tabel tidak dapat diurai.
+    MalformedTable {
+        /// Nomor baris satu-based seperti terlihat di file.
+        line: usize,
+        /// Penyebab ringkas yang aman ditampilkan ke pengguna.
+        reason: &'static str,
+    },
     /// Metadata commit (penulis atau pesan) tidak memenuhi aturan.
     InvalidCommitField {
         /// Nama field yang bermasalah.
@@ -77,48 +92,6 @@ pub enum VergeError {
         /// Alasan penolakan yang aman ditampilkan ke pengguna.
         detail: &'static str,
     },
-}
-
-impl fmt::Display for VergeError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Io(source) | Self::BlockNotFound { source, .. } => {
-                write!(f, "i/o error: {source}")
-            }
-            Self::CommitNotFound(id) => write!(f, "commit {id} not found"),
-            Self::MissingParent(id) => write!(f, "parent commit {id} is unknown to the graph"),
-            Self::InvalidName(name) => write!(f, "invalid reference name `{name}`"),
-            Self::TagAlreadyExists(name) => write!(f, "tag `{name}` already exists"),
-            Self::InvalidRef(text) => write!(f, "invalid reference `{text}`"),
-            Self::InvalidDigest(source) => source.fmt(f),
-            Self::RepositoryAlreadyExists(path) => {
-                write!(f, "a Verge repository already exists at {}", path.display())
-            }
-            Self::NotARepository(path) => write!(
-                f,
-                "no Verge repository at {}; run `verge init` first",
-                path.display()
-            ),
-            Self::MalformedCommit { reason } => {
-                write!(f, "commit object is not canonical: {reason}")
-            }
-            Self::InvalidTableName(name) => {
-                write!(f, "invalid table name `{name}`")
-            }
-            Self::TableNotStaged(name) => write!(
-                f,
-                "table `{name}` has no staged data; run `verge import` first"
-            ),
-            Self::HeadUnborn(name) => write!(f, "branch `{name}` has no commits yet"),
-            Self::MalformedPointer(text) => write!(f, "malformed reference pointer: {text}"),
-            Self::NothingToCommit(name) => {
-                write!(f, "table `{name}` is unchanged since the last commit")
-            }
-            Self::InvalidCommitField { field, detail } => {
-                write!(f, "invalid commit {field}: {detail}")
-            }
-        }
-    }
 }
 
 impl std::error::Error for VergeError {
