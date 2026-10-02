@@ -83,12 +83,15 @@ jobs:
         run: |
           cargo install cargo-cyclonedx --version 0.5.8 --locked
           cargo cyclonedx --format json --target ${{ matrix.target }}
+      - name: Kumpulkan seluruh artefak di satu folder
+        # KENAPA: upload-artifact v4 menyimpan path relatif terhadap akar repo,
+        #         sehingga artefak yang diunduh akan berfolder dist/ dan target/.
+        #         Semua file dipindahkan ke dist/ agar checksum dan rilis rapi.
+        run: mv target/${{ matrix.target }}/release/bom.*.cdx.json dist/
       - uses: actions/upload-artifact@v4
         with:
           name: verge-${{ matrix.target }}
-          path: |
-            dist/verge-*
-            target/${{ matrix.target }}/release/bom.*.cdx.json
+          path: dist
           if-no-files-found: error
 
   checksums:
@@ -101,7 +104,14 @@ jobs:
           path: dist
           merge-multiple: true
       - name: Hitung SHA256 seluruh artefak
-        run: cd dist && sha256sum verge-* > SHA256SUMS && cat SHA256SUMS
+        # KENAPA: checksum hanya boleh mencakup file yang benar-benar terbit.
+        run: |
+          cd dist
+          ls -1
+          # SHA256SUMS dikecualikan agar tidak meng-hash dirinya sendiri.
+          find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 \
+            | sort -z | xargs -0 sha256sum > SHA256SUMS
+          cat SHA256SUMS
       - name: Unggah bundle rilis
         uses: actions/upload-artifact@v4
         with:
