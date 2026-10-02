@@ -78,24 +78,18 @@ jobs:
         shell: bash
         run: .github/scripts/package-release.sh "${{ matrix.target }}" "${{ matrix.archive }}"
       - name: SBOM sikliklus komponen
-        # KENAPA: versi dipin penuh agar reproducible; 0.5.9 masih butuh rustc
-        #         1.85 sedangkan toolchain proyek 1.82, jadi dipakai 0.5.8.
-        #         Shell dipaksa bash agar runner Windows tidak memakai
-        #         alias PowerShell seperti `ls -1` yang merusak langkah berikut.
+        # KENAPA: SBOM dibuat dari `cargo metadata` dengan path keluaran yang
+        #         pasti; `cargo cyclonedx` menulis ke lokasi berbeda-beda antar
+        #         versi sehingga sempat hilang dari rilis. Shell dipaksa bash
+        #         agar utilitas GNU berperilaku sama di semua runner.
         shell: bash
-        run: |
-          cargo install cargo-cyclonedx --version 0.5.8 --locked
-          cargo cyclonedx --format json --target ${{ matrix.target }}
-      - name: Kumpulkan seluruh artefak di satu folder
+        run: .github/scripts/package-sbom.sh "${{ matrix.target }}" dist
+      - name: Periksa isi folder distributable
         shell: bash
-        # KENAPA: upload-artifact v4 menyimpan path relatif terhadap akar repo,
-        #         sehingga artefak yang diunduh akan berfolder dist/ dan target/.
-        #         Semua file dipindahkan ke dist/ agar checksum dan rilis rapi.
-        #         Lokasi keluaran tool tidak dijamin per target, jadi dicari
-        #         dengan find alih-alih path tetap.
-        run: |
-          find target -name '*.cdx.json' -exec mv -t dist {} +
-          ls -1 dist
+        # KENAPA: upload-artifact v4 mempertahankan path relatif terhadap akar
+        #         repo; seluruh file sudah dikumpulkan di dist/ agar checksum
+        #         dan rilis terbit tanpa folder tambahan.
+        run: ls -1 dist
       - uses: actions/upload-artifact@v4
         with:
           name: verge-${{ matrix.target }}
