@@ -28,8 +28,9 @@ Target bersifat perkiraan dan dapat berubah; perubahan besar perlu ADR baru.
 - `verge diff <rev-a>..<rev-b>` dengan output stabil, plus resolusi `HEAD~N` dan
   awalan commit.
 
-## M4 — Merge dan time travel
+## M4 — Branch, merge, dan time travel
 
+- Branch `create`/`switch`/`list`/`delete` yang O(1) tanpa menyalin data — selesai.
 - Three-way merge dengan base dari merge-base.
 - Strategi resolusi: manual, ours, theirs, last-write-wins, custom resolver.
 - Query `AS OF <commit | tag | timestamp>`.

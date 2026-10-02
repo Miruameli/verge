@@ -17,6 +17,7 @@
 //!   - #1 (Milestone 1)
 //!   - #8 (Milestone 2)
 //!   - #18 (Milestone 3)
+//!   - #22 (Milestone 4)
 //!
 //! Related ADR:
 //!   - ADR-0003 (Arsitektur 7-layer)
@@ -37,6 +38,10 @@ Usage:
   verge show <REVISION> --table <NAME>           Print a table's data at REVISION (HEAD, a commit id, or a branch)
   verge diff <FROM>..<TO> --table <NAME>         Show row changes between two revisions of a table
                                                (both sides accept HEAD, a branch, or a commit id)
+  verge branch list                               List branches and their head commits
+  verge branch create <NAME>                      Create a branch at the current head
+  verge branch switch <NAME>                      Switch HEAD to an existing branch
+  verge branch delete <NAME>                      Delete a branch pointer (data is kept)
   verge --help                                    Show this message
   verge --version                                 Show the version
 
@@ -46,4 +51,6 @@ Examples:
   verge log --table users --limit 5
   verge show HEAD --table users > users-2026.csv
   verge diff 67f9a3fa6f9a39b1fafe6fa621ab246b5367c2ea2bac05dbdab7f043e82ccfde..HEAD --table users
+  verge branch create eksperimen
+  verge branch switch eksperimen
 ";

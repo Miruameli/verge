@@ -21,6 +21,7 @@
 //! Related ADR:
 //!   - ADR-0003 (Arsitektur 7-layer)
 
+pub mod branches;
 pub mod init_repository;
 
 #[path = "table-versioning/mod.rs"]

@@ -76,6 +76,22 @@ Perubahan antar dua revisi dibaca per baris, tanpa memulihkan working copy:
 + 2 ,budi
 ```
 
+`verge branch` mengelola branch tanpa menyalin data:
+
+```
+$ verge branch create eksperimen
+created eksperimen at e48c017fe0c8e0dd8eda332c96bde7c7274f7b6d651e4c77c28c69c6d48954d2
+$ verge branch switch eksperimen
+switched main -> eksperimen
+$ verge branch list
+* eksperimen           e48c017fe0c8
+  main                 e48c017fe0c8
+```
+
+Membuat branch tidak menambah blok data sama sekali: hanya satu berkas pointer
+di `.verge/refs/heads/` yang ditulis. Menghapus branch hanya menghapus pointer,
+blok dan commit tetap bisa dibaca lewat identifier-nya.
+
 `verge diff` menampilkan perubahan per baris dengan urutan stabil:
 
 ```

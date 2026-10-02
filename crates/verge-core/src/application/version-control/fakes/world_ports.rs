@@ -118,4 +118,30 @@ impl RefPointer for FakeWorld {
         self.branches.borrow_mut().insert(branch.to_owned(), id);
         Ok(())
     }
+
+    fn branches(&self) -> Result<Vec<String>> {
+        let mut names: Vec<String> = self.branches.borrow().keys().cloned().collect();
+        names.sort();
+        Ok(names)
+    }
+
+    fn switch(&self, branch: &str) -> Result<()> {
+        if !self.branches.borrow().contains_key(branch) {
+            return Err(VergeError::UnknownBranch(branch.to_owned()));
+        }
+        let mut head = self.head.borrow_mut();
+        branch.clone_into(&mut head);
+        Ok(())
+    }
+
+    fn delete(&self, branch: &str) -> Result<()> {
+        if self.head.borrow().as_str() == branch {
+            return Err(VergeError::BranchInUse(branch.to_owned()));
+        }
+        self.branches
+            .borrow_mut()
+            .remove(branch)
+            .map(|_| ())
+            .ok_or_else(|| VergeError::UnknownBranch(branch.to_owned()))
+    }
 }
