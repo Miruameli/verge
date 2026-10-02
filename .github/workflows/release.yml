@@ -80,10 +80,14 @@ jobs:
       - name: SBOM sikliklus komponen
         # KENAPA: versi dipin penuh agar reproducible; 0.5.9 masih butuh rustc
         #         1.85 sedangkan toolchain proyek 1.82, jadi dipakai 0.5.8.
+        #         Shell dipaksa bash agar runner Windows tidak memakai
+        #         alias PowerShell seperti `ls -1` yang merusak langkah berikut.
+        shell: bash
         run: |
           cargo install cargo-cyclonedx --version 0.5.8 --locked
           cargo cyclonedx --format json --target ${{ matrix.target }}
       - name: Kumpulkan seluruh artefak di satu folder
+        shell: bash
         # KENAPA: upload-artifact v4 menyimpan path relatif terhadap akar repo,
         #         sehingga artefak yang diunduh akan berfolder dist/ dan target/.
         #         Semua file dipindahkan ke dist/ agar checksum dan rilis rapi.
