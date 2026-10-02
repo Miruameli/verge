@@ -23,4 +23,3 @@
 mod commit_tests;
 
 pub mod commit;
-pub mod commit_encoding;

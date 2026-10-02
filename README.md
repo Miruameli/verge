@@ -13,17 +13,20 @@ Time travel     = baca state lewat commit/tag yang sudah tercatat
 
 ## Status
 
-Milestone 1 — fondasi storage dan versioning. Yang sudah berfungsi hari ini:
+Milestone 2 — data tabel sudah bisa di-versioning dan dibaca kembali pada commit
+lama. Yang sudah berfungsi hari ini:
 
-| Kemampuan                  | Status                                       |
-| -------------------------- | -------------------------------------------- |
-| Repository bootstrap       | Selesai — `verge init`                        |
-| Block store content-addressed | Selesai — deduplikasi + tulis atomik        |
-| Commit graph (branch/tag)  | Selesai — pointer bergerak, data tidak disalin |
-| Row-level diff             | Rencana — M3                                 |
-| Time-travel query          | Rencana — M4                                 |
-| 3-way merge                | Rencana — M4                                 |
-| SQL + ekstensi Verge       | Rencana — M5                                 |
+| Kemampuan                     | Status                                              |
+| ----------------------------- | --------------------------------------------------- |
+| Repository bootstrap          | Selesai — `verge init`                               |
+| Block store content-addressed | Selesai — deduplikasi + tulis atomik                |
+| Commit graph (branch/tag)     | Selesai — pointer bergerak, data tidak disalin       |
+| Commit tabel                  | Selesai — `verge import` + `verge commit`            |
+| Riwayat commit                | Selesai — `verge log`                                |
+| Time-travel read              | Selesai — `verge show <commit>`                      |
+| Row-level diff                | Rencana — M3                                          |
+| 3-way merge                   | Rencana — M4                                          |
+| SQL + ekstensi Verge          | Rencana — M5                                          |
 
 Roadmap lengkap: [`docs/roadmap.md`](docs/roadmap.md).
 
@@ -31,18 +34,46 @@ Roadmap lengkap: [`docs/roadmap.md`](docs/roadmap.md).
 
 ```bash
 cargo build --release
-./target/release/verge init /tmp/contoh
+cd /tmp/contoh
+printf 'id,name\n1,ana\n' > users.csv
+
+verge init
+verge import users.csv --table users
+verge commit --table users --message "feat: seed users" --author ana
+
+printf 'id,name\n1,ana\n2,budi\n' > users.csv
+verge import users.csv --table users
+verge commit --table users --message "feat: add budi" --author budi
+
+verge log --table users
+verge show HEAD --table users
 ```
 
-Menghasilkan:
+Hasil `verge log --table users`:
 
 ```
-/tmp/contoh/.verge
+5d2ec22025b8 budi feat: add budi
+67f9a3fa6f9a ana  feat: seed users
+```
+
+Isi tabel pada commit lama tetap dapat dibaca tanpa memulihkan working copy:
+
+```bash
+verge show 67f9a3fa6f9a39b1fafe6fa621ab246b5367c2ea2bac05dbdab7f043e82ccfde --table users
+# id,name
+# 1,ana
+```
+
+Layout repository yang dihasilkan:
+
+```
+.verge
 ├── HEAD              # ref: refs/heads/main
 ├── objects/          # blok immutable: objects/ab/cd/<sha256>
-└── refs/
-    ├── heads/        # pointer branch (movable)
-    └── tags/         # pointer tag (immutable)
+├── refs/
+│   ├── heads/        # pointer branch (movable)
+│   └── tags/         # pointer tag (immutable)
+└── tables/<nama>/working   # digest blok data kerja, bukan datanya
 ```
 
 ## Repository

@@ -11,15 +11,19 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - (tidak ada dependensi eksternal)
+//!   - `domain/table/value-objects/table_name.rs`
 //!
 //! Related issues:
 //!   - #1 (Milestone 1)
+//!   - #8 (Milestone 2)
 //!
 //! Related ADR:
 //!   - ADR-0002 (Storage immutable content-addressed)
+//!   - ADR-0005 (Tabel sebagai blok content-addressed)
 
 use std::path::{Path, PathBuf};
+
+use crate::domain::table::value_objects::table_name::TableName;
 
 /// Direktori internal repository di dalam folder kerja pengguna.
 pub const REPO_DIR: &str = ".verge";
@@ -41,6 +45,12 @@ pub const HEAD_FILE: &str = "HEAD";
 
 /// Branch yang dipakai untuk repository baru.
 pub const DEFAULT_BRANCH: &str = "main";
+
+/// Direktori data kerja tiap tabel.
+pub const TABLES_DIR: &str = "tables";
+
+/// Nama berkas pointer yang menunjuk blok data kerja sebuah tabel.
+pub const WORKING_FILE: &str = "working";
 
 /// Isi `HEAD` untuk repository baru.
 pub const HEAD_MAIN: &str = "ref: refs/heads/main\n";
@@ -77,6 +87,27 @@ impl RepositoryLayout {
     #[must_use]
     pub fn tags(&self) -> PathBuf {
         self.root.join(REFS_DIR).join(TAGS_DIR)
+    }
+
+    /// Path direktori data kerja seluruh tabel.
+    #[must_use]
+    pub fn tables(&self) -> PathBuf {
+        self.root.join(TABLES_DIR)
+    }
+
+    /// Path direktori satu tabel.
+    ///
+    /// `name` selalu sudah divalidasi oleh [`TableName`], sehingga tidak ada
+    /// nama tabel yang dapat keluar dari `.verge`.
+    #[must_use]
+    pub fn table_dir(&self, name: &TableName) -> PathBuf {
+        self.tables().join(name.as_str())
+    }
+
+    /// Path berkas pointer data kerja satu tabel.
+    #[must_use]
+    pub fn working_file(&self, name: &TableName) -> PathBuf {
+        self.table_dir(name).join(WORKING_FILE)
     }
 
     /// Path berkas `HEAD`.

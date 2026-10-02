@@ -15,6 +15,7 @@
 //!
 //! Related issues:
 //!   - #1 (Milestone 1)
+//!   - #8 (Milestone 2)
 //!
 //! Related ADR:
 //!   - ADR-0003 (Arsitektur 7-layer)
@@ -27,7 +28,18 @@ pub const USAGE: &str = "\
 verge — a versioned database: Git for your data
 
 Usage:
-  verge init [PATH]   Create an empty repository at PATH (default: current directory)
-  verge --help        Show this message
-  verge --version     Show the version
+  verge init [PATH]                              Create an empty repository at PATH (default: .)
+  verge import <PATH> --table <NAME>             Stage a table's data from PATH for the next commit
+  verge commit --table <NAME> --message <MSG>    Record the staged data as a new commit
+                 [--author <NAME>]               Default author comes from $VERGE_AUTHOR
+  verge log [--table <NAME>] [--limit <N>]       Show commit history for a table (default: 20 entries)
+  verge show <REVISION> --table <NAME>           Print a table's data at REVISION (HEAD, a commit id, or a branch)
+  verge --help                                    Show this message
+  verge --version                                 Show the version
+
+Examples:
+  verge import users.csv --table users
+  verge commit --table users --message \"add users\" --author ana
+  verge log --table users --limit 5
+  verge show HEAD --table users > users-2026.csv
 ";

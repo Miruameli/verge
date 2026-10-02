@@ -41,17 +41,23 @@ menyentuh logika bisnis.
 
 ## Peta kode
 
-| Path                                  | Tanggung jawab                                   |
-| ------------------------------------- | ------------------------------------------------- |
-| `domain/ident/value-objects/`         | Digest SHA-256 dan representasi hexnya            |
-| `domain/commit/entities/`             | Entitas `Commit` dan encoding kanonik             |
-| `domain/commit/value-objects/`        | `CommitId`, `Ref` (branch/tag/commit)             |
-| `domain/commit/repositories/`         | `CommitGraph` dan traversal sejarah               |
-| `domain/storage/ports/`               | `Store`, `BlockStoreFactory`, `MetadataWriter`    |
-| `application/repository-bootstrap/`  | Use case pembuatan repository                     |
-| `infrastructure/storage/file-system/` | `FileBlockStore`, factory, penulis metadata lokal  |
-| `config/`                             | Layout repository dan path blok                   |
-| `verge-cli/interfaces/cli/`           | Dispatcher perintah dan perintah `init`           |
+| Path                                  | Tanggung jawab                                        |
+| ------------------------------------- | ------------------------------------------------------ |
+| `domain/ident/value-objects/`         | Digest SHA-256 dan representasi hexnya                 |
+| `domain/commit/entities/`             | Entitas `Commit` beserta pembaca fieldnya              |
+| `domain/commit/codec/`                | Encoding kanonik dan decoding yang memverifikasi digest |
+| `domain/commit/value-objects/`        | `CommitId`, `Ref` (branch/tag/commit)                  |
+| `domain/commit/repositories/`         | `CommitGraph`, traversal sejarah, dan port commit/ref   |
+| `domain/table/`                       | `TableName` dan port data kerja tabel                  |
+| `domain/storage/ports/`               | `Store`, `BlockStoreFactory`, `MetadataWriter`         |
+| `application/repository-bootstrap/`   | Use case pembuatan repository                          |
+| `application/version-control/`        | Use case import, commit, log, dan snapshot             |
+| `infrastructure/storage/file-system/` | `FileBlockStore`, factory, penulis metadata lokal       |
+| `infrastructure/commit/file-system/`  | Penyimpanan objek commit dan pointer branch             |
+| `infrastructure/table/file-system/`   | Data kerja tabel sebagai blok dan pembacaan sumber    |
+| `infrastructure/system/`              | Jam sistem untuk cap waktu commit                      |
+| `config/`                             | Layout repository dan path blok                        |
+| `verge-cli/interfaces/cli/`           | Dispatcher dan perintah `init`, `import`, `commit`, `log`, `show` |
 
 ## Invariant yang dijaga
 
@@ -61,6 +67,12 @@ menyentuh logika bisnis.
 4. Penulisan blok bersifat atomik: temp file + fsync + rename.
 5. Bootstrap repository bersifat all-or-nothing: kegagalan apa pun menghapus
    jejak yang sudah dibuat.
+6. Isi tabel hanya hidup di dalam block store; berkas di `.verge/tables/` adalah
+   pointer digest, bukan data.
+7. Commit yang dimuat dari disk diverifikasi ulang terhadap digest-nya, sehingga
+   manipulasi byte di luar Verge terdeteksi saat pembacaan.
+8. Nama tabel tervalidasi sebelum menyentuh path: allowlist `[a-z0-9_-]`, maksimal
+   64 karakter, tanpa path separator.
 
 ## Model Parents
 

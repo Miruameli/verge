@@ -24,11 +24,17 @@ use crate::domain::commit::entities::commit::Commit;
 use crate::domain::commit::value_objects::commit_id::CommitId;
 use crate::domain::commit::value_objects::commit_ref::Ref;
 use crate::domain::ident::value_objects::digest::Digest;
+use crate::domain::table::value_objects::table_name::TableName;
 use crate::shared::exceptions::verge_error::VergeError;
+
+/// Nama tabel standar untuk seluruh test yang tidak cares dengan tabel.
+fn table() -> TableName {
+    TableName::parse("users").expect("nama tabel test valid")
+}
 
 /// Membuat commit dengan tree tetap agar test fokus pada graph.
 fn commit(message: &str, parents: Vec<CommitId>) -> Commit {
-    Commit::new(parents, Digest::of(b"tree"), "author", message, 0)
+    Commit::new(parents, Digest::of(b"tree"), &table(), "author", message, 0)
 }
 
 /// Graph lurus dengan satu root dan satu anak.

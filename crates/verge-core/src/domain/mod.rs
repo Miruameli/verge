@@ -15,10 +15,14 @@
 //!
 //! Related issues:
 //!   - #1 (Milestone 1)
+//!   - #8 (Milestone 2)
 //!
 //! Related ADR:
 //!   - ADR-0003 (Arsitektur 7-layer)
 
+#[path = "commit/mod.rs"]
 pub mod commit;
 pub mod ident;
 pub mod storage;
+#[path = "table/mod.rs"]
+pub mod table;

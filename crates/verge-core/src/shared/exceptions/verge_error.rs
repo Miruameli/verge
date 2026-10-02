@@ -53,6 +53,30 @@ pub enum VergeError {
     InvalidDigest(ParseDigestError),
     /// Repository sudah ada; bootstrap tidak menimpa data pengguna.
     RepositoryAlreadyExists(PathBuf),
+    /// Folder kerja bukan repository Verge.
+    NotARepository(PathBuf),
+    /// Byte commit tidak kanonik atau rusak sehingga tidak dapat dipercaya.
+    MalformedCommit {
+        /// Penyebab ringkas tanpa detail internal.
+        reason: &'static str,
+    },
+    /// Nama tabel di luar allowlist.
+    InvalidTableName(String),
+    /// Tabel belum punya data kerja untuk di-commit.
+    TableNotStaged(String),
+    /// Branch aktif belum memiliki commit pertama.
+    HeadUnborn(String),
+    /// Isi berkas pointer bukan digest yang valid.
+    MalformedPointer(String),
+    /// Commit ditolak karena data tabel tidak berubah sejak commit terakhir.
+    NothingToCommit(String),
+    /// Metadata commit (penulis atau pesan) tidak memenuhi aturan.
+    InvalidCommitField {
+        /// Nama field yang bermasalah.
+        field: &'static str,
+        /// Alasan penolakan yang aman ditampilkan ke pengguna.
+        detail: &'static str,
+    },
 }
 
 impl fmt::Display for VergeError {
@@ -69,6 +93,29 @@ impl fmt::Display for VergeError {
             Self::InvalidDigest(source) => source.fmt(f),
             Self::RepositoryAlreadyExists(path) => {
                 write!(f, "a Verge repository already exists at {}", path.display())
+            }
+            Self::NotARepository(path) => write!(
+                f,
+                "no Verge repository at {}; run `verge init` first",
+                path.display()
+            ),
+            Self::MalformedCommit { reason } => {
+                write!(f, "commit object is not canonical: {reason}")
+            }
+            Self::InvalidTableName(name) => {
+                write!(f, "invalid table name `{name}`")
+            }
+            Self::TableNotStaged(name) => write!(
+                f,
+                "table `{name}` has no staged data; run `verge import` first"
+            ),
+            Self::HeadUnborn(name) => write!(f, "branch `{name}` has no commits yet"),
+            Self::MalformedPointer(text) => write!(f, "malformed reference pointer: {text}"),
+            Self::NothingToCommit(name) => {
+                write!(f, "table `{name}` is unchanged since the last commit")
+            }
+            Self::InvalidCommitField { field, detail } => {
+                write!(f, "invalid commit {field}: {detail}")
             }
         }
     }

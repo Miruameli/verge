@@ -15,10 +15,14 @@
 //!
 //! Related issues:
 //!   - #1 (Milestone 1)
+//!   - #8 (Milestone 2)
 //!
 //! Related ADR:
 //!   - ADR-0002 (Storage immutable content-addressed)
 //!   - ADR-0003 (Arsitektur 7-layer)
+
+#[path = "codec/mod.rs"]
+pub mod codec;
 
 #[path = "entities/mod.rs"]
 pub mod entities;
