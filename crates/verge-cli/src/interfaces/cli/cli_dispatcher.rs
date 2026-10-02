@@ -28,6 +28,7 @@
 use crate::config::cli_usage::{USAGE, VERSION};
 use crate::interfaces::cli::commands::branches::manage_branches::run_branch;
 use crate::interfaces::cli::commands::init_repository::run_init;
+use crate::interfaces::cli::commands::merging::merge_tables::run_merge;
 use crate::interfaces::cli::commands::table_versioning::queries::diff_tables::run_diff;
 use crate::interfaces::cli::commands::table_versioning::queries::read_history::run_log;
 use crate::interfaces::cli::commands::table_versioning::queries::read_snapshot::run_show;
@@ -56,6 +57,7 @@ pub fn dispatch(args: &[String]) -> Result<()> {
         Some("show") => run_show(&args[1..]),
         Some("diff") => run_diff(&args[1..]),
         Some("branch") => run_branch(&args[1..]),
+        Some("merge") => run_merge(&args[1..]),
         Some("--help" | "-h" | "help") | None => {
             print!("{USAGE}");
             Ok(())

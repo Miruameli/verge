@@ -21,7 +21,7 @@
 //!   - ADR-0007 (Branch sebagai pointer dan merge tiga arah)
 //!   - ADR-0003 (Arsitektur 7-layer)
 
-use verge_core::application::version_control::dtos::branch_list::BranchList;
+use verge_core::application::version_control::dtos::branching::branch_list::BranchList;
 use verge_core::application::version_control::use_cases::branching::create_branch::{
     create_branch, CreateBranchInput,
 };

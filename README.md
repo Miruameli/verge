@@ -26,7 +26,7 @@ berfungsi hari ini:
 | Riwayat commit                | Selesai — `verge log`                                |
 | Time-travel read              | Selesai — `verge show <commit>`                      |
 | Row-level diff                | Selesai — `verge diff <FROM>..<TO>`                  |
-| 3-way merge                   | Rencana — M4                                          |
+| 3-way merge                   | Selesai — `verge merge`                               |
 | SQL + ekstensi Verge          | Rencana — M5                                          |
 
 Rilis terbaru: [`v0.2.0`](https://github.com/Miruameli/verge/releases/tag/v0.2.0) —
@@ -91,6 +91,22 @@ $ verge branch list
 Membuat branch tidak menambah blok data sama sekali: hanya satu berkas pointer
 di `.verge/refs/heads/` yang ditulis. Menghapus branch hanya menghapus pointer,
 blok dan commit tetap bisa dibaca lewat identifier-nya.
+
+`verge merge` menggabungkan branch memakai merge tiga arah:
+
+```
+$ verge branch create eksperimen && verge branch switch eksperimen
+$ # ... commit berbeda di eksperimen ...
+$ verge branch switch main
+$ # ... commit berbeda di main ...
+$ verge merge eksperimen --table users --author ana
+merged eksperimen into main at 09e000a35de0 (4 rows, strategy manual)
+```
+
+Baris yang hanya berubah di satu sisi langsung diambil dari sisi itu. Baris yang
+diubah kedua sisi dengan nilai berbeda menjadi konflik; strategi `manual`
+mencetak ketiga sisi dan membatalkan merge, sedangkan `ours`, `theirs`, dan
+`last-write-wins` menyelesaikannya.
 
 `verge diff` menampilkan perubahan per baris dengan urutan stabil:
 

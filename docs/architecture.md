@@ -52,10 +52,12 @@ menyentuh logika bisnis.
 | `domain/tree/`                        | `TableRows`, codec node, builder, reader, dan diff     |
 | `domain/tree/nodes/`                  | `TreeNode` (header, daun, internal) dan codec-nya     |
 | `domain/commit/value-objects/`        | `CommitId`, `Ref`, dan kebijakan nama branch            |
+| `domain/merge/`                       | Strategi resolusi, merge base, dan gabungan baris       |
 | `domain/storage/ports/`               | `Store`, `BlockStoreFactory`, `MetadataWriter`         |
 | `application/repository-bootstrap/`   | Use case pembuatan repository                          |
 | `application/version-control/`        | Use case import, commit, log, snapshot, dan diff      |
 | `application/version-control/use-cases/branching/` | Use case create, switch, list, delete branch |
+| `application/version-control/use-cases/merging/`   | Use case merge: baca sisi, tulis commit merge          |
 | `application/version-control/tests/`  | Test lintas use case, termasuk resolusi revisi        |
 | `infrastructure/storage/file-system/` | `FileBlockStore`, factory, penulis metadata lokal       |
 | `infrastructure/commit/file-system/`  | Penyimpanan objek commit dan pointer branch             |

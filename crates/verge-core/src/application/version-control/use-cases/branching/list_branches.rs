@@ -20,7 +20,7 @@
 //! Related ADR:
 //!   - ADR-0007 (Branch sebagai pointer dan merge tiga arah)
 
-use crate::application::version_control::dtos::branch_list::{BranchInfo, BranchList};
+use crate::application::version_control::dtos::branching::branch_list::{BranchInfo, BranchList};
 use crate::domain::commit::repositories::ports::ref_pointer::RefPointer;
 use crate::shared::kernel::result::Result;
 

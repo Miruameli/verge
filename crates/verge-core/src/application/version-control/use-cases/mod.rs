@@ -30,6 +30,7 @@
 mod tests;
 
 pub mod branching;
+pub mod merging;
 
 mod recording;
 
