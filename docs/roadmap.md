@@ -10,15 +10,19 @@ Target bersifat perkiraan dan dapat berubah; perubahan besar perlu ADR baru.
 - `verge init` untuk membuat repository.
 - Quality gate penuh: format, lint, test, audit dependensi, deteksi secret.
 
-## M2 — Tree data dan snapshot tabel
+## M2 — Versioning data tabel (selesai)
+
+- Isi tabel disimpan sebagai blok content-addressed; pointer `tables/<nama>/working`
+  hanya menyimpan digest sehingga data tidak pernah ada di dua tempat.
+- Commit dan pointer branch disimpan sebagai blok yang diverifikasi ulang saat
+  dibaca; byte yang dimanipulasi ditolak.
+- `verge import`, `verge commit`, `verge log`, dan `verge show` untuk time-travel read.
+- Batasan yang diterima dan dicatat di ADR-0005: satu commit menyimpan satu blok
+  penuh per tabel; deduplikasi per baris menunggu prolly tree.
+
+## M3 — Prolly tree dan diff
 
 - Prolly tree untuk baris tabel terurut dan deterministik.
-- Pembuatan snapshot tree dari sekumpulan tabel.
-- Perintah `verge commit` dan `verge log`.
-- Penyimpanan dan pembacaan refs (`refs/heads`, `refs/tags`) dari disk.
-
-## M3 — Diff
-
 - Diff row-level dan column-level antar dua commit.
 - `verge diff <ref-a>..<ref-b>` dengan output stabil yang bisa diuji.
 

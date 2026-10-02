@@ -45,6 +45,8 @@ pub mod shared;
 
 pub use domain::commit::entities::commit::Commit;
 pub use domain::commit::repositories::commit_graph::CommitGraph;
+pub use domain::commit::repositories::ports::commit_repository::CommitRepository;
+pub use domain::commit::repositories::ports::ref_pointer::RefPointer;
 pub use domain::commit::value_objects::commit_id::CommitId;
 pub use domain::commit::value_objects::commit_ref::Ref;
 pub use domain::ident::value_objects::digest::Digest;
@@ -53,6 +55,8 @@ pub use domain::storage::ports::block_store_factory::BlockStoreFactory;
 pub use domain::storage::ports::metadata_writer::MetadataWriter;
 pub use domain::storage::value_objects::block_id::BlockId;
 pub use domain::storage::value_objects::put_outcome::PutOutcome;
+pub use domain::table::ports::table_workspace::TableWorkspace;
+pub use domain::table::value_objects::table_name::TableName;
 pub use infrastructure::storage::file_system::file_block_store::FileBlockStore;
 pub use infrastructure::storage::file_system::file_store_factory::FileStoreFactory;
 pub use infrastructure::storage::file_system::local_file_system::LocalFileSystem;

@@ -22,12 +22,19 @@
 use super::commit::Commit;
 use crate::domain::commit::value_objects::commit_id::CommitId;
 use crate::domain::ident::value_objects::digest::Digest;
+use crate::domain::table::value_objects::table_name::TableName;
+
+/// Nama tabel standar untuk seluruh test yang tidak cares dengan tabel.
+fn table() -> TableName {
+    TableName::parse("users").expect("nama tabel test valid")
+}
 
 /// Membuat commit dengan parameter yang bisa ditimpa per test.
 fn commit(message: &str, parents: Vec<CommitId>) -> Commit {
     Commit::new(
         parents,
         Digest::of(b"tree"),
+        &table(),
         "verge <verge@example.com>",
         message,
         1_760_000_000_000,
@@ -52,8 +59,8 @@ fn encoding_deterministik_antar_panggilan() {
 fn prefiks_panjang_mencegah_kolisi_field() {
     // Tanpa prefiks panjang, author="ab"/message="c" dan author="a"/
     // message="bc" akan menghasilkan byte yang sama.
-    let left = Commit::new(vec![], Digest::of(b"tree"), "ab", "c", 0);
-    let right = Commit::new(vec![], Digest::of(b"tree"), "a", "bc", 0);
+    let left = Commit::new(vec![], Digest::of(b"tree"), &table(), "ab", "c", 0);
+    let right = Commit::new(vec![], Digest::of(b"tree"), &table(), "a", "bc", 0);
     assert_ne!(left.id(), right.id(), "field berbeda harus berbeda id");
 }
 
@@ -69,6 +76,7 @@ fn summary_mengambil_baris_pertama_pesan() {
     let commit = Commit::new(
         vec![],
         Digest::of(b"tree"),
+        &table(),
         "author",
         "fix: something\n\nParagraf penjelasan.",
         0,

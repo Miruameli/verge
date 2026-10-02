@@ -12,11 +12,16 @@
 //!
 //! Dependencies:
 //!   - `init_repository.rs`
+//!   - `table-versioning/`
 //!
 //! Related issues:
 //!   - #1 (Milestone 1)
+//!   - #8 (Milestone 2)
 //!
 //! Related ADR:
 //!   - ADR-0003 (Arsitektur 7-layer)
 
 pub mod init_repository;
+
+#[path = "table-versioning/mod.rs"]
+pub mod table_versioning;

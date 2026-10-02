@@ -15,9 +15,13 @@
 //!
 //! Related issues:
 //!   - #1 (Milestone 1)
+//!   - #8 (Milestone 2)
 //!
 //! Related ADR:
 //!   - ADR-0003 (Arsitektur 7-layer)
 
 #[path = "repository-bootstrap/mod.rs"]
 pub mod repository_bootstrap;
+
+#[path = "version-control/mod.rs"]
+pub mod version_control;

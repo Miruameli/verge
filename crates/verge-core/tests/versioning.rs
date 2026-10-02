@@ -27,7 +27,12 @@ use verge_core::application::repository_bootstrap::use_cases::initialize_reposit
 use verge_core::config::repository_layout::RepositoryLayout;
 use verge_core::infrastructure::storage::file_system::file_store_factory::FileStoreFactory;
 use verge_core::infrastructure::storage::file_system::local_file_system::LocalFileSystem;
-use verge_core::{Commit, CommitGraph, FileBlockStore, Ref, Store};
+use verge_core::{Commit, CommitGraph, FileBlockStore, Ref, Store, TableName};
+
+/// Nama tabel standar untuk test yang tidak memedulikan tabel.
+fn table() -> TableName {
+    TableName::parse("users").expect("nama tabel test valid")
+}
 
 /// Direktori sementara yang unik untuk satu pengujian.
 fn scratch(name: &str) -> PathBuf {
@@ -44,6 +49,7 @@ fn commit(tree: verge_core::BlockId, parents: Vec<verge_core::CommitId>, message
     Commit::new(
         parents,
         tree,
+        &table(),
         "verge <verge@example.com>",
         message,
         1_760_000_000_000,

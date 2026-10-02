@@ -11,13 +11,16 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - `commit_graph.rs`, `commit_history.rs`
+//!   - `commit_graph.rs`, `commit_history.rs`, `ports/mod.rs`
 //!
 //! Related issues:
 //!   - #1 (Milestone 1)
 //!
 //! Related ADR:
 //!   - ADR-0002 (Storage immutable content-addressed)
+
+#[path = "ports/mod.rs"]
+pub mod ports;
 
 #[cfg(test)]
 mod commit_graph_tests;

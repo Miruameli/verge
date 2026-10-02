@@ -1,7 +1,7 @@
 //! File: `commit_encoding.rs`
 //!
 //! Deskripsi: Encoding kanonik byte untuk entitas commit.
-//! Layer: domain/commit/entities
+//! Layer: domain/commit/codec
 //! Tanggung jawab: Menghasilkan byte deterministik yang di-hash jadi `CommitId`.
 //!
 //! Author: Miruameli
@@ -11,10 +11,10 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - domain/ident/value-objects/digest.rs
+//!   - `domain/ident/value-objects/digest.rs`
 //!
 //! Related issues:
-//!   - #1 (Milestone 1)
+//!   - #8 (Milestone 2)
 //!
 //! Related ADR:
 //!   - ADR-0002 (Storage immutable content-addressed)
@@ -23,7 +23,7 @@ use crate::domain::ident::value_objects::digest::{Digest, DIGEST_LEN};
 
 /// Prefix domain-separation agar digest commit tidak pernah sama dengan digest
 /// blok yang kebetulan berisi byte serupa.
-const ENCODING_TAG: &[u8] = b"verge-commit-v1";
+pub(crate) const ENCODING_TAG: &[u8] = b"verge-commit-v1";
 
 /// Bagian dari commit yang ikut di-encode.
 #[derive(Debug)]
@@ -32,6 +32,8 @@ pub struct CommitFields<'a> {
     pub parents: &'a [Digest],
     /// Root block snapshot yang ditunjuk commit.
     pub tree: Digest,
+    /// Nama tabel yang di-versioning commit ini.
+    pub table: &'a str,
     /// Author yang tercatat pada commit.
     pub author: &'a str,
     /// Pesan commit lengkap.
@@ -55,6 +57,7 @@ pub fn encode(fields: &CommitFields<'_>) -> Vec<u8> {
         + 8
         + fields.parents.len() * DIGEST_LEN
         + DIGEST_LEN
+        + fields.table.len()
         + fields.author.len()
         + fields.message.len()
         + 8;
@@ -65,6 +68,7 @@ pub fn encode(fields: &CommitFields<'_>) -> Vec<u8> {
         out.extend_from_slice(parent.as_bytes());
     }
     out.extend_from_slice(fields.tree.as_bytes());
+    push_field(&mut out, fields.table.as_bytes());
     push_field(&mut out, fields.author.as_bytes());
     push_field(&mut out, fields.message.as_bytes());
     out.extend_from_slice(&fields.timestamp_unix_ms.to_le_bytes());

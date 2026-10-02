@@ -6,9 +6,36 @@ dan versioning mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-## [0.1.0] — 2026-10-03
+## [0.1.0] — belum ada tag rilis
+
+Belum ada tag: kebijakan rilis melarang rilis tanpa binary lintas platform,
+checksum SHA256, dan SBOM (issue #6). Bagian di bawah adalah perubahan yang akan
+ikut dalam `v0.1.0`.
 
 ### Added
+
+- Subdomain `table`: `TableName` tervalidasi (allowlist `[a-z0-9_-]`, maksimal 64
+  karakter) sehingga nama tabel tidak dapat keluar dari `.verge`.
+- Codec commit dua arah: `commit_encoding` menulis byte kanonik, `commit_decoding`
+  memverifikasi ulang digest dan menolak byte yang dimanipulasi di disk.
+- Port `CommitRepository`, `RefPointer`, `TableWorkspace`, dan `TableSource`.
+- Use case `stage_table`, `record_commit`, `read_history`, dan `read_snapshot`.
+- Adapter filesystem: `FileCommitRepository`, `FileRefPointer`,
+  `FileTableWorkspace`, `FileTableSource`, dan jam sistem `now_unix_ms`.
+- CLI `verge import`, `verge commit`, `verge log`, dan `verge show` dengan
+  time-travel read pada commit lama.
+- ADR-0005: tabel disimpan sebagai blok content-addressed beserta batasan yang
+  diterima sebelum prolly tree hadir.
+
+### Changed
+
+- `Commit` kini membawa nama tabel sehingga riwayat dapat disaring per tabel.
+- Field accessor commit dipisah ke `commit_fields.rs` agar berkas tetap di bawah
+  batas 150 baris tanpa melonggarkan visibilitas.
+
+### Milestone 1 — fondasi storage dan versioning
+
+Masuk lebih awal pada versi yang sama:
 
 - Workspace Rust dua crate: `verge-core` (engine) dan `verge-cli` (binary `verge`).
 - Content-addressed block store (`FileBlockStore`) dengan deduplikasi, layout

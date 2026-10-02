@@ -1,8 +1,8 @@
 //! File: commit.rs
 //!
-//! Deskripsi: Entitas `Commit` — unit of versioning Verge.
+//! Deskripsi: Entitas commit sebagai snapshot versioned yang immutable.
 //! Layer: domain/commit/entities
-//! Tanggung jawab: Menyimpan snapshot, parent, dan metadata commit secara immutable.
+//! Tanggung jawab: Menyusun commit dan menentukan identifier-nya.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
@@ -11,21 +11,27 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - `domain/commit/entities/commit_encoding.rs`
-//!   - domain/ident/value-objects/digest.rs
+//!   - `domain/commit/codec/commit_encoding.rs`
+//!   - `domain/table/value-objects/table_name.rs`
 //!
 //! Related issues:
-//!   - #1 (Milestone 1)
+//!   - #8 (Milestone 2)
 //!
 //! Related ADR:
 //!   - ADR-0002 (Storage immutable content-addressed)
 
-use crate::domain::commit::entities::commit_encoding::{encode, CommitFields};
+use crate::domain::commit::codec::commit_encoding::{encode, CommitFields};
 use crate::domain::commit::value_objects::commit_id::CommitId;
 use crate::domain::ident::value_objects::digest::Digest;
 use crate::domain::storage::value_objects::block_id::BlockId;
+use crate::domain::table::value_objects::table_name::TableName;
 
-/// Snapshot versioned yang immutable beserta parent dan metadatanya.
+// Pembaca field hidup di modul anak agar berkas ini tetap di bawah batas 150 baris
+// tanpa melonggarkan visibilitas field yang sengaja private.
+#[path = "commit_fields.rs"]
+mod fields;
+
+/// Snapshot versioned yang immutable beserta parent, tabel, dan metadatanya.
 ///
 /// Invariants:
 /// - `id` selalu sama dengan digest dari [`Commit::encode`] sehingga commit
@@ -41,6 +47,8 @@ pub struct Commit {
     parents: Vec<CommitId>,
     /// Root block snapshot yang ditunjuk commit ini.
     tree: BlockId,
+    /// Nama tabel yang di-versioning commit ini.
+    table: TableName,
     /// Author yang tercatat.
     author: String,
     /// Pesan commit lengkap.
@@ -54,7 +62,8 @@ impl Commit {
     ///
     /// Args:
     /// - parents — daftar parent; elemen pertama adalah branch asal commit.
-    /// - tree — root block snapshot.
+    /// - tree — root block snapshot tabel.
+    /// - table — tabel yang di-versioning.
     /// - author, message — metadata commit.
     /// - `timestamp_unix_ms` — waktu commit dalam milidetik sejak epoch Unix.
     ///
@@ -63,9 +72,10 @@ impl Commit {
     ///
     /// Example:
     /// ```
-    /// use verge_core::{Commit, Digest};
+    /// use verge_core::{Commit, Digest, TableName};
     ///
-    /// let commit = Commit::new(vec![], Digest::of(b"tree"), "ana", "feat: seed", 0);
+    /// let table = TableName::parse("users").unwrap();
+    /// let commit = Commit::new(vec![], Digest::of(b"tree"), &table, "ana", "feat: seed", 0);
     /// assert_eq!(commit.id(), Digest::of(&commit.encode()));
     /// assert_eq!(commit.summary(), "feat: seed");
     /// ```
@@ -73,6 +83,7 @@ impl Commit {
     pub fn new(
         parents: Vec<CommitId>,
         tree: BlockId,
+        table: &TableName,
         author: impl Into<String>,
         message: impl Into<String>,
         timestamp_unix_ms: i64,
@@ -81,6 +92,7 @@ impl Commit {
             id: CommitId::zeroed(),
             parents,
             tree,
+            table: table.clone(),
             author: author.into(),
             message: message.into(),
             timestamp_unix_ms,
@@ -95,42 +107,6 @@ impl Commit {
         self.id
     }
 
-    /// Mengembalikan daftar parent commit.
-    #[must_use]
-    pub fn parents(&self) -> &[CommitId] {
-        &self.parents
-    }
-
-    /// Mengembalikan root block snapshot.
-    #[must_use]
-    pub fn tree(&self) -> BlockId {
-        self.tree
-    }
-
-    /// Mengembalikan author commit.
-    #[must_use]
-    pub fn author(&self) -> &str {
-        &self.author
-    }
-
-    /// Mengembalikan pesan commit lengkap.
-    #[must_use]
-    pub fn message(&self) -> &str {
-        &self.message
-    }
-
-    /// Mengembalikan baris pertama pesan commit.
-    #[must_use]
-    pub fn summary(&self) -> &str {
-        self.message.lines().next().unwrap_or_default()
-    }
-
-    /// Mengembalikan waktu commit dalam milidetik sejak epoch Unix.
-    #[must_use]
-    pub fn timestamp_unix_ms(&self) -> i64 {
-        self.timestamp_unix_ms
-    }
-
     /// Mengembalikan encoding kanonik commit.
     ///
     /// Returns:
@@ -142,6 +118,7 @@ impl Commit {
         encode(&CommitFields {
             parents: &self.parents,
             tree: self.tree,
+            table: self.table.as_str(),
             author: &self.author,
             message: &self.message,
             timestamp_unix_ms: self.timestamp_unix_ms,
