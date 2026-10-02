@@ -16,6 +16,7 @@
 //!
 //! Related issues:
 //!   - #8 (Milestone 2)
+//!   - #18 (Milestone 3)
 //!
 //! Related ADR:
 //!   - ADR-0005 (Tabel sebagai blok content-addressed)
@@ -41,7 +42,7 @@ use crate::shared::kernel::result::Result;
 /// - args — argumen setelah nama perintah.
 ///
 /// Returns:
-/// - Ok(()) — data tabel tersimpan sebagai blok dan ringkasannya dicetak.
+/// - Ok(()) — data tabel tersimpan sebagai tree dan ringkasannya dicetak.
 ///
 /// # Errors
 ///
@@ -58,7 +59,7 @@ pub fn run_import(args: &[String]) -> Result<()> {
 
     let layout = workspace_layout()?;
     let store = object_store(&layout)?;
-    let workspace = FileTableWorkspace::new(layout, store);
+    let workspace = FileTableWorkspace::new(layout);
     let staged = stage_table(
         &StageTableInput {
             table,
@@ -66,13 +67,15 @@ pub fn run_import(args: &[String]) -> Result<()> {
         },
         &FileTableSource,
         &workspace,
+        &store,
     )?;
 
     println!(
-        "staged table `{}` ({} bytes) as block {}",
+        "staged table `{}` ({} rows, {} bytes) as tree {}",
         staged.table,
+        staged.rows,
         staged.bytes,
-        short_id(&staged.block)
+        short_id(&staged.root)
     );
     Ok(())
 }

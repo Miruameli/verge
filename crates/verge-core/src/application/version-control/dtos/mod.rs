@@ -11,15 +11,23 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - `history_entry.rs`, `recorded_commit.rs`, `snapshot_content.rs`, `staged_table.rs`
+//!   - `commits/history_entry.rs`, `commits/recorded_commit.rs`
+//!   - `snapshot_content.rs`
+//!   - `staged_table.rs`
+//!   - `table_diff_report.rs`
 //!
 //! Related issues:
-//!   - #8 (Milestone 2)
+//!   - #18 (Milestone 3)
 //!
 //! Related ADR:
-//!   - ADR-0005 (Tabel sebagai blok content-addressed)
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
-pub mod history_entry;
-pub mod recorded_commit;
+mod commits;
+
 pub mod snapshot_content;
 pub mod staged_table;
+pub mod table_diff_report;
+
+// DTO commit dikelompokkan agar folder ini tetap di bawah batas lima berkas;
+// path publiknya sengaja tidak berubah lewat re-export ini.
+pub use commits::{history_entry, recorded_commit};

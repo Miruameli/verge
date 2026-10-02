@@ -1,8 +1,8 @@
 //! File: `read_snapshot.rs`
 //!
 //! Deskripsi: Use case pembacaan isi tabel pada commit tertentu.
-//! Layer: application/version-control/use-cases/read-snapshot
-//! Tanggung jawab: Menyelesaikan referensi lalu mengembalikan byte tabel.
+//! Layer: application/version-control/use-cases/reading
+//! Tanggung jawab: Menyelesaikan referensi lalu menyusun ulang isi tabel.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
@@ -12,22 +12,25 @@
 //!
 //! Dependencies:
 //!   - `application/version-control/dtos/snapshot_content.rs`
+//!   - `application/version-control/revision_resolver.rs`
 //!   - `domain/commit/repositories/ports/commit_repository.rs`, `ref_pointer.rs`
 //!   - `domain/storage/ports/block_store.rs`
+//!   - `domain/tree/table_reader.rs`
 //!
 //! Related issues:
 //!   - #8 (Milestone 2)
+//!   - #18 (Milestone 3)
 //!
 //! Related ADR:
-//!   - ADR-0005 (Tabel sebagai blok content-addressed)
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 use crate::application::version_control::dtos::snapshot_content::SnapshotContent;
+use crate::application::version_control::revision_resolver::resolve_revision;
 use crate::domain::commit::repositories::ports::commit_repository::CommitRepository;
 use crate::domain::commit::repositories::ports::ref_pointer::RefPointer;
-use crate::domain::commit::value_objects::commit_id::CommitId;
-use crate::domain::ident::value_objects::digest_text::parse_hex;
 use crate::domain::storage::ports::block_store::Store;
 use crate::domain::table::value_objects::table_name::TableName;
+use crate::domain::tree::table_reader::read_table;
 use crate::shared::exceptions::verge_error::VergeError;
 use crate::shared::kernel::result::Result;
 
@@ -53,8 +56,8 @@ pub struct ReadSnapshotInput {
 ///
 /// # Errors
 ///
-/// Mengembalikan [`InvalidRef`](VergeError::InvalidRef) bila revisi tidak dapat
-/// diselesaikan atau menunjuk commit untuk tabel lain, serta
+/// Revisi yang tidak dikenal, ambigu, atau menunjuk commit untuk tabel lain
+/// menghasilkan [`InvalidRef`](VergeError::InvalidRef), dan
 /// [`BlockNotFound`](VergeError::BlockNotFound) bila blok tabel hilang.
 ///
 /// Example:
@@ -84,27 +87,14 @@ pub fn read_snapshot(
     commits: &dyn CommitRepository,
     store: &dyn Store,
 ) -> Result<SnapshotContent> {
-    let id = resolve_revision(input, refs)?;
+    let id = resolve_revision(&input.revision, refs, commits)?;
     let commit = commits.load(&id)?;
     if commit.table() != &input.table {
         return Err(VergeError::InvalidRef(input.revision.clone()));
     }
-    let bytes = store.get(&commit.tree())?;
-    Ok(SnapshotContent { commit: id, bytes })
-}
-
-/// Menyelesaikan `HEAD`, nama branch, atau hex `CommitId` menjadi identifier.
-fn resolve_revision(input: &ReadSnapshotInput, refs: &dyn RefPointer) -> Result<CommitId> {
-    let revision = input.revision.trim();
-    if revision == "HEAD" {
-        let branch = refs.head_branch()?;
-        return refs
-            .resolve(&branch)?
-            .ok_or_else(|| VergeError::HeadUnborn(branch.clone()));
-    }
-    if let Ok(id) = parse_hex(revision) {
-        return Ok(id);
-    }
-    refs.resolve(revision)?
-        .ok_or_else(|| VergeError::InvalidRef(input.revision.clone()))
+    let rows = read_table(commit.tree(), store)?;
+    Ok(SnapshotContent {
+        commit: id,
+        bytes: rows.to_bytes(),
+    })
 }

@@ -2,7 +2,7 @@
 //!
 //! Deskripsi: Perintah CLI versioning tabel.
 //! Layer: interfaces/cli/commands/table-versioning
-//! Tanggung jawab: Deklarasikan `import`/`commit`/`log`/`show` dan helper argv.
+//! Tanggung jawab: Mendeklarasikan perintah dan helper argv bersama.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
@@ -11,13 +11,15 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - `stage_table.rs`, `record_commit.rs`, `read_history.rs`, `read_snapshot.rs`
+//!   - `queries/`, `record_commit.rs`, `stage_table.rs`
 //!
 //! Related issues:
 //!   - #8 (Milestone 2)
+//!   - #18 (Milestone 3)
 //!
 //! Related ADR:
 //!   - ADR-0005 (Tabel sebagai blok content-addressed)
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 use std::path::PathBuf;
 
@@ -34,8 +36,7 @@ use verge_core::shared::exceptions::verge_error::VergeError;
 use crate::config::cli_usage::USAGE;
 use crate::shared::kernel::result::Result;
 
-pub mod read_history;
-pub mod read_snapshot;
+pub mod queries;
 pub mod record_commit;
 pub mod stage_table;
 

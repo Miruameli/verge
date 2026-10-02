@@ -1,8 +1,8 @@
 //! File: `stage_table.rs`
 //!
 //! Deskripsi: Use case penyimpanan data kerja tabel.
-//! Layer: application/version-control/use-cases/stage-table
-//! Tanggung jawab: Membaca sumber data lalu menyimpannya sebagai blok.
+//! Layer: application/version-control/use-cases/staging
+//! Tanggung jawab: Membaca sumber data lalu menyimpannya sebagai prolly tree.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
@@ -13,19 +13,25 @@
 //! Dependencies:
 //!   - `application/version-control/dtos/staged_table.rs`
 //!   - `domain/table/ports/table_source.rs`, `table_workspace.rs`
+//!   - `domain/storage/ports/block_store.rs`
+//!   - `domain/tree/table_codec.rs`, `tree_builder.rs`, `nodes/tree_node_codec.rs`
 //!
 //! Related issues:
-//!   - #8 (Milestone 2)
+//!   - #18 (Milestone 3)
 //!
 //! Related ADR:
-//!   - ADR-0005 (Tabel sebagai blok content-addressed)
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 use std::path::PathBuf;
 
 use crate::application::version_control::dtos::staged_table::StagedTable;
+use crate::domain::storage::ports::block_store::Store;
 use crate::domain::table::ports::table_source::{TableSource, MAX_TABLE_BYTES};
 use crate::domain::table::ports::table_workspace::TableWorkspace;
 use crate::domain::table::value_objects::table_name::TableName;
+use crate::domain::tree::nodes::tree_node_codec::encode;
+use crate::domain::tree::table_codec::TableRows;
+use crate::domain::tree::tree_builder::build_plan;
 use crate::shared::exceptions::verge_error::VergeError;
 use crate::shared::kernel::result::Result;
 
@@ -38,21 +44,28 @@ pub struct StageTableInput {
     pub source: PathBuf,
 }
 
-/// Menyimpan isi tabel ke data kerja sebagai blok content-addressed.
+/// Menyimpan isi tabel ke data kerja sebagai prolly tree.
+///
+/// KONTEKS: node ditulis ke `store` bukan ke `workspace` karena port data kerja
+/// hanya memegang pointer; KENAPA: baris yang tidak berubah menghasilkan node
+/// dengan digest sama sehingga `Store::put` mendedupinya tanpa kerja tambahan.
 ///
 /// Args:
 /// - input — tabel tujuan dan sumber datanya.
 /// - source — port pembacaan data.
-/// - workspace — port penyimpanan data kerja.
+/// - workspace — port penyimpanan pointer data kerja.
+/// - store — port object store blok.
 ///
 /// Returns:
-/// - Ok(StagedTable) — blok data kerja beserta ukuran datanya.
+/// - Ok(StagedTable) — akar tree data kerja beserta ukuran datanya.
 ///
 /// # Errors
 ///
-/// Mengembalikan error I/O bila sumber tidak dapat dibaca atau blok tidak dapat
-/// ditulis, serta [`InvalidCommitField`](VergeError::InvalidCommitField) bila
-/// data melebihi [`MAX_TABLE_BYTES`] sehingga proses kehabisan memori.
+/// Mengembalikan [`InvalidCommitField`](VergeError::InvalidCommitField) bila
+/// data melebihi [`MAX_TABLE_BYTES`] sehingga proses kehabisan memori,
+/// [`MalformedTable`](VergeError::MalformedTable) atau
+/// [`EmptyTable`](VergeError::EmptyTable) bila isi tabel tidak dapat dijadikan
+/// tree, serta error I/O dari port.
 ///
 /// Example:
 /// ```no_run
@@ -69,18 +82,19 @@ pub struct StageTableInput {
 ///
 /// let layout = RepositoryLayout::under("/tmp/verge-doc");
 /// let store = FileBlockStore::open(layout.objects()).expect("open store");
-/// let workspace = FileTableWorkspace::new(layout, store);
+/// let workspace = FileTableWorkspace::new(layout);
 /// let input = StageTableInput {
 ///     table: TableName::parse("users").expect("valid table"),
 ///     source: PathBuf::from("users.csv"),
 /// };
-/// let staged = stage_table(&input, &FileTableSource, &workspace).expect("stage table");
+/// let staged = stage_table(&input, &FileTableSource, &workspace, &store).expect("stage table");
 /// assert!(staged.bytes > 0);
 /// ```
 pub fn stage_table(
     input: &StageTableInput,
     source: &dyn TableSource,
     workspace: &dyn TableWorkspace,
+    store: &dyn Store,
 ) -> Result<StagedTable> {
     let data = source.read_all(&input.source)?;
     if data.len() > MAX_TABLE_BYTES {
@@ -89,10 +103,19 @@ pub fn stage_table(
             detail: "exceeds the maximum table size",
         });
     }
-    let block = workspace.stage(&input.table, &data)?;
+    let rows = TableRows::parse(&data)?;
+    let plan = build_plan(&rows)?;
+    let mut bytes = 0;
+    for node in &plan.nodes {
+        let encoded = encode(node);
+        store.put(&encoded)?;
+        bytes += encoded.len();
+    }
+    workspace.stage(&input.table, plan.root)?;
     Ok(StagedTable {
         table: input.table.clone(),
-        block,
-        bytes: data.len(),
+        root: plan.root,
+        bytes,
+        rows: rows.len(),
     })
 }

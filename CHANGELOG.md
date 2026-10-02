@@ -6,6 +6,16 @@ dan versioning mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- CLI `verge diff <FROM>..<TO> --table <NAME>` yang mencetak perubahan per baris
+  (`+` tambah, `-` hapus, `~` ubah) dan `no changes` bila tabel identik.
+
+### Changed
+
+- Data kerja tabel (`tables/<nama>/working`) kini menunjuk digest akar prolly
+  tree, bukan blok isi tabel; `FileTableWorkspace::new` hanya menerima layout.
+
 ## [0.1.0] — 2026-10-03
 
 Rilis pertama: binary untuk linux (x86_64, aarch64), macOS (arm64), dan Windows

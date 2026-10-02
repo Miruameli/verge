@@ -23,8 +23,14 @@
 #[path = "dtos/mod.rs"]
 pub mod dtos;
 
+pub mod revision_resolver;
+
 #[path = "fakes/mod.rs"]
 pub mod fakes;
 
 #[path = "use-cases/mod.rs"]
 pub mod use_cases;
+
+#[cfg(test)]
+#[path = "tests/mod.rs"]
+mod tests;

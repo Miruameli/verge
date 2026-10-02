@@ -85,7 +85,7 @@ pub fn harness(workspace: &Path) -> Harness {
     let store = FileBlockStore::open(layout.objects()).expect("buka block store");
     Harness {
         layout: layout.clone(),
-        workspace_port: FileTableWorkspace::new(layout.clone(), store.clone()),
+        workspace_port: FileTableWorkspace::new(layout.clone()),
         commits: FileCommitRepository::new(store.clone()),
         refs: FileRefPointer::new(layout),
         store,

@@ -26,3 +26,5 @@ pub mod ident;
 pub mod storage;
 #[path = "table/mod.rs"]
 pub mod table;
+#[path = "tree/mod.rs"]
+pub mod tree;

@@ -16,6 +16,7 @@
 //! Related issues:
 //!   - #1 (Milestone 1)
 //!   - #8 (Milestone 2)
+//!   - #18 (Milestone 3)
 //!
 //! Related ADR:
 //!   - ADR-0003 (Arsitektur 7-layer)
@@ -34,6 +35,8 @@ Usage:
                  [--author <NAME>]               Default author comes from $VERGE_AUTHOR
   verge log [--table <NAME>] [--limit <N>]       Show commit history for a table (default: 20 entries)
   verge show <REVISION> --table <NAME>           Print a table's data at REVISION (HEAD, a commit id, or a branch)
+  verge diff <FROM>..<TO> --table <NAME>         Show row changes between two revisions of a table
+                                               (both sides accept HEAD, a branch, or a commit id)
   verge --help                                    Show this message
   verge --version                                 Show the version
 
@@ -42,4 +45,5 @@ Examples:
   verge commit --table users --message \"add users\" --author ana
   verge log --table users --limit 5
   verge show HEAD --table users > users-2026.csv
+  verge diff 67f9a3fa6f9a39b1fafe6fa621ab246b5367c2ea2bac05dbdab7f043e82ccfde..HEAD --table users
 ";

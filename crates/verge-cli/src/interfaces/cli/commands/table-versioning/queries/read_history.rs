@@ -1,7 +1,7 @@
 //! File: `read_history.rs`
 //!
 //! Deskripsi: Perintah `verge log`.
-//! Layer: interfaces/cli/commands/table-versioning
+//! Layer: interfaces/cli/commands/table-versioning/queries
 //! Tanggung jawab: Meminta riwayat commit lalu mencetaknya satu baris per entri.
 //!
 //! Author: Miruameli

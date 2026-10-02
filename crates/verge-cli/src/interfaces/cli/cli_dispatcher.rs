@@ -13,19 +13,21 @@
 //! Dependencies:
 //!   - `config/cli_usage.rs`
 //!   - `interfaces/cli/commands/init_repository.rs`
-//!   - `interfaces/cli/commands/table-versioning/*.rs`
+//!   - `interfaces/cli/commands/table-versioning/**`
 //!
 //! Related issues:
 //!   - #1 (Milestone 1)
 //!   - #8 (Milestone 2)
+//!   - #18 (Milestone 3)
 //!
 //! Related ADR:
 //!   - ADR-0003 (Arsitektur 7-layer)
 
 use crate::config::cli_usage::{USAGE, VERSION};
 use crate::interfaces::cli::commands::init_repository::run_init;
-use crate::interfaces::cli::commands::table_versioning::read_history::run_log;
-use crate::interfaces::cli::commands::table_versioning::read_snapshot::run_show;
+use crate::interfaces::cli::commands::table_versioning::queries::diff_tables::run_diff;
+use crate::interfaces::cli::commands::table_versioning::queries::read_history::run_log;
+use crate::interfaces::cli::commands::table_versioning::queries::read_snapshot::run_show;
 use crate::interfaces::cli::commands::table_versioning::record_commit::run_commit;
 use crate::interfaces::cli::commands::table_versioning::stage_table::run_import;
 use crate::shared::kernel::result::Result;
@@ -49,6 +51,7 @@ pub fn dispatch(args: &[String]) -> Result<()> {
         Some("commit") => run_commit(&args[1..]),
         Some("log") => run_log(&args[1..]),
         Some("show") => run_show(&args[1..]),
+        Some("diff") => run_diff(&args[1..]),
         Some("--help" | "-h" | "help") | None => {
             print!("{USAGE}");
             Ok(())
