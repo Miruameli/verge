@@ -61,7 +61,7 @@ pub fn run_commit(args: &[String]) -> Result<()> {
 
     let layout = workspace_layout()?;
     let store = object_store(&layout)?;
-    let workspace = FileTableWorkspace::new(layout.clone(), store.clone());
+    let workspace = FileTableWorkspace::new(layout.clone());
     let commits = FileCommitRepository::new(store);
     let refs = FileRefPointer::new(layout);
     let recorded = record_commit(

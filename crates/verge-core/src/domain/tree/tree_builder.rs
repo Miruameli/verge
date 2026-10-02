@@ -60,8 +60,9 @@ pub struct TreePlan {
 ///
 /// let rows = TableRows::parse(b"id,name\n1,ana\n2,budi\n").unwrap();
 /// let plan = build_plan(&rows).unwrap();
-/// assert_eq!(plan.leaf_ids.len(), 2);
-/// assert_eq!(plan.nodes.len(), 4, "header, dua daun, dan satu akar");
+/// // Dua baris kecil muat dalam satu daun: header, daun, lalu akar internal.
+/// assert_eq!(plan.leaf_ids.len(), 1);
+/// assert_eq!(plan.nodes.len(), 3);
 /// ```
 pub fn build_plan(table: &TableRows) -> Result<TreePlan> {
     let rows = table.rows();

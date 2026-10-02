@@ -102,7 +102,7 @@ fn argumen_tak_dikenal_menampilkan_panduan_lengkap() {
     );
     let stderr = verge_error(&dir, &["checkout", "main"]);
     assert!(stderr.contains("unknown command"), "{stderr}");
-    for command in ["init", "import", "commit", "log", "show"] {
+    for command in ["init", "import", "commit", "log", "show", "diff"] {
         assert!(stderr.contains(&format!("verge {command}")), "{stderr}");
     }
     drop(fs::remove_dir_all(&dir));

@@ -11,13 +11,15 @@
 //! Related issues: #18 (Milestone 3)
 //! Related ADR: ADR-0006 (Prolly tree untuk tabel)
 
-use crate::domain::tree::value_objects::row_key::RowKey;
+// Pembacaan baris dipisah ke modul anak agar berkas ini hanya menyisakan API publik.
+#[path = "table_codec_rows.rs"]
+mod rows;
+
 use crate::domain::tree::value_objects::table_row::TableRow;
-use crate::shared::exceptions::verge_error::VergeError;
 use crate::shared::kernel::result::Result;
 
-/// Pemisah kolom pada format tabel Verge.
-const SEPARATOR: u8 = b',';
+/// Pemisah kolom pada format tabel Verge; dipakai juga oleh parser baris.
+pub(super) const SEPARATOR: u8 = b',';
 
 /// Tabel yang sudah diurai menjadi baris terurut.
 ///
@@ -70,11 +72,11 @@ impl TableRows {
             if line.is_empty() {
                 continue;
             }
-            rows.push(parse_row(offset + 1, line)?);
+            rows.push(rows::parse_row(offset + 1, line)?);
         }
         Ok(Self {
             header,
-            rows: normalize(rows),
+            rows: rows::normalize(rows),
         })
     }
 
@@ -89,36 +91,6 @@ impl TableRows {
     #[must_use]
     pub fn from_parts(header: Vec<u8>, rows: Vec<TableRow>) -> Self {
         Self { header, rows }
-    }
-
-    /// Mengembalikan jumlah baris data.
-    #[must_use]
-    pub fn len(&self) -> usize {
-        self.rows.len()
-    }
-
-    /// Melaporkan apakah tabel tidak memiliki baris data.
-    #[must_use]
-    pub fn is_empty(&self) -> bool {
-        self.rows.is_empty()
-    }
-
-    /// Mengembalikan baris pada posisi tertentu.
-    #[must_use]
-    pub fn get(&self, index: usize) -> Option<&TableRow> {
-        self.rows.get(index)
-    }
-
-    /// Mengembalikan seluruh baris.
-    #[must_use]
-    pub fn rows(&self) -> &[TableRow] {
-        &self.rows
-    }
-
-    /// Mengembalikan header tabel apa adanya.
-    #[must_use]
-    pub fn header(&self) -> &[u8] {
-        &self.header
     }
 
     /// Menyusun isi tabel dari header dan baris, siap ditulis sebagai snapshot.
@@ -136,39 +108,4 @@ impl TableRows {
         }
         out
     }
-}
-
-/// Mengurutkan baris dan menghilangkan kunci ganda.
-fn normalize(rows: Vec<TableRow>) -> Vec<TableRow> {
-    let mut sorted: Vec<TableRow> = Vec::with_capacity(rows.len());
-    for row in rows {
-        match sorted.binary_search_by_key(&row.key(), |existing| &existing.key) {
-            Ok(position) => sorted[position] = row,
-            Err(position) => sorted.insert(position, row),
-        }
-    }
-    sorted
-}
-
-/// Mengurai satu baris menjadi kunci dan nilai.
-fn parse_row(line_number: usize, line: &[u8]) -> Result<TableRow> {
-    let Some(separator) = line.iter().position(|byte| *byte == SEPARATOR) else {
-        return Err(malformed(line_number, "row has no column separator"));
-    };
-    if separator == 0 {
-        return Err(malformed(line_number, "row key is empty"));
-    }
-    if line[separator..].iter().all(|byte| *byte == SEPARATOR) {
-        return Err(malformed(line_number, "row has no value column"));
-    }
-    let row = TableRow::new(
-        RowKey::new(line[..separator].to_vec()),
-        line[separator..].to_vec(),
-    );
-    row.ok_or_else(|| malformed(line_number, "row key is empty"))
-}
-
-/// Membangun error tabel dengan nomor baris dan alasan yang aman ditampilkan.
-fn malformed(line: usize, reason: &'static str) -> VergeError {
-    VergeError::MalformedTable { line, reason }
 }

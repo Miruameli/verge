@@ -1,15 +1,15 @@
 //! File: `version_control.rs`
 //!
-//! Deskripsi: Test integrasi alur versioning tabel.
+//! Deskripsi: Test integrasi alur versioning tabel di atas prolly tree.
 //! Layer: tests
-//! Tanggung jawab: Membuktikan import, commit, log, dan time-travel di disk nyata.
+//! Tanggung jawab: Membuktikan import, commit, log, snapshot, dan dedup di disk nyata.
 //!
 //! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
 //! Version: 0.1.0 · License: Apache-2.0
 //!
 //! Dependencies: `support/mod.rs`
-//! Related issues: #8 (Milestone 2)
-//! Related ADR: ADR-0005 (Tabel sebagai blok content-addressed)
+//! Related issues: #8 (Milestone 2), #18 (Milestone 3)
+//! Related ADR: ADR-0005 (blok content-addressed), ADR-0006 (prolly tree)
 
 mod support;
 
@@ -24,9 +24,26 @@ use verge_core::application::version_control::use_cases::read_history::{
 use verge_core::application::version_control::use_cases::stage_table::{
     stage_table, StageTableInput,
 };
+use verge_core::domain::storage::ports::block_store::Store;
 use verge_core::domain::table::ports::table_workspace::TableWorkspace;
 use verge_core::infrastructure::table::file_system::file_table_source::FileTableSource;
-use verge_core::Store;
+
+/// Isi tabel kecil yang dipakai test dedup dan berbagi daun.
+const SMALL_TABLE: &[u8] = b"id,total\n1,10\n2,20\n";
+
+/// Menjalankan satu tahap staging tabel `users` dari `source`.
+fn stage(harness: &support::Harness, source: PathBuf) {
+    stage_table(
+        &StageTableInput {
+            table: users(),
+            source,
+        },
+        &FileTableSource,
+        &harness.workspace_port,
+        &harness.store,
+    )
+    .expect("stage data");
+}
 
 #[test]
 fn alur_import_commit_log_show_terbukti_di_filesystem_nyata() {
@@ -64,36 +81,51 @@ fn alur_import_commit_log_show_terbukti_di_filesystem_nyata() {
 }
 
 #[test]
-fn blok_identik_tidak_didua_gandakan_di_disk() {
+fn staging_ulang_dengan_isi_sama_tidak_menggandakan_blok() {
     let workspace = workspace("dedup");
     let harness = harness(&workspace);
     let blocks_awal = count_blocks(&harness.layout);
+    let source = write_source(&workspace, "users.csv", SMALL_TABLE);
 
-    for _ in 0..3 {
-        stage_table(
-            &StageTableInput {
-                table: users(),
-                source: write_source(&workspace, "users.csv", b"id,total\n1,10\n"),
-            },
-            &FileTableSource,
-            &harness.workspace_port,
-        )
-        .expect("stage data");
-    }
+    stage(&harness, source.clone());
+    let blocks_setelah_satu = count_blocks(&harness.layout);
+    stage(&harness, source.clone());
+    stage(&harness, source);
 
-    assert_eq!(
-        count_blocks(&harness.layout) - blocks_awal,
-        1,
-        "tiga stage dengan isi sama hanya menambah satu blok"
+    assert!(
+        blocks_setelah_satu > blocks_awal,
+        "satu stage menulis node tree"
     );
-    let staged = harness
+    assert_eq!(
+        count_blocks(&harness.layout),
+        blocks_setelah_satu,
+        "tiga stage dengan isi sama hanya menambah blok sekali"
+    );
+    let root = harness
         .workspace_port
         .staged(&users())
         .expect("baca pointer data kerja")
         .expect("tabel sudah di-stage");
-    assert!(
-        harness.store.contains(&staged),
-        "blok data kerja harus tersedia"
+    assert!(harness.store.contains(&root), "akar tree harus tersimpan");
+    cleanup(&workspace);
+}
+
+#[test]
+fn baris_tidak_berubah_memakai_node_yang_sama_antar_import() {
+    let workspace = workspace("berbagi");
+    let harness = harness(&workspace);
+
+    stage(&harness, write_source(&workspace, "satu.csv", SMALL_TABLE));
+    let blocks_awal = count_blocks(&harness.layout);
+    stage(
+        &harness,
+        write_source(&workspace, "dua.csv", b"id,total\n1,10\n2,99\n"),
+    );
+    let blocks_baru = count_blocks(&harness.layout) - blocks_awal;
+
+    assert_eq!(
+        blocks_baru, 2,
+        "hanya daun yang berubah dan akar barunya yang ditulis; sisanya dipakai ulang"
     );
     cleanup(&workspace);
 }

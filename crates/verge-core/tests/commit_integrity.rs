@@ -49,6 +49,7 @@ fn seed_commit(workspace: &std::path::Path, harness: &Harness, contents: &[u8]) 
         },
         &FileTableSource,
         &harness.workspace_port,
+        &harness.store,
     )
     .expect("stage data");
     record_commit(
@@ -70,7 +71,7 @@ fn seed_commit(workspace: &std::path::Path, harness: &Harness, contents: &[u8]) 
 fn byte_commit_yang_diubah_di_disk_ditolak_saat_dibaca() {
     let workspace = workspace("manipulasi");
     let harness = harness(&workspace);
-    let recorded = seed_commit(&workspace, &harness, b"id\n1\n");
+    let recorded = seed_commit(&workspace, &harness, b"id,name\n1,ana\n");
 
     let path = StorageLayout::block_path(&harness.layout.objects(), &recorded);
     fs::write(&path, b"diubah tangan").expect("tulis byte palsu");

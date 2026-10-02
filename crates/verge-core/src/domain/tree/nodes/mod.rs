@@ -12,9 +12,8 @@
 //! Related ADR: ADR-0006 (Prolly tree untuk tabel)
 
 #[cfg(test)]
-mod tree_node_tests;
-#[cfg(test)]
-mod tree_plan_tests;
+#[path = "tests/mod.rs"]
+mod tests;
 
 pub mod tree_node;
 pub mod tree_node_codec;

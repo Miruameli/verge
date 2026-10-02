@@ -74,7 +74,7 @@ fn argumen_wajib_divalidasi_sebelum_dipakai() {
 
 #[test]
 fn commit_tanpa_author_menyebut_kedua_sumber() {
-    let dir = staged_repository("no-author", "id\n1\n");
+    let dir = staged_repository("no-author", "id,name\n1,ana\n");
     let bare = ["commit", "--table", "users", "--message", "m"];
     let stderr = verge_error(&dir, &bare);
     assert!(stderr.contains("--author"), "{stderr}");
@@ -84,7 +84,7 @@ fn commit_tanpa_author_menyebut_kedua_sumber() {
 
 #[test]
 fn author_dari_environment_dipakai_saat_flag_tak_ada() {
-    let dir = staged_repository("env-author", "id\n1\n");
+    let dir = staged_repository("env-author", "id,name\n1,ana\n");
     let bare = ["commit", "--table", "users", "--message", "seed"];
     drop(verge_stdout_as(&dir, &bare, "budi"));
     let history = verge_stdout(&dir, &["log", "--table", "users"]);

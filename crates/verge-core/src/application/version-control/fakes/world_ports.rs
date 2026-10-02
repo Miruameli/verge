@@ -15,9 +15,11 @@
 //!
 //! Related issues:
 //!   - #8 (Milestone 2)
+//!   - #18 (Milestone 3)
 //!
 //! Related ADR:
 //!   - ADR-0005 (Tabel sebagai blok content-addressed)
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 use std::path::Path;
 
@@ -43,8 +45,11 @@ impl TableSource for FakeSource<'_> {
 }
 
 impl TableWorkspace for FakeWorld {
-    fn stage(&self, name: &TableName, data: &[u8]) -> Result<BlockId> {
-        Ok(FakeWorld::stage(self, name, data))
+    fn stage(&self, name: &TableName, root: BlockId) -> Result<()> {
+        self.working
+            .borrow_mut()
+            .insert(name.as_str().to_owned(), root);
+        Ok(())
     }
 
     fn staged(&self, name: &TableName) -> Result<Option<BlockId>> {

@@ -2,34 +2,24 @@
 //!
 //! Deskripsi: Test integrasi `FileTableWorkspace` pada repository sementara.
 //! Layer: infrastructure/table/file-system
-//! Tanggung jawab: Membuktikan staging idempoten dan integritas pointer.
+//! Tanggung jawab: Membuktikan staging hanya menunjuk akar dan menjaga pointer.
 //!
-//! Author: Miruameli
-//! Created: 2026-10-03
-//! Modified: 2026-10-03
-//! Version: 0.1.0
-//! License: Apache-2.0
-//!
-//! Dependencies:
-//!   - `file_table_workspace.rs`
-//!
-//! Related issues:
-//!   - #8 (Milestone 2)
-//!
-//! Related ADR:
-//!   - ADR-0005 (Tabel sebagai blok content-addressed)
+//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
+//! Version: 0.1.0 · License: Apache-2.0 · Dependencies: `file_table_workspace.rs`
+//! Related issues: #8 (Milestone 2), #18 (Milestone 3)
+//! Related ADR: ADR-0005 (blok content-addressed), ADR-0006 (prolly tree)
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use super::file_table_workspace::FileTableWorkspace;
 use crate::config::repository_layout::RepositoryLayout;
+use crate::domain::ident::value_objects::digest::Digest;
 use crate::domain::ident::value_objects::digest_text::HexText;
-use crate::domain::storage::ports::block_store::Store;
+use crate::domain::storage::value_objects::block_id::BlockId;
 use crate::domain::table::ports::table_workspace::TableWorkspace;
 use crate::domain::table::value_objects::table_name::TableName;
-use crate::infrastructure::storage::file_system::file_block_store::FileBlockStore;
 use crate::shared::exceptions::verge_error::VergeError;
 
 /// Direktori sementara yang unik untuk satu pengujian.
@@ -40,7 +30,7 @@ fn scratch(name: &str) -> PathBuf {
     std::env::temp_dir().join(format!("verge-ws-{name}-{}-{nanos}", std::process::id()))
 }
 
-/// Bundle fixture: folder kerja, layout, workspace, store, dan tabel `users`.
+/// Bundle fixture: folder kerja, layout, workspace, dan tabel `users`.
 struct Fixture {
     /// Folder kerja sementara yang dihapus setelah pengujian.
     dir: PathBuf,
@@ -48,8 +38,6 @@ struct Fixture {
     layout: RepositoryLayout,
     /// Workspace yang diuji.
     workspace: FileTableWorkspace,
-    /// Handle store yang sama dengan dipakai workspace.
-    store: FileBlockStore,
     /// Tabel yang selalu dipakai di semua pengujian.
     table: TableName,
 }
@@ -58,73 +46,81 @@ struct Fixture {
 fn fixture(name: &str) -> Fixture {
     let dir = scratch(name);
     let layout = RepositoryLayout::under(&dir);
-    let store = FileBlockStore::open(layout.objects()).expect("buka store");
-    let workspace = FileTableWorkspace::new(layout.clone(), store.clone());
+    let workspace = FileTableWorkspace::new(layout.clone());
     let table = TableName::parse("users").expect("nama tabel valid");
     Fixture {
         dir,
         layout,
         workspace,
-        store,
         table,
     }
 }
 
-/// Menghitung jumlah berkas di bawah `dir` untuk membuktikan blok tidak ganda.
-fn count_files(dir: &Path) -> usize {
-    let Ok(entries) = fs::read_dir(dir) else {
-        return 0;
-    };
-    entries
-        .filter_map(std::result::Result::ok)
-        .map(|entry| {
-            let path = entry.path();
-            if path.is_dir() {
-                count_files(&path)
-            } else {
-                1
-            }
-        })
-        .sum()
+/// Membaca pointer data kerja tabel pada fixture.
+fn staged(fix: &Fixture) -> Option<BlockId> {
+    fix.workspace
+        .staged(&fix.table)
+        .expect("baca pointer data kerja")
+}
+
+/// Path berkas pointer data kerja tabel pada fixture.
+fn pointer(fix: &Fixture) -> PathBuf {
+    fix.layout.working_file(&fix.table)
+}
+
+/// Memastikan folder object store belum dibuat sama sekali.
+fn assert_no_objects(fix: &Fixture) {
+    assert!(
+        !fix.layout.objects().exists(),
+        "adapter hanya menunjuk akar; blok node ditulis use case"
+    );
 }
 
 #[test]
-fn stage_menulis_blok_dan_pointer_ke_blok_yang_sama() {
+fn stage_menunjuk_akar_tanpa_menulis_blok_sendiri() {
     let fix = fixture("stage");
-    let data = b"id,name\n1,ana\n";
+    let root = Digest::of(b"node-akar");
 
-    let id = fix.workspace.stage(&fix.table, data).expect("stage tabel");
-    assert_eq!(fix.workspace.staged(&fix.table).expect("staged"), Some(id));
-    assert_eq!(fix.store.get(&id).expect("baca blok"), data);
+    fix.workspace.stage(&fix.table, root).expect("stage tabel");
 
-    let raw = fs::read_to_string(fix.layout.working_file(&fix.table)).expect("baca pointer");
-    assert_eq!(raw, format!("{}\n", id.to_hex()));
+    assert_eq!(staged(&fix), Some(root));
+    let raw = fs::read_to_string(pointer(&fix)).expect("baca pointer");
+    assert_eq!(raw, format!("{}\n", root.to_hex()));
+    assert_no_objects(&fix);
     drop(fs::remove_dir_all(&fix.dir));
 }
 
 #[test]
-fn staging_ulang_dengan_isi_sama_tidak_menggandakan_blok() {
+fn staging_ulang_dengan_akar_sama_tidak_menggandakan_pointer() {
     let fix = fixture("idempoten");
-    let data = b"id,name\n1,ana\n";
+    let root = Digest::of(b"node-akar");
 
-    let first = fix
-        .workspace
-        .stage(&fix.table, data)
-        .expect("stage pertama");
-    let second = fix.workspace.stage(&fix.table, data).expect("stage kedua");
-    assert_eq!(first, second, "isi identik wajib menunjuk blok yang sama");
-    assert_eq!(count_files(&fix.layout.objects()), 1);
-    assert_eq!(
-        fix.workspace.staged(&fix.table).expect("staged"),
-        Some(first)
-    );
+    fix.workspace.stage(&fix.table, root).expect("stage 1");
+    let first = fs::read(pointer(&fix)).expect("baca pointer");
+    fix.workspace.stage(&fix.table, root).expect("stage 2");
+
+    assert_eq!(fs::read(pointer(&fix)).expect("baca pointer"), first);
+    assert_eq!(staged(&fix), Some(root));
+    drop(fs::remove_dir_all(&fix.dir));
+}
+
+#[test]
+fn staging_akar_baru_menimpa_pointer_sebelumnya() {
+    let fix = fixture("ganti");
+    let first = Digest::of(b"akar-satu");
+    let second = Digest::of(b"akar-dua");
+
+    fix.workspace.stage(&fix.table, first).expect("stage 1");
+    fix.workspace.stage(&fix.table, second).expect("stage 2");
+
+    assert_eq!(staged(&fix), Some(second), "akar terakhir jadi data kerja");
     drop(fs::remove_dir_all(&fix.dir));
 }
 
 #[test]
 fn tabel_belum_di_stage_menghasilkan_none() {
     let fix = fixture("belum");
-    assert_eq!(fix.workspace.staged(&fix.table).expect("staged"), None);
+    assert_eq!(staged(&fix), None);
     drop(fs::remove_dir_all(&fix.dir));
 }
 
@@ -132,8 +128,7 @@ fn tabel_belum_di_stage_menghasilkan_none() {
 fn pointer_kerja_rusak_ditolak_sebagai_malformed_pointer() {
     let fix = fixture("rusak");
     fs::create_dir_all(fix.layout.table_dir(&fix.table)).expect("buat direktori tabel");
-    let pointer = fix.layout.working_file(&fix.table);
-    fs::write(&pointer, "bukan-hex\n").expect("tulis pointer rusak");
+    fs::write(pointer(&fix), "bukan-hex\n").expect("tulis pointer rusak");
 
     assert!(matches!(
         fix.workspace.staged(&fix.table),

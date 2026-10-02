@@ -14,29 +14,28 @@
 //!   - `table_workspace.rs`
 //!
 //! Related issues:
-//!   - #8 (Milestone 2)
+//!   - #18 (Milestone 3)
 //!
 //! Related ADR:
-//!   - ADR-0005 (Tabel sebagai blok content-addressed)
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 use crate::domain::storage::value_objects::block_id::BlockId;
 use crate::domain::table::ports::table_workspace::TableWorkspace;
 use crate::domain::table::value_objects::table_name::TableName;
 use crate::shared::kernel::result::Result;
 
-/// Fake in-memory: apa pun isi `stage`, identitasnya harus bisa dibaca kembali.
+/// Fake in-memory: apa pun akar tree-nya, pointer harus bisa dibaca kembali.
 #[derive(Debug, Default)]
 struct InMemoryWorkspace {
     staged: std::cell::RefCell<std::collections::BTreeMap<String, BlockId>>,
 }
 
 impl TableWorkspace for InMemoryWorkspace {
-    fn stage(&self, name: &TableName, data: &[u8]) -> Result<BlockId> {
-        let id = BlockId::of(data);
+    fn stage(&self, name: &TableName, root: BlockId) -> Result<()> {
         self.staged
             .borrow_mut()
-            .insert(name.as_str().to_owned(), id);
-        Ok(id)
+            .insert(name.as_str().to_owned(), root);
+        Ok(())
     }
 
     fn staged(&self, name: &TableName) -> Result<Option<BlockId>> {
@@ -45,13 +44,16 @@ impl TableWorkspace for InMemoryWorkspace {
 }
 
 #[test]
-fn blok_yang_sama_dipakai_untuk_data_yang_sama() {
+fn stage_terakhir_menimpa_pointer_sebelumnya() {
     let workspace = InMemoryWorkspace::default();
     let table = TableName::parse("users").unwrap();
-    let first = workspace.stage(&table, b"a,1\n").unwrap();
-    let second = workspace.stage(&table, b"a,1\n").unwrap();
-    assert_eq!(first, second);
-    assert_eq!(workspace.staged(&table).unwrap(), Some(first));
+    let pertama = BlockId::of(b"tree-1");
+    let kedua = BlockId::of(b"tree-2");
+
+    workspace.stage(&table, pertama).unwrap();
+    workspace.stage(&table, kedua).unwrap();
+
+    assert_eq!(workspace.staged(&table).unwrap(), Some(kedua));
 }
 
 #[test]

@@ -13,8 +13,9 @@ Time travel     = baca state lewat commit/tag yang sudah tercatat
 
 ## Status
 
-Milestone 2 — data tabel sudah bisa di-versioning dan dibaca kembali pada commit
-lama. Yang sudah berfungsi hari ini:
+Milestone 3 — isi tabel disimpan sebagai prolly tree sehingga baris yang tidak
+berubah berbagi blok, dan perbedaannya dapat dibaca per baris. Yang sudah
+berfungsi hari ini:
 
 | Kemampuan                     | Status                                              |
 | ----------------------------- | --------------------------------------------------- |
@@ -24,7 +25,7 @@ lama. Yang sudah berfungsi hari ini:
 | Commit tabel                  | Selesai — `verge import` + `verge commit`            |
 | Riwayat commit                | Selesai — `verge log`                                |
 | Time-travel read              | Selesai — `verge show <commit>`                      |
-| Row-level diff                | Rencana — M3                                          |
+| Row-level diff                | Selesai — `verge diff <FROM>..<TO>`                  |
 | 3-way merge                   | Rencana — M4                                          |
 | SQL + ekstensi Verge          | Rencana — M5                                          |
 
@@ -51,6 +52,7 @@ verge commit --table users --message "feat: add budi" --author budi
 
 verge log --table users
 verge show HEAD --table users
+verge diff 67f9a3fa6f9a39b1fafe6fa621ab246b5367c2ea2bac05dbdab7f043e82ccfde..HEAD --table users
 ```
 
 Hasil `verge log --table users`:
@@ -68,6 +70,22 @@ verge show 67f9a3fa6f9a39b1fafe6fa621ab246b5367c2ea2bac05dbdab7f043e82ccfde --ta
 # 1,ana
 ```
 
+Perubahan antar dua revisi dibaca per baris, tanpa memulihkan working copy:
+
+```
++ 2 ,budi
+```
+
+`verge diff` menampilkan perubahan per baris dengan urutan stabil:
+
+```
+~ 3 ,citra,surabaya -> ,citra,sidoarjo
++ 4 ,sari,medan
+```
+
+Satu baris yang berubah hanya menulis ulang daun tree yang memuat baris itu;
+baris lain dan header memakai blok yang sama seperti commit sebelumnya.
+
 Layout repository yang dihasilkan:
 
 ```
@@ -77,7 +95,7 @@ Layout repository yang dihasilkan:
 ├── refs/
 │   ├── heads/        # pointer branch (movable)
 │   └── tags/         # pointer tag (immutable)
-└── tables/<nama>/working   # digest blok data kerja, bukan datanya
+└── tables/<nama>/working   # digest akar tree, bukan datanya
 ```
 
 ## Repository
@@ -104,6 +122,9 @@ Detail dan alasannya: [`docs/architecture.md`](docs/architecture.md).
 
 ## Prinsip Desain
 
+0. **Tabel sebagai prolly tree.** Isi tabel dipisah menjadi daun berbaris;
+   baris yang tidak berubah berbagi blok antar commit, sehingga perubahan kecil
+   tidak menulis ulang tabel.
 1. **Immutable dan content-addressed.** Objek tidak pernah berubah setelah ditulis;
    namanya adalah hash SHA-256 dari isinya, sehingga bisa diverifikasi tanpa
    mempercayai storage.

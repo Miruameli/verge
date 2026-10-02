@@ -20,11 +20,13 @@ Target bersifat perkiraan dan dapat berubah; perubahan besar perlu ADR baru.
 - Batasan yang diterima dan dicatat di ADR-0005: satu commit menyimpan satu blok
   penuh per tabel; deduplikasi per baris menunggu prolly tree.
 
-## M3 — Prolly tree dan diff
+## M3 — Prolly tree dan diff (selesai)
 
-- Prolly tree untuk baris tabel terurut dan deterministik.
-- Diff row-level dan column-level antar dua commit.
-- `verge diff <ref-a>..<ref-b>` dengan output stabil yang bisa diuji.
+- Prolly tree untuk baris tabel terurut dan deterministik; daun yang tidak
+  berubah dipakai ulang antar commit.
+- Diff row-level antar dua commit, termasuk kolom yang berubah pada baris sama.
+- `verge diff <rev-a>..<rev-b>` dengan output stabil, plus resolusi `HEAD~N` dan
+  awalan commit.
 
 ## M4 — Merge dan time travel
 

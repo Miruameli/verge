@@ -1,8 +1,8 @@
 //! File: `file_table_workspace.rs`
 //!
-//! Deskripsi: Implementasi `TableWorkspace` di atas block store.
+//! Deskripsi: Implementasi `TableWorkspace` di atas pointer digest.
 //! Layer: infrastructure/table/file-system
-//! Tanggung jawab: Menyimpan isi tabel sebagai blok dan menunjuknya lewat pointer.
+//! Tanggung jawab: Menyimpan akar tree sebagai pointer tanpa menyalin isinya.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
@@ -16,34 +16,33 @@
 //!
 //! Related issues:
 //!   - #8 (Milestone 2)
+//!   - #18 (Milestone 3)
 //!
 //! Related ADR:
 //!   - ADR-0005 (Tabel sebagai blok content-addressed)
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 use std::fs;
 use std::path::Path;
 
 use crate::config::repository_layout::RepositoryLayout;
 use crate::domain::ident::value_objects::digest_text::{parse_hex, HexText};
-use crate::domain::storage::ports::block_store::Store;
 use crate::domain::storage::value_objects::block_id::BlockId;
 use crate::domain::table::ports::table_workspace::TableWorkspace;
 use crate::domain::table::value_objects::table_name::TableName;
-use crate::infrastructure::storage::file_system::file_block_store::FileBlockStore;
 use crate::shared::exceptions::verge_error::VergeError;
 use crate::shared::kernel::result::Result;
 
-/// Data kerja tabel yang hanya menyimpan digest, bukan salinan byte.
+/// Data kerja tabel yang hanya menyimpan digest akar, bukan salinan byte.
 ///
-/// KENAPA: isi tabel disimpan sebagai blok immutable yang sama dengan yang
-/// dipakai commit, sehingga `verge import` dua kali dengan byte identik tidak
-/// menggandakan penyimpanan dan pointer menunjuk satu-satunya salinan.
+/// KENAPA: node tree ditulis sebagai blok immutable oleh use case yang sedang
+/// men-stage, sehingga adapter ini cukup menunjuk akar lewat digest. Baris yang
+/// tidak berubah antar import tetap menunjuk daun yang sama dan tidak pernah
+/// diduplikasi di pointer maupun di block store.
 #[derive(Debug, Clone)]
 pub struct FileTableWorkspace {
     /// Layout repository tempat pointer data kerja berada.
     layout: RepositoryLayout,
-    /// Store yang menulis blok isi tabel.
-    store: FileBlockStore,
 }
 
 impl FileTableWorkspace {
@@ -51,29 +50,30 @@ impl FileTableWorkspace {
     ///
     /// Args:
     /// - layout — path repository hasil [`RepositoryLayout::under`].
-    /// - store — block store yang sama dengan dipakai commit.
     ///
     /// Returns:
     /// - Self — workspace tanpa state turunan.
     #[must_use]
-    pub fn new(layout: RepositoryLayout, store: FileBlockStore) -> Self {
-        Self { layout, store }
+    pub fn new(layout: RepositoryLayout) -> Self {
+        Self { layout }
     }
 }
 
 impl TableWorkspace for FileTableWorkspace {
-    /// Menulis `data` sebagai blok lalu menunjuknya sebagai data kerja tabel.
+    /// Menunjuk `root` sebagai data kerja tabel tanpa menulis blok apa pun.
+    ///
+    /// Args:
+    /// - name — tabel tujuan.
+    /// - root — identifier node akar tree.
     ///
     /// # Errors
     ///
-    /// Mengembalikan error I/O bila blok atau pointer tidak dapat ditulis.
-    fn stage(&self, name: &TableName, data: &[u8]) -> Result<BlockId> {
-        let outcome = self.store.put(data)?;
-        write_pointer(&self.layout.working_file(name), &outcome.id.to_hex())?;
-        Ok(outcome.id)
+    /// Mengembalikan error I/O bila pointer tidak dapat ditulis.
+    fn stage(&self, name: &TableName, root: BlockId) -> Result<()> {
+        write_pointer(&self.layout.working_file(name), &root.to_hex())
     }
 
-    /// Membaca blok data kerja tabel.
+    /// Membaca pointer data kerja tabel.
     ///
     /// Returns:
     /// - Ok(None) — tabel belum pernah di-stage.

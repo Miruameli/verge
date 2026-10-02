@@ -2,7 +2,7 @@
 //!
 //! Deskripsi: Kumpulan use case version control.
 //! Layer: application/version-control/use-cases
-//! Tanggung jawab: Mendeklarasikan empat use case fitur dan test-nya.
+//! Tanggung jawab: Mendeklarasikan lima use case fitur dan test-nya.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
@@ -11,22 +11,29 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!//!   - `read_history.rs`
+//!   - `diff_tables.rs`
+//!   - `read_history.rs`
 //!   - `read_snapshot.rs`
-//!   - `record_commit.rs`
+//!   - `recording/record_commit.rs`
 //!   - `stage_table.rs`
 //!
 //! Related issues:
-//!   - #8 (Milestone 2)
+//!   - #18 (Milestone 3)
 //!
 //! Related ADR:
-//!   - ADR-0005 (Tabel sebagai blok content-addressed)
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 #[path = "tests/mod.rs"]
 #[cfg(test)]
 mod tests;
 
+mod recording;
+
+pub mod diff_tables;
 pub mod read_history;
 pub mod read_snapshot;
-pub mod record_commit;
 pub mod stage_table;
+
+// Use case commit tinggal di subfolder agar folder ini tetap di bawah batas
+// lima berkas; path publiknya sengaja tidak berubah lewat re-export ini.
+pub use recording::record_commit;

@@ -1,7 +1,7 @@
 //! File: `read_snapshot.rs`
 //!
 //! Deskripsi: Perintah `verge show`.
-//! Layer: interfaces/cli/commands/table-versioning
+//! Layer: interfaces/cli/commands/table-versioning/queries
 //! Tanggung jawab: Meminta isi tabel pada sebuah revisi lalu menuliskannya.
 //!
 //! Author: Miruameli
@@ -16,6 +16,7 @@
 //!
 //! Related issues:
 //!   - #8 (Milestone 2)
+//!   - #18 (Milestone 3)
 //!
 //! Related ADR:
 //!   - ADR-0005 (Tabel sebagai blok content-addressed)
