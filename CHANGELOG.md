@@ -4,7 +4,7 @@ Semua perubahan penting pada proyek ini dicatat di berkas ini.
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/),
 dan versioning mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] — 2026-10-03
 
 ### Added
 
@@ -59,5 +59,5 @@ Masuk lebih awal pada versi yang sama:
 - Quality gate: `rustfmt`, `clippy` (pedantic, `-D warnings`), `cargo test`,
   `gitleaks`, `cargo audit`, dan dependabot.
 
-[Unreleased]: https://github.com/Miruameli/verge/compare/v0.1.0...HEAD
+[0.2.0]: https://github.com/Miruameli/verge/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Miruameli/verge/releases/tag/v0.1.0
