@@ -6,11 +6,10 @@ dan versioning mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-## [0.1.0] — belum ada tag rilis
+## [0.1.0] — 2026-10-03
 
-Belum ada tag: kebijakan rilis melarang rilis tanpa binary lintas platform,
-checksum SHA256, dan SBOM (issue #6). Bagian di bawah adalah perubahan yang akan
-ikut dalam `v0.1.0`.
+Rilis pertama: binary untuk linux (x86_64, aarch64), macOS (arm64), dan Windows
+(x86_64), masing-masing dengan `SHA256SUMS` dan SBOM CycloneDX.
 
 ### Added
 

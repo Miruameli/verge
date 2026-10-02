@@ -1,3 +1,6 @@
 /target/
 **/*.rs.bk
 .verge/
+
+# Artefak rilis lokal (dibuat oleh .github/scripts/package-release.sh)
+dist/
