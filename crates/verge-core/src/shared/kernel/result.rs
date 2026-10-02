@@ -11,7 +11,7 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - shared/exceptions/verge_error.rs
+//!   - `shared/exceptions/verge_error.rs`
 //!
 //! Related issues:
 //!   - #1 (Milestone 1)
