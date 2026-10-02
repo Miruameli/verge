@@ -87,7 +87,11 @@ jobs:
         # KENAPA: upload-artifact v4 menyimpan path relatif terhadap akar repo,
         #         sehingga artefak yang diunduh akan berfolder dist/ dan target/.
         #         Semua file dipindahkan ke dist/ agar checksum dan rilis rapi.
-        run: mv target/${{ matrix.target }}/release/bom.*.cdx.json dist/
+        #         Lokasi keluaran tool tidak dijamin per target, jadi dicari
+        #         dengan find alih-alih path tetap.
+        run: |
+          find target -name '*.cdx.json' -exec mv -t dist {} +
+          ls -1 dist
       - uses: actions/upload-artifact@v4
         with:
           name: verge-${{ matrix.target }}
