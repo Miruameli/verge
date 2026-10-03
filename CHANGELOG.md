@@ -23,8 +23,16 @@ dan versioning mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Port `TagPointer` dan adapter `FileTagPointer`; `revision_resolver` kini
   memakai `TagPointer` sehingga `verge show` dan `verge diff` juga menerima tag
   dan timestamp.
-- ADR-0008: semantik `AS OF` pada rantai first-parent, tag immutable, dan
-  amandemen penelusuran merge base ADR-0007 menjadi seluruh parent.
+- CLI `verge branch create|switch|list|delete`: pointer branch O(1) di
+  `refs/heads/` tanpa menyalin blok, dengan validasi nama lintas platform
+  (menolak karakter terlarang Windows dan nama device tercadang).
+- CLI `verge merge <BRANCH> --table <NAME>`: merge tiga arah terhadap merge base
+  leluhur terdekat (seluruh parent, bukan hanya first-parent), dengan strategi
+  `manual` (bawaan), `ours`, `theirs`, dan `last-write-wins`; merge yang sudah
+  ada ditolak dengan `AlreadyMerged`.
+- ADR-0008: semantik `AS OF` pada rantai first-parent dan tag immutable.
+- ADR-0009: merge base mengikuti seluruh parent; bagian "Merge base" pada
+  ADR-0007 ditandai superseded.
 
 ### Changed
 
@@ -33,7 +41,25 @@ dan versioning mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - `read_snapshot` dan `diff_tables` menerima `&dyn TagPointer` tambahan.
 - `infrastructure/commit/file-system` dipisah menjadi `file-system/refs/` untuk
   pointer branch/tag dan `file-system/tests/` untuk commit store.
--
+- Berkas dan folder yang melewati batas modularisasi dipecah per tanggung jawab:
+  `use-cases/refs/` untuk pointer branch/tag, `domain/merge/rows/row_lookup.rs`,
+  `merge_report_printer.rs` di CLI, dan `docs/engineering/audit/` satu berkas
+  per entri.
+
+### Fixed
+
+- Nama branch atau tag yang tidak berbentuk tanggal tidak lagi ditolak sebagai
+  timestamp: `verge show 2026-q1-report` dan `verge query --as-of 2026-q1-report`
+  kembali membaca nama tersebut sebagai pointer.
+- `verge tag create` tidak lagi bergantung pada pemeriksaan "sudah ada" lalu
+  tulis; pointer tag dibuat dengan `create_new` sehingga dua proses tidak dapat
+  bergantian menimpa tag yang sama.
+- `AS OF` yang melebihi 10.000 commit kini melaporkan batas penelusuran yang
+  sebenarnya (`SearchLimitReached`) alih-alih menyebut waktu commit tertua
+  yang salah.
+- Nama branch dan tag lebih dari 255 byte ditolak sebagai `InvalidName` sebelum
+  menyentuh disk, bukan gagal sebagai error I/O.
+
 ## [0.2.0] — 2026-10-03
 
 ### Added
@@ -89,5 +115,6 @@ Masuk lebih awal pada versi yang sama:
 - Quality gate: `rustfmt`, `clippy` (pedantic, `-D warnings`), `cargo test`,
   `gitleaks`, `cargo audit`, dan dependabot.
 
+[0.3.0]: https://github.com/Miruameli/verge/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Miruameli/verge/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Miruameli/verge/releases/tag/v0.1.0

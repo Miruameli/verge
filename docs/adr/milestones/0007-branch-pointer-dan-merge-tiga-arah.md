@@ -38,13 +38,17 @@ tidak diakhiri titik atau spasi, dan bukan nama device tercadang (`con`, `nul`,
 `com1`, …). Modul `domain/commit/value-objects/branch_name_policy.rs` menyimpan
 kebijakan ini sebagai fungsi murni agar dapat diuji tanpa `Result`.
 
-### Merge base
+### Merge base (superseded oleh ADR-0009)
 
 Merge base adalah commit pertama yang menjadi leluhur dari kedua ujung branch,
 dihitung dengan berjalan pada rantai `first-parent` keduanya. Ini mengikuti
-sejarah linear yang dipakai `verge commit`; bila suatu hari commit bisa punya
+histori linear yang dipakai `verge commit`; bila suatu hari commit bisa punya
 dua parent dari proses non-merge, penelusuran harus diperluas ke seluruh DAG dan
 kebijakan "base terdekat" perlu keputusan tersendiri.
+
+CATATAN: bagian ini tidak lagi berlaku. Praktik menunjukkan penelusuran
+`first-parent` menghasilkan base yang terlalu awal begitu commit merge memiliki
+dua parent; keputusan penggantinya ada di ADR-0009.
 
 ### Konflik
 

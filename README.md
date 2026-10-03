@@ -8,7 +8,7 @@ eksperimen.
 ```
 Verge repository = Prolly tree (immutable blocks) + Commit graph (DAG)
 Branch          = satu pointer ke sebuah commit, bukan salinan data
-Time travel     = baca state lewat commit/tag yang sudah tercatat
+Time travel     = baca state lewat commit, tag, atau waktu yang sudah tercatat
 ```
 
 ## Status
@@ -119,6 +119,24 @@ mencetak ketiga sisi dan membatalkan merge, sedangkan `ours`, `theirs`, dan
 Satu baris yang berubah hanya menulis ulang daun tree yang memuat baris itu;
 baris lain dan header memakai blok yang sama seperti commit sebelumnya.
 
+`verge query --as-of` menjawab "keadaan tabel pada waktu tertentu" tanpa mencari
+commit id secara manual:
+
+```
+$ verge tag create q3 --revision HEAD
+tagged q3 at HEAD
+$ verge query --table users --as-of q3
+id,name
+1,ana
+$ verge query --table users --as-of 2026-10-01T10:00:00Z
+id,name
+1,ana
+2,budi
+```
+
+Tag bersifat immutable: `verge tag create` menolak nama yang sudah ada, sehingga
+laporan yang menyebut `q3` selalu menunjuk keadaan yang sama.
+
 Layout repository yang dihasilkan:
 
 ```
@@ -139,11 +157,11 @@ crates/
 └── verge-cli/        # antarmuka command-line (`verge`)
 docs/
 ├── architecture.md   # peta layer dan aturan ketergantungan
-├── adr/              # keputusan arsitektur (tidak diubah, hanya disusul)
-└── engineering/      # audit trail dan decision log
+├── adr/              # keputusan arsitektur per fondasi dan milestone
+└── engineering/      # audit trail (satu berkas per entri) dan decision log
 ```
 
-Arsitektur memakai 7 layer standar;dependensi hanya boleh mengalir ke dalam:
+Arsitektur memakai 7 layer standar; dependensi hanya boleh mengalir ke dalam:
 
 ```
 interfaces → application → domain

@@ -16,7 +16,7 @@ Dua keunggulan produk belum terpenuhi:
 2. **Tag.** Namespace `.verge/refs/tags/` dibuat saat `init` tetapi tidak pernah
    berisi apa pun, jadi tidak ada cara memberi nama pada titik waktu tertentu.
 
-Tigatantangan teknis yang harus diputuskan lebih dulu:
+Tiga tantangan teknis yang harus diputuskan lebih dulu:
 
 1. **Commit tidak berurutan pada branch yang sama.** Setelah merge, `HEAD`
    menunjuk commit merge yang timestamp-nya paling baru, tetapi commit dari
@@ -46,9 +46,8 @@ waktu itu" — ia baru menjadi bagian dari branch pada saat commit merge dibuat.
 ### Tie-break ditentukan, bukan acak
 
 Bila beberapa commit memenuhi batas dengan milidetik yang sama, dipilih yang
-paling dekat dengan `HEAD`. Ini deterministik dan dapat diulang: berlaku
-deterministik berarti commit yang sama akan menghasilkan keluaran yang sama
-setiap kali.
+paling dekat dengan `HEAD`. Aturan ini dapat diulang: input yang sama pada
+repository yang sama selalu menghasilkan commit yang sama.
 
 ### Hanya UTC
 
@@ -58,12 +57,12 @@ Bentuk yang diterima:
 | ----------------------------- | -------------------------- |
 | RFC 3339 dengan offset `Z`    | `2026-10-01T10:00:00Z`     |
 | RFC 3339 dengan milidetik     | `2026-10-01T10:00:00.123Z` |
-| Unix milidisek didahului `@` | `@1767225600000`           |
+| Unix milidetik didahului `@`  | `@1767225600000`           |
 
-Offset selain nol ditolak. Alasannya dua alasan: konversi offset memerlukan tabel
-zona waktu yang tidak dimiliki engine, dan menerima waktu lokal membuat hasil
-audit bergantung pada mesin pembaca —(properties yang mustahil untuk jejak audit
-yang reproducible): yang ditolak adalah zona waktu, bukan presisi.
+Offset selain nol ditolak. Konversi offset memerlukan tabel zona waktu yang
+tidak dimiliki engine, dan menerima waktu lokal membuat hasil audit bergantung
+pada mesin pembaca. Yang ditolak adalah zona waktu, bukan presisi: waktu dalam
+milidetik sejak epoch adalah bilangan bulat yang tidak bergantung pembaca.
 
 ### Tag immutable
 
@@ -81,7 +80,7 @@ di `refs/`.
 
 ### `--as-of` menerima tiga bentuk
 
-Satu flag untuk tiga bentuk agar tidak ada jalur resolutions yang berbeda:
+Satu flag untuk tiga bentuk agar tidak ada jalur resolusi yang berbeda:
 
 | Masukan              | Perlakuan                                     |
 | -------------------- | --------------------------------------------- |
@@ -110,7 +109,8 @@ seluruh tabel, yang berbeda masalah dan layak terpisah.
   commit dan dapat rusak, sedangkan `first-parent` sudah memberi jawaban dengan
   batas yang jelas.
 - **Tag mutable dengan `tag create --force`.** Ditolak: label yang bisa berubah
- yang berubah makna audit. Bila memang perlu, pengguna membuat tag baru.
+  membuat laporan yang menyebut `tag q2-report` menunjuk keadaan berbeda dari
+  yang pernah dibaca. Bila memang perlu, pengguna membuat tag baru.
 - **Menerima offset waktu dan konversi ke UTC.** Ditolak: membutuhkan basis
   data zona waktu di dalam engine; batasannya lebih besar daripada nilai yang
   didapat untuk CLI lokal yang menyimpan waktu dalam milidetik Unix.
@@ -133,14 +133,10 @@ seluruh tabel, yang berbeda masalah dan layak terpisah.
 
 ## Amandemen ADR-0007
 
-ADR-0007 menyatakan merge base dihitung pada rantai `first-parent`. Praktik
-menunjukkan itu salah begitu commit merge memiliki dua parent: `theirs` dapat
-sudah menjadi leluhur branch aktif melalui parent kedua sehingga base kembali
-menjadi commit paling awal dan merge kedua kali menulis commit sia-sia.
-Penelusuran merge base kini mengikuti **seluruh parent** dan source branch yang
-sudah sepenuhnya ter-gabung ditolak dengan `AlreadyMerged`. Keputusan ini
-diperbaiki pada PR #24 dan dicatat di sini agar ADR-0007 tidak lagi dibaca
-sebagai spesifikasi merge base yang berlaku.
+Bagian "Merge base" pada ADR-0007 telah superseded oleh ADR-0009: merge base
+kini mengikuti seluruh parent, bukan hanya rantai `first-parent`. Keputusan itu
+dicatat sebagai ADR tersendiri agar ADR-0007 tidak lagi dibaca sebagai
+spesifikasi merge base yang berlaku.
 
 ## Justifikasi
 
