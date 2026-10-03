@@ -29,6 +29,7 @@ use crate::application::version_control::use_cases::read_snapshot::{
 };
 use crate::domain::commit::repositories::ports::commit_repository::CommitRepository;
 use crate::domain::commit::repositories::ports::ref_pointer::RefPointer;
+use crate::domain::commit::repositories::ports::tag_pointer::TagPointer;
 use crate::domain::storage::ports::block_store::Store;
 use crate::domain::table::value_objects::table_name::TableName;
 use crate::domain::tree::diff::table_diff::TableDiff;
@@ -77,6 +78,7 @@ pub struct DiffTablesInput {
 ///
 /// fn run(
 ///     refs: &dyn verge_core::RefPointer,
+///     tags: &dyn verge_core::TagPointer,
 ///     commits: &dyn verge_core::CommitRepository,
 ///     store: &dyn verge_core::Store,
 /// ) -> verge_core::Result<usize> {
@@ -85,17 +87,18 @@ pub struct DiffTablesInput {
 ///         from: "HEAD~1".to_owned(),
 ///         to: "HEAD".to_owned(),
 ///     };
-///     Ok(diff_tables(&input, refs, commits, store)?.len())
+///     Ok(diff_tables(&input, refs, tags, commits, store)?.len())
 /// }
 /// ```
 pub fn diff_tables(
     input: &DiffTablesInput,
     refs: &dyn RefPointer,
+    tags: &dyn TagPointer,
     commits: &dyn CommitRepository,
     store: &dyn Store,
 ) -> Result<TableDiffReport> {
-    let before = read_table_at(&input.table, &input.from, refs, commits, store)?;
-    let after = read_table_at(&input.table, &input.to, refs, commits, store)?;
+    let before = read_table_at(&input.table, &input.from, refs, tags, commits, store)?;
+    let after = read_table_at(&input.table, &input.to, refs, tags, commits, store)?;
     let diff = TableDiff::between(&before.bytes, &after.bytes);
     Ok(TableDiffReport {
         from: before.commit,
@@ -110,6 +113,7 @@ fn read_table_at(
     table: &TableName,
     revision: &str,
     refs: &dyn RefPointer,
+    tags: &dyn TagPointer,
     commits: &dyn CommitRepository,
     store: &dyn Store,
 ) -> Result<SnapshotContent> {
@@ -117,5 +121,5 @@ fn read_table_at(
         table: table.clone(),
         revision: revision.to_owned(),
     };
-    read_snapshot(&input, refs, commits, store)
+    read_snapshot(&input, refs, tags, commits, store)
 }

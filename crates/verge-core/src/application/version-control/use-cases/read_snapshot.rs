@@ -28,6 +28,7 @@ use crate::application::version_control::dtos::snapshot_content::SnapshotContent
 use crate::application::version_control::revision_resolver::resolve_revision;
 use crate::domain::commit::repositories::ports::commit_repository::CommitRepository;
 use crate::domain::commit::repositories::ports::ref_pointer::RefPointer;
+use crate::domain::commit::repositories::ports::tag_pointer::TagPointer;
 use crate::domain::storage::ports::block_store::Store;
 use crate::domain::table::value_objects::table_name::TableName;
 use crate::domain::tree::table_reader::read_table;
@@ -39,7 +40,7 @@ use crate::shared::kernel::result::Result;
 pub struct ReadSnapshotInput {
     /// Tabel yang isinya dibaca.
     pub table: TableName,
-    /// Revisi: `HEAD`, nama branch, atau `CommitId` hex.
+    /// Revisi: `HEAD`, nama branch, nama tag, `CommitId` hex, atau waktu UTC.
     pub revision: String,
 }
 
@@ -48,6 +49,7 @@ pub struct ReadSnapshotInput {
 /// Args:
 /// - input — tabel dan revisi yang diminta.
 /// - refs — port pointer branch.
+/// - tags — port pointer tag.
 /// - commits — port penyimpanan objek commit.
 /// - store — port object store.
 ///
@@ -69,6 +71,7 @@ pub struct ReadSnapshotInput {
 ///
 /// fn run(
 ///     refs: &dyn verge_core::RefPointer,
+///     tags: &dyn verge_core::TagPointer,
 ///     commits: &dyn verge_core::CommitRepository,
 ///     store: &dyn verge_core::Store,
 /// ) -> verge_core::Result<()> {
@@ -76,7 +79,7 @@ pub struct ReadSnapshotInput {
 ///         table: TableName::parse("users")?,
 ///         revision: "HEAD".to_owned(),
 ///     };
-///     let snapshot = read_snapshot(&input, refs, commits, store)?;
+///     let snapshot = read_snapshot(&input, refs, tags, commits, store)?;
 ///     println!("{} bytes pada commit {}", snapshot.bytes.len(), snapshot.commit);
 ///     Ok(())
 /// }
@@ -84,10 +87,11 @@ pub struct ReadSnapshotInput {
 pub fn read_snapshot(
     input: &ReadSnapshotInput,
     refs: &dyn RefPointer,
+    tags: &dyn TagPointer,
     commits: &dyn CommitRepository,
     store: &dyn Store,
 ) -> Result<SnapshotContent> {
-    let id = resolve_revision(&input.revision, refs, commits)?;
+    let id = resolve_revision(&input.revision, refs, tags, commits, Some(&input.table))?;
     let commit = commits.load(&id)?;
     if commit.table() != &input.table {
         return Err(VergeError::InvalidRef(input.revision.clone()));

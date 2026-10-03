@@ -1,4 +1,4 @@
-//! File: `table_diff_cli.rs`
+//! File: `diff_cli.rs`
 //!
 //! Deskripsi: Test end-to-end `diff` lewat binary sungguhan.
 //! Layer: tests (e2e)
@@ -19,12 +19,10 @@
 //! Related ADR:
 //!   - ADR-0006 (Prolly tree untuk tabel)
 
-mod support;
-
 use std::fs;
 use std::path::PathBuf;
 
-use support::{head_id, scratch, stage_and_commit, verge_error, verge_stdout};
+use super::support::{head_id, scratch, stage_and_commit, verge_error, verge_stdout};
 
 /// Dua revisi tabel `users`; mengembalikan folder dan id revisi pertama.
 fn two_revisions(name: &str) -> (PathBuf, String) {

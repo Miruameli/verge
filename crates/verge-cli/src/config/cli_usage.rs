@@ -45,6 +45,12 @@ Usage:
   verge merge <BRANCH> --table <NAME>              Three-way merge a branch into the current one
                  [--strategy <NAME>]               manual (default), ours, theirs, last-write-wins
                  [--message <MSG>] [--author <NAME>]
+  verge query --table <NAME> --as-of <WHEN>        Print a table as it was at a point in time
+                 <WHEN> is an RFC 3339 UTC timestamp (2026-10-01T10:00:00Z),
+                 unix milliseconds (@1767225600000), a tag, or a commit id
+  verge tag create <NAME> [--revision <REV>]      Tag a commit; tags are immutable
+  verge tag list                                  List tags with the commit each points at
+  verge tag delete <NAME>                         Delete a tag (data is kept)
   verge --help                                    Show this message
   verge --version                                 Show the version
 
@@ -54,6 +60,8 @@ Examples:
   verge log --table users --limit 5
   verge show HEAD --table users > users-2026.csv
   verge diff 67f9a3fa6f9a39b1fafe6fa621ab246b5367c2ea2bac05dbdab7f043e82ccfde..HEAD --table users
+  verge query --table users --as-of 2026-10-01T10:00:00Z
+  verge tag create q2-report --revision HEAD
   verge branch create eksperimen
   verge branch switch eksperimen
   verge merge eksperimen --table users --strategy ours --author ana

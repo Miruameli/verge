@@ -33,7 +33,7 @@ use verge_core::application::version_control::use_cases::branching::switch_branc
     switch_branch, SwitchBranchInput,
 };
 use verge_core::domain::ident::value_objects::digest_text::HexText;
-use verge_core::infrastructure::commit::file_system::file_ref_pointer::FileRefPointer;
+use verge_core::infrastructure::commit::file_system::refs::file_ref_pointer::FileRefPointer;
 
 use crate::config::cli_usage::USAGE;
 use crate::interfaces::cli::commands::table_versioning::workspace_layout;

@@ -23,7 +23,10 @@
 #[path = "dtos/mod.rs"]
 pub mod dtos;
 
+pub mod instant_commit_lookup;
 pub mod revision_resolver;
+pub mod revision_target;
+pub mod revision_walk;
 
 #[path = "fakes/mod.rs"]
 pub mod fakes;

@@ -1,7 +1,7 @@
 //! File: `file_ref_pointer.rs`
 //!
 //! Deskripsi: Implementasi `RefPointer` di atas pointer berkas.
-//! Layer: infrastructure/commit/file-system
+//! Layer: infrastructure/commit/file-system/refs
 //! Tanggung jawab: Menyimpan branch aktif dan ujung tiap branch secara atomik.
 //!
 //! Author: Miruameli
@@ -12,7 +12,7 @@
 //!
 //! Dependencies:
 //!   - `domain/commit/repositories/ports/ref_pointer.rs`
-//!   - `infrastructure/commit/file-system/pointer_file.rs`
+//!   - `infrastructure/commit/file-system/refs/pointer_file.rs`
 //!   - `config/repository_layout.rs`
 //!
 //! Related issues:
@@ -26,7 +26,7 @@ use crate::domain::commit::repositories::ports::ref_pointer::RefPointer;
 use crate::domain::commit::value_objects::branch_name_policy::validate_name;
 use crate::domain::commit::value_objects::commit_id::CommitId;
 use crate::domain::ident::value_objects::digest_text::HexText;
-use crate::infrastructure::commit::file_system::{pointer_dir, pointer_file};
+use crate::infrastructure::commit::file_system::refs::{pointer_dir, pointer_file};
 use crate::shared::exceptions::verge_error::VergeError;
 use crate::shared::kernel::result::Result;
 

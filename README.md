@@ -13,8 +13,7 @@ Time travel     = baca state lewat commit/tag yang sudah tercatat
 
 ## Status
 
-Milestone 3 — isi tabel disimpan sebagai prolly tree sehingga baris yang tidak
-berubah berbagi blok, dan perbedaannya dapat dibaca per baris. Yang sudah
+Milestone 4 — branch, merge tiga arah, dan time-travel `AS OF` selesai. Yang sudah
 berfungsi hari ini:
 
 | Kemampuan                     | Status                                              |
@@ -27,6 +26,8 @@ berfungsi hari ini:
 | Time-travel read              | Selesai — `verge show <commit>`                      |
 | Row-level diff                | Selesai — `verge diff <FROM>..<TO>`                  |
 | 3-way merge                   | Selesai — `verge merge`                               |
+| Query `AS OF`                 | Selesai — `verge query --as-of <WHEN>`               |
+| Tag immutable                 | Selesai — `verge tag create/list/delete`             |
 | SQL + ekstensi Verge          | Rencana — M5                                          |
 
 Rilis terbaru: [`v0.2.0`](https://github.com/Miruameli/verge/releases/tag/v0.2.0) —

@@ -31,6 +31,7 @@ mod commits;
 pub mod snapshot_content;
 pub mod staged_table;
 pub mod table_diff_report;
+pub mod tag_list;
 
 // DTO commit dikelompokkan agar folder ini tetap di bawah batas lima berkas;
 // path publiknya sengaja tidak berubah lewat re-export ini.

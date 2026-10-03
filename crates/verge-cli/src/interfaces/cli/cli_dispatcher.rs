@@ -30,10 +30,12 @@ use crate::interfaces::cli::commands::branches::manage_branches::run_branch;
 use crate::interfaces::cli::commands::init_repository::run_init;
 use crate::interfaces::cli::commands::merging::merge_tables::run_merge;
 use crate::interfaces::cli::commands::table_versioning::queries::diff_tables::run_diff;
+use crate::interfaces::cli::commands::table_versioning::queries::query_table::run_query;
 use crate::interfaces::cli::commands::table_versioning::queries::read_history::run_log;
 use crate::interfaces::cli::commands::table_versioning::queries::read_snapshot::run_show;
 use crate::interfaces::cli::commands::table_versioning::record_commit::run_commit;
 use crate::interfaces::cli::commands::table_versioning::stage_table::run_import;
+use crate::interfaces::cli::commands::tagging::manage_tags::run_tag;
 use crate::shared::kernel::result::Result;
 
 /// Menjalankan satu perintah CLI.
@@ -58,6 +60,8 @@ pub fn dispatch(args: &[String]) -> Result<()> {
         Some("diff") => run_diff(&args[1..]),
         Some("branch") => run_branch(&args[1..]),
         Some("merge") => run_merge(&args[1..]),
+        Some("query") => run_query(&args[1..]),
+        Some("tag") => run_tag(&args[1..]),
         Some("--help" | "-h" | "help") | None => {
             print!("{USAGE}");
             Ok(())

@@ -68,7 +68,7 @@ pub struct CreatedBranch {
 ///     create_branch, CreateBranchInput,
 /// };
 /// use verge_core::config::repository_layout::RepositoryLayout;
-/// use verge_core::infrastructure::commit::file_system::file_ref_pointer::FileRefPointer;
+/// use verge_core::infrastructure::commit::file_system::refs::file_ref_pointer::FileRefPointer;
 ///
 /// let refs = FileRefPointer::new(RepositoryLayout::under("/tmp/verge-doc"));
 /// let created = create_branch(

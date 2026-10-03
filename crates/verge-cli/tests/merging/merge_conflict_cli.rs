@@ -21,12 +21,10 @@
 
 use std::path::PathBuf;
 
-use super::support::{
-    head_id, import_users, stage_and_commit, staged_repository, verge_error, verge_stdout,
-};
+use super::support::{head_id, stage_and_commit, staged_repository, verge_error, verge_stdout};
 
 /// Membangun repository dengan dua branch yang masing-masing mengubah satu baris.
-fn diverged(name: &str) -> PathBuf {
+pub(super) fn diverged(name: &str) -> PathBuf {
     let dir = staged_repository(name, "id,name\n1,ana\n2,budi\n");
     stage_and_commit(&dir, "id,name\n1,ana\n2,budi\n", "feat: seed");
     verge_stdout(&dir, &["branch", "create", "eksperimen"]);
@@ -164,41 +162,4 @@ fn merge_tanpa_tabel_ditolak_sebelum_membaca_repository() {
     let error = verge_error(&dir, &["merge", "eksperimen", "--author", "ana"]);
 
     assert!(error.contains("requires `--table <NAME>`"), "{error}");
-}
-
-#[test]
-fn merge_dengan_tabel_lain_ditolak_bukan_menggabungkan_salah_tabel() {
-    let dir = diverged("merge-wrong-table");
-
-    let error = verge_error(
-        &dir,
-        &[
-            "merge",
-            "eksperimen",
-            "--table",
-            "orders",
-            "--author",
-            "ana",
-        ],
-    );
-
-    assert!(error.contains("not for table `orders`"), "{error}");
-}
-
-#[test]
-fn import_ulang_tidak_menimpa_merge_yang_sudah_tersimpan() {
-    let dir = diverged("merge-stable");
-    verge_stdout(
-        &dir,
-        &["merge", "eksperimen", "--table", "users", "--author", "ana"],
-    );
-    let merged = head_id(&dir);
-
-    import_users(&dir, "id,name\n1,ana\n");
-
-    assert_eq!(
-        head_id(&dir),
-        merged,
-        "data kerja tidak boleh mengubah commit merge"
-    );
 }

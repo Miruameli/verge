@@ -34,7 +34,7 @@ fn snapshot(world: &FakeWorld, table: &str, revision: &str) -> Vec<u8> {
         table: TableName::parse(table).unwrap(),
         revision: revision.to_owned(),
     };
-    read_snapshot(&input, world, world, world)
+    read_snapshot(&input, world, world, world, world)
         .expect("snapshot terbaca")
         .bytes
 }
@@ -81,7 +81,7 @@ fn revisi_commit_hex_membaca_data_yang_tepat_bukan_yang_terbaru() {
         table: TableName::parse("users").unwrap(),
         revision: kedua.id.to_string(),
     };
-    let content = read_snapshot(&input, &world, &world, &world).unwrap();
+    let content = read_snapshot(&input, &world, &world, &world, &world).unwrap();
 
     assert_eq!(content.commit, kedua.id);
     assert_ne!(content.commit, pertama.id);
@@ -98,6 +98,7 @@ fn tabel_lain_pada_commit_yang_sama_ditolak() {
             table: TableName::parse("orders").unwrap(),
             revision: users.id.to_string(),
         },
+        &world,
         &world,
         &world,
         &world,
@@ -120,6 +121,7 @@ fn revisi_yang_tidak_dikenal_ditolak_dengan_pesan_jelas() {
         &world,
         &world,
         &world,
+        &world,
     )
     .expect_err("revisi tak dikenal harus ditolak");
 
@@ -134,6 +136,7 @@ fn branch_tanpa_commit_menolak_pembacaan_head() {
             table: TableName::parse("users").unwrap(),
             revision: "HEAD".to_owned(),
         },
+        &world,
         &world,
         &world,
         &world,

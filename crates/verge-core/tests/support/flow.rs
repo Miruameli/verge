@@ -80,6 +80,7 @@ pub fn snapshot(harness: &Harness, revision: &str) -> Vec<u8> {
             revision: revision.to_owned(),
         },
         &harness.refs,
+        &harness.tags,
         &harness.commits,
         &harness.store,
     )
@@ -101,6 +102,7 @@ pub fn try_diff(
             to: to.to_owned(),
         },
         &harness.refs,
+        &harness.tags,
         &harness.commits,
         &harness.store,
     )

@@ -24,8 +24,9 @@ use verge_core::application::version_control::use_cases::read_history::{
     read_history, ReadHistoryInput,
 };
 use verge_core::domain::table::value_objects::table_name::TableName;
+use verge_core::domain::time::value_objects::timestamp::Timestamp;
 use verge_core::infrastructure::commit::file_system::file_commit_repository::FileCommitRepository;
-use verge_core::infrastructure::commit::file_system::file_ref_pointer::FileRefPointer;
+use verge_core::infrastructure::commit::file_system::refs::file_ref_pointer::FileRefPointer;
 
 use crate::config::cli_usage::USAGE;
 use crate::interfaces::cli::commands::table_versioning::{
@@ -65,7 +66,13 @@ pub fn run_log(args: &[String]) -> Result<()> {
     let entries = read_history(&ReadHistoryInput { table, limit }, &refs, &commits)?;
 
     for entry in entries {
-        println!("{} {} {}", short_id(&entry.id), entry.author, entry.summary);
+        println!(
+            "{} {} {} {}",
+            short_id(&entry.id),
+            Timestamp::from_unix_ms(entry.timestamp_unix_ms).to_rfc3339(),
+            entry.author,
+            entry.summary
+        );
     }
     Ok(())
 }

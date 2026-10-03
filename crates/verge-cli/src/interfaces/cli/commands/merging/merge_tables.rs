@@ -29,7 +29,7 @@ use verge_core::domain::merge::merge_strategy::MergeStrategy;
 use verge_core::domain::merge::rows::row_conflict::RowConflict;
 use verge_core::domain::table::value_objects::table_name::TableName;
 use verge_core::infrastructure::commit::file_system::file_commit_repository::FileCommitRepository;
-use verge_core::infrastructure::commit::file_system::file_ref_pointer::FileRefPointer;
+use verge_core::infrastructure::commit::file_system::refs::file_ref_pointer::FileRefPointer;
 use verge_core::infrastructure::storage::file_system::file_block_store::FileBlockStore;
 use verge_core::infrastructure::system::system_clock::now_unix_ms;
 

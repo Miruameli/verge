@@ -27,5 +27,6 @@ pub mod merge;
 pub mod storage;
 #[path = "table/mod.rs"]
 pub mod table;
+pub mod time;
 #[path = "tree/mod.rs"]
 pub mod tree;

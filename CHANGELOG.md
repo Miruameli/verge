@@ -4,6 +4,36 @@ Semua perubahan penting pada proyek ini dicatat di berkas ini.
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/),
 dan versioning mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-10-03
+
+### Added
+
+- Nilai waktu `Timestamp` (RFC 3339 UTC dan `@<unix_ms>`) dengan konversi kalender
+  murni tanpa dependensi eksternal; dipakai `verge query` dan `verge log`.
+- CLI `verge query --table <NAME> --as-of <WHEN>`: `WHEN` dapat berupa RFC 3339
+  UTC (`2026-10-01T10:00:00Z`, opsi milidetik `.123Z`), unix milidetik
+  (`@1767225600000`), nama tag, `refs/tags/<nama>`, `refs/heads/<nama>`, commit
+  id penuh, awalan hex 12–63, `HEAD`, atau `HEAD~N`. Offset selain nol ditolak
+  agar audit tetap reproducible.
+- CLI `verge tag create <NAME> [--revision <REV>]`, `verge tag list`, dan
+  `verge tag delete <NAME>`; tag bersifat immutable (`TagAlreadyExists`) dan
+  menunjuk satu commit di `refs/tags/` tanpa menyalin blok.
+- `verge log` kini mencetak `123456789abc 2026-10-01T10:00:00.000Z author summary`
+  sehingga waktu yang tercetak dapat langsung disalin ke `--as-of`.
+- Port `TagPointer` dan adapter `FileTagPointer`; `revision_resolver` kini
+  memakai `TagPointer` sehingga `verge show` dan `verge diff` juga menerima tag
+  dan timestamp.
+- ADR-0008: semantik `AS OF` pada rantai first-parent, tag immutable, dan
+  amandemen penelusuran merge base ADR-0007 menjadi seluruh parent.
+
+### Changed
+
+- `resolve_revision` menerima `Option<&TableName>` agar `--as-of <TIMESTAMP>`
+  dapat diselesaikan untuk tabel tertentu; pemanggil non-waktu meneruskan `None`.
+- `read_snapshot` dan `diff_tables` menerima `&dyn TagPointer` tambahan.
+- `infrastructure/commit/file-system` dipisah menjadi `file-system/refs/` untuk
+  pointer branch/tag dan `file-system/tests/` untuk commit store.
+-
 ## [0.2.0] — 2026-10-03
 
 ### Added

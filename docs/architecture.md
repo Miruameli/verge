@@ -39,32 +39,33 @@ menyentuh logika bisnis.
   tanggung jawab (contoh: `commit_graph.rs` + `commit_history.rs`).
 - Setiap folder punya `mod.rs` sebagai satu-satunya titik deklarasi modulnya.
 
-## Peta kode
-
 | Path                                  | Tanggung jawab                                        |
 | ------------------------------------- | ------------------------------------------------------ |
 | `domain/ident/value-objects/`         | Digest SHA-256 dan representasi hexnya                 |
 | `domain/commit/entities/`             | Entitas `Commit` beserta pembaca fieldnya              |
 | `domain/commit/codec/`                | Encoding kanonik dan decoding yang memverifikasi digest |
 | `domain/commit/value-objects/`        | `CommitId`, `Ref` (branch/tag/commit)                  |
-| `domain/commit/repositories/`         | `CommitGraph`, traversal sejarah, dan port commit/ref   |
+| `domain/commit/repositories/`         | `CommitGraph`, traversal sejarah, dan port commit/ref/tag |
+| `domain/time/value-objects/`          | `Timestamp` UTC, kalender civil, dan parsing RFC 3339 |
 | `domain/table/`                       | `TableName` dan port data kerja tabel                  |
 | `domain/tree/`                        | `TableRows`, codec node, builder, reader, dan diff     |
 | `domain/tree/nodes/`                  | `TreeNode` (header, daun, internal) dan codec-nya     |
-| `domain/commit/value-objects/`        | `CommitId`, `Ref`, dan kebijakan nama branch            |
-| `domain/merge/`                       | Strategi resolusi, merge base, dan gabungan baris       |
+| `domain/merge/`                       | Strategi resolusi (`manual`/`ours`/`theirs`/`last-write-wins`), merge base, dan gabungan baris |
 | `domain/storage/ports/`               | `Store`, `BlockStoreFactory`, `MetadataWriter`         |
 | `application/repository-bootstrap/`   | Use case pembuatan repository                          |
-| `application/version-control/`        | Use case import, commit, log, snapshot, dan diff      |
+| `application/version-control/`        | `revision_target`, `revision_resolver`, `revision_walk`, `instant_commit_lookup` |
 | `application/version-control/use-cases/branching/` | Use case create, switch, list, delete branch |
 | `application/version-control/use-cases/merging/`   | Use case merge: baca sisi, tulis commit merge          |
-| `application/version-control/tests/`  | Test lintas use case, termasuk resolusi revisi        |
+| `application/version-control/use-cases/tagging/`   | Use case create, list, delete tag (immutable)          |
+| `application/version-control/use-cases/queries/`   | Use case `query --as-of <WHEN>` (RFC 3339/`@ms`/tag/commit) |
+| `application/version-control/tests/`  | Test lintas use case: resolusi revisi, instant lookup, tag |
 | `infrastructure/storage/file-system/` | `FileBlockStore`, factory, penulis metadata lokal       |
-| `infrastructure/commit/file-system/`  | Penyimpanan objek commit dan pointer branch             |
+| `infrastructure/commit/file-system/refs/` | Pointer branch/tag: `FileRefPointer`, `FileTagPointer` |
+| `infrastructure/commit/file-system/`  | Penyimpanan objek commit (`FileCommitRepository`)      |
 | `infrastructure/table/file-system/`   | Pointer akar tree dan pembacaan sumber tabel          |
 | `infrastructure/system/`              | Jam sistem untuk cap waktu commit                      |
 | `config/`                             | Layout repository dan path blok                        |
-| `verge-cli/interfaces/cli/`           | Dispatcher dan perintah `init`, `import`, `commit`, `log`, `show`, `diff` |
+| `verge-cli/interfaces/cli/`           | Dispatcher: `init`, `import`, `commit`, `log`, `show`, `diff`, `branch`, `merge`, `query`, `tag` |
 
 ## Invariant yang dijaga
 

@@ -16,6 +16,7 @@
 //! Related ADR:
 //!   - ADR-0007 (Branch sebagai pointer dan merge tiga arah)
 
+mod merge_rejection_cli;
 #[path = "../support/mod.rs"]
 mod support;
 

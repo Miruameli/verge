@@ -46,7 +46,7 @@ use crate::shared::kernel::result::Result;
 /// ```no_run
 /// use verge_core::application::version_control::use_cases::branching::list_branches::list_branches;
 /// use verge_core::config::repository_layout::RepositoryLayout;
-/// use verge_core::infrastructure::commit::file_system::file_ref_pointer::FileRefPointer;
+/// use verge_core::infrastructure::commit::file_system::refs::file_ref_pointer::FileRefPointer;
 ///
 /// let refs = FileRefPointer::new(RepositoryLayout::under("/tmp/verge-doc"));
 /// let list = list_branches(&refs).expect("branch terbaca");

@@ -25,7 +25,7 @@ use crate::config::repository_layout::{RepositoryLayout, HEAD_MAIN};
 use crate::domain::commit::repositories::ports::ref_pointer::RefPointer;
 use crate::domain::ident::value_objects::digest::Digest;
 use crate::domain::ident::value_objects::digest_text::HexText;
-use crate::infrastructure::commit::file_system::file_ref_pointer::FileRefPointer;
+use crate::infrastructure::commit::file_system::refs::file_ref_pointer::FileRefPointer;
 use crate::shared::exceptions::verge_error::VergeError;
 
 /// Direktori sementara yang unik untuk satu pengujian.

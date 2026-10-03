@@ -21,3 +21,4 @@
 
 pub mod commit_repository;
 pub mod ref_pointer;
+pub mod tag_pointer;

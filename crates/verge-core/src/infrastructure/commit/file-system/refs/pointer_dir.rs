@@ -1,7 +1,7 @@
 //! File: `pointer_dir.rs`
 //!
 //! Deskripsi: Penemuan dan pengalamatan pointer branch dalam satu direktori.
-//! Layer: infrastructure/commit/file-system
+//! Layer: infrastructure/commit/file-system/refs
 //! Tanggung jawab: Mendaftarkan nama branch yang sah dan menyusun path pointer.
 //!
 //! Author: Miruameli
@@ -23,7 +23,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::domain::commit::value_objects::branch_name_policy::validate_name;
-use crate::infrastructure::commit::file_system::pointer_file::{TEMP_PREFIX, TEMP_SUFFIX};
+use crate::infrastructure::commit::file_system::refs::pointer_file::{TEMP_PREFIX, TEMP_SUFFIX};
 use crate::shared::kernel::result::Result;
 
 /// Mengembalikan nama branch yang punya pointer di `dir`, terurut menaik.

@@ -34,7 +34,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use verge_core::application::repository_bootstrap::use_cases::initialize_repository::initialize_repository;
 use verge_core::config::repository_layout::RepositoryLayout;
 use verge_core::infrastructure::commit::file_system::file_commit_repository::FileCommitRepository;
-use verge_core::infrastructure::commit::file_system::file_ref_pointer::FileRefPointer;
+use verge_core::infrastructure::commit::file_system::refs::file_ref_pointer::FileRefPointer;
+use verge_core::infrastructure::commit::file_system::refs::file_tag_pointer::FileTagPointer;
 use verge_core::infrastructure::storage::file_system::file_block_store::FileBlockStore;
 use verge_core::infrastructure::storage::file_system::file_store_factory::FileStoreFactory;
 use verge_core::infrastructure::storage::file_system::local_file_system::LocalFileSystem;
@@ -52,6 +53,8 @@ pub struct Harness {
     pub commits: FileCommitRepository,
     /// Port pointer branch.
     pub refs: FileRefPointer,
+    /// Port pointer tag.
+    pub tags: FileTagPointer,
 }
 
 /// Membuat folder kerja sementara yang unik per pemanggilan.
@@ -87,7 +90,8 @@ pub fn harness(workspace: &Path) -> Harness {
         layout: layout.clone(),
         workspace_port: FileTableWorkspace::new(layout.clone()),
         commits: FileCommitRepository::new(store.clone()),
-        refs: FileRefPointer::new(layout),
+        refs: FileRefPointer::new(layout.clone()),
+        tags: FileTagPointer::new(layout),
         store,
     }
 }

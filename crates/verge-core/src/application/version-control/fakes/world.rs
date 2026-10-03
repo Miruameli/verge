@@ -35,6 +35,8 @@ use crate::domain::tree::tree_builder::build_plan;
 // Implementasi port dipisah ke modul anak agar berkas ini hanya mendeskripsikan state.
 #[path = "world_ports.rs"]
 mod ports;
+#[path = "world_tag_ports.rs"]
+mod tag_ports;
 
 /// Seluruh port version control diimplementasikan sekali di memori.
 ///
@@ -52,6 +54,8 @@ pub struct FakeWorld {
     pub head: RefCell<String>,
     /// Commit terakhir per branch.
     pub branches: RefCell<BTreeMap<String, CommitId>>,
+    /// Commit yang ditunjuk tiap tag.
+    pub tags: RefCell<BTreeMap<String, CommitId>>,
     /// Isi yang dikembalikan sumber data.
     pub source_bytes: RefCell<Vec<u8>>,
 }

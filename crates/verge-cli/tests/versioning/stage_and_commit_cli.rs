@@ -1,4 +1,4 @@
-//! File: `table_versioning_cli.rs`
+//! File: `stage_and_commit_cli.rs`
 //!
 //! Deskripsi: Test end-to-end `import` dan `commit` lewat binary sungguhan.
 //! Layer: tests (e2e)
@@ -21,9 +21,7 @@
 
 use std::fs;
 
-mod support;
-
-use support::{
+use super::support::{
     commit_args, commit_ok, import_users, scratch, staged_repository, verge_error, verge_stdout,
     verge_stdout_as,
 };

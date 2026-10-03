@@ -1,4 +1,4 @@
-//! File: `table_reading_cli.rs`
+//! File: `read_cli.rs`
 //!
 //! Deskripsi: Test end-to-end `log` dan `show` lewat binary sungguhan.
 //! Layer: tests (e2e)
@@ -19,12 +19,10 @@
 //! Related ADR:
 //!   - ADR-0005 (Tabel sebagai blok content-addressed)
 
-mod support;
-
 use std::fs;
 use std::path::PathBuf;
 
-use support::{head_id, scratch, stage_and_commit, verge_error, verge_stdout};
+use super::support::{head_id, scratch, stage_and_commit, verge_error, verge_stdout};
 
 /// Repository dengan dua commit; mengembalikan folder dan id commit pertama.
 fn versioned_repository(name: &str) -> (PathBuf, String) {
