@@ -20,8 +20,8 @@
 //!   - ADR-0008 (Time-travel AS OF dan tag immutable)
 //!
 //! ALTERNATIF: memakai pustaka kalender seperti `chrono` atau `time`; ditolak
-//! karenautter所需的转化 hanya sebulan tanpa kalender, sedangkan menambah
-//! dependency untuk satu fungsi murni melanggar ADR-0004.
+//! karena kebutuhan konversinya hanya satu fungsi murni, sedangkan menambah
+//! dependency untuk itu melanggar ADR-0004.
 
 /// Basis kalender Proleptic Gregorian digeser agar Maret menjadi awal tahun.
 const DAYS_FROM_CIVIL: i64 = 719_468;

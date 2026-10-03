@@ -102,6 +102,41 @@ pub fn write(path: &Path, content: &str) -> Result<()> {
     Ok(())
 }
 
+/// Menulis pointer baru dan menolak bila nama sudah dipakai.
+///
+/// KONTEKS: pemeriksaan "sudah ada" lalu tulis (`read` lalu `write`) raced —
+/// dua proses bisa sama-sama lolos pemeriksaan lalu menimpa pointer yang sama.
+/// `create_new` membuat pembuatan berkas bersifat atomik di kernel, sehingga
+/// hanya satu penulis yang berhasil. ALTERNATIF: `hard_link` dari berkas
+/// sementara; ditolak karena tidak didukung di semua filesystem yang dipakai.
+///
+/// Returns:
+/// - `Ok(true)` — pointer ditulis.
+/// - `Ok(false)` — pointer sudah ada dan tidak disentuh.
+///
+/// # Errors
+///
+/// Mengembalikan [`Io`](VergeError::Io) bila direktori induk tidak dapat dibuat
+/// atau penulisan gagal.
+pub fn write_new(path: &Path, content: &str) -> Result<bool> {
+    let Some(parent) = path.parent() else {
+        return Err(VergeError::Io(std::io::Error::other("tanpa induk")));
+    };
+    fs::create_dir_all(parent)?;
+    match fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+    {
+        Ok(mut file) => {
+            std::io::Write::write_all(&mut file, format!("{content}\n").as_bytes())?;
+            Ok(true)
+        }
+        Err(source) if source.kind() == std::io::ErrorKind::AlreadyExists => Ok(false),
+        Err(source) => Err(source.into()),
+    }
+}
+
 /// Mengembalikan nama berkas sementara yang unik dalam satu proses.
 fn temp_name() -> String {
     let sequence = TEMP_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);

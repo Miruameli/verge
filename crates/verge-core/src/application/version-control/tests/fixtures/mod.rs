@@ -18,3 +18,4 @@
 
 pub mod commit_timeline;
 pub mod revision_fixtures;
+pub mod tag_fixtures;

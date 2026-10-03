@@ -28,6 +28,13 @@ use crate::shared::kernel::result::Result;
 /// hasil validasi akan berbeda antar platform untuk input yang sama.
 const FORBIDDEN_NAME_CHARS: [char; 7] = ['<', '>', ':', '"', '|', '?', '*'];
 
+/// Panjang maksimum nama dalam byte.
+///
+/// ext4, APFS, dan NTFS sama-sama membatasi satu segmen nama berkas pada 255
+/// byte; tanpa batas ini nama yang lebih panjang gagal saat ditulis dan
+/// muncul sebagai error I/O yang tidak menyebut nama yang bermasalah.
+const MAX_NAME_BYTES: usize = 255;
+
 /// Nama device tercadang Windows yang tidak boleh dipakai sebagai nama berkas.
 const RESERVED_DEVICE_NAMES: [&str; 22] = [
     "con", "prn", "aux", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8",
@@ -50,8 +57,8 @@ const RESERVED_DEVICE_NAMES: [&str; 22] = [
 /// # Errors
 ///
 /// Mengembalikan [`InvalidName`](VergeError::InvalidName) bila nama kosong,
-/// diawali titik, memuat separator path atau karakter terlarang, diakhiri titik
-/// atau spasi, atau merupakan nama device tercadang.
+/// melebihi 255 byte, diawali titik, memuat separator path atau karakter
+/// terlarang, diakhiri titik atau spasi, atau merupakan nama device tercadang.
 ///
 /// Example:
 /// ```
@@ -75,6 +82,7 @@ pub fn validate_name(name: &str) -> Result<()> {
 #[must_use]
 pub fn is_rejected(name: &str) -> bool {
     name.is_empty()
+        || name.len() > MAX_NAME_BYTES
         || name.starts_with('.')
         || name.contains('/')
         || name.contains('\\')

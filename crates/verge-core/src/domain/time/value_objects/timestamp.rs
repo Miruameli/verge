@@ -115,8 +115,8 @@ impl Timestamp {
 
 /// Mengembalikan error galat yang menyebut masukan aslinya.
 ///
-/// Menyebut teks yang gagal di-parse penting karena nama zone waktu, panjang
-/// digit, dan karakter人都 berbeda behandirkan menghasilkan pesan yang sama.
+/// Menyebut teks yang gagal di-parse penting karena nama zona waktu, panjang
+/// digit, dan karakter tak lazim semuanya harus menghasilkan pesan yang sama.
 fn invalid(text: &str) -> VergeError {
     VergeError::InvalidTimestamp(text.to_owned())
 }

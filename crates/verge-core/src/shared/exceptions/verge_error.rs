@@ -61,6 +61,13 @@ pub enum VergeError {
         /// Waktu commit tertua yang tersedia, dalam bentuk RFC 3339.
         oldest: String,
     },
+    /// Pencarian `AS OF` berhenti pada batas commit yang dipindai.
+    SearchLimitReached {
+        /// Waktu yang diminta pengguna, dalam bentuk RFC 3339.
+        requested: String,
+        /// Waktu commit terakhir yang sempat diperiksa, dalam RFC 3339.
+        boundary: String,
+    },
     /// Referensi gagal di-parse.
     InvalidRef(String),
     /// String digest gagal di-parse.

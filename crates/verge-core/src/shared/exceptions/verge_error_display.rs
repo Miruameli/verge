@@ -40,6 +40,13 @@ impl fmt::Display for VergeError {
                 f,
                 "no commit at or before {requested}; oldest commit is {oldest}"
             ),
+            Self::SearchLimitReached {
+                requested,
+                boundary,
+            } => write!(
+                f,
+                "search for {requested} stopped after the scan limit at {boundary}; use a branch or tag name instead"
+            ),
             Self::InvalidRef(text) => write!(f, "invalid reference `{text}`"),
             Self::InvalidDigest(source) => source.fmt(f),
             Self::RepositoryAlreadyExists(path) => {

@@ -62,6 +62,8 @@ pub enum InstantLookup {
 /// - [`NoCommitAtInstant`](VergeError::NoCommitAtInstant) bila tidak ada
 ///   commit tabel tersebut pada atau sebelum `at`; pesan galat menyebut waktu
 ///   commit tertua yang ditemukan agar pengguna tahu apa yang tersedia.
+/// - [`SearchLimitReached`](VergeError::SearchLimitReached) bila penelusuran
+///   mencapai [`MAX_SCAN`] sebelum menemukan commit yang memenuhi batas.
 pub fn find_commit_at_or_before(
     head: CommitId,
     table: &TableName,
@@ -72,9 +74,6 @@ pub fn find_commit_at_or_before(
     let mut scanned = 0_usize;
     let mut oldest: Option<Timestamp> = None;
     while let Some(current) = cursor {
-        if scanned == MAX_SCAN {
-            break;
-        }
         let commit = commits.load(&current)?;
         let stamp = Timestamp::from_unix_ms(commit.timestamp_unix_ms());
         oldest = Some(oldest.map_or(stamp, |kept: Timestamp| kept.min(stamp)));
@@ -82,6 +81,14 @@ pub fn find_commit_at_or_before(
             return Ok(InstantLookup::Found {
                 commit: current,
                 timestamp: stamp,
+            });
+        }
+        if scanned == MAX_SCAN {
+            // KONTEKS: `oldest` pada titik ini bukan commit tertua repository,
+            // sehingga melaporkannya sebagai "oldest" menyatakan hal yang salah.
+            return Err(VergeError::SearchLimitReached {
+                requested: at.to_rfc3339(),
+                boundary: stamp.to_rfc3339(),
             });
         }
         cursor = commit.parents().first().copied();

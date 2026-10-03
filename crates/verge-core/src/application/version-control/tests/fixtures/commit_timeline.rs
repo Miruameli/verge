@@ -38,34 +38,51 @@ pub fn users() -> TableName {
     TableName::parse("users").unwrap()
 }
 
-/// Melakukan satu commit pada waktu `at_ms` lalu mengembalikan identifier-nya.
+/// Melakukan satu commit tabel `users` pada waktu `at_ms`.
 ///
-/// Isi tabel berubah setiap pemanggilan sehingga commit tidak ditolak sebagai
+/// Isi berubah setiap pemanggilan sehingga commit tidak ditolak sebagai
 /// "tidak ada perubahan".
 pub fn commit_at(world: &FakeWorld, contents: &str, at_ms: i64) -> CommitId {
+    commit_table_at(world, &users(), contents, at_ms)
+}
+
+/// Melakukan satu commit pada tabel mana pun lalu mengembalikan identifier-nya.
+pub fn commit_table_at(
+    world: &FakeWorld,
+    table: &TableName,
+    contents: &str,
+    at_ms: i64,
+) -> CommitId {
     stage_table(
         &StageTableInput {
-            table: users(),
-            source: std::path::PathBuf::from("users.csv"),
+            table: table.clone(),
+            source: std::path::PathBuf::from("tabel.csv"),
         },
         &world.source_with(contents),
-        &world,
-        &world,
+        world,
+        world,
     )
     .expect("stage berhasil");
     record_commit(
         &RecordCommitInput {
-            table: users(),
+            table: table.clone(),
             message: format!("feat: commit pada {at_ms}"),
             author: "ana".to_owned(),
         },
-        &world,
-        &world,
-        &world,
+        world,
+        world,
+        world,
         at_ms,
     )
     .expect("commit berhasil")
     .id
+}
+
+/// Tabel kedua yang dipakai fixture; nama berbeda dari [`users`] supaya
+/// penelusuran `AS OF` diuji pada riwayat yang benar-benar bercampur.
+#[must_use]
+pub fn orders() -> TableName {
+    TableName::parse("orders").unwrap()
 }
 
 /// Waktu commit pada langkah ke-`index`, dimulai dari [`STEP_MS`].

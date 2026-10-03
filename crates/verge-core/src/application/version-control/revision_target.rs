@@ -34,6 +34,12 @@ const TAG_PREFIX: &str = "refs/tags/";
 /// Awalan yang menandai referensi branch secara eksplisit.
 const BRANCH_PREFIX: &str = "refs/heads/";
 
+/// Awalan unix milidetik yang dipakai `Timestamp::parse`.
+const UNIX_PREFIX: char = '@';
+
+/// Panjang tanggal `YYYY-MM-DD` pada RFC 3339.
+const CIVIL_DATE_LEN: usize = 10;
+
 /// Bentuk revisi yang sudah diklasifikasi, belum menyentuh storage.
 ///
 /// Immutability: penuh.
@@ -104,13 +110,25 @@ fn is_hex_prefix(text: &str) -> bool {
         && text.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
-/// Melaporkan apakah `text` tampaknya menuliskan waktu.
+/// Melaporkan apakah `text` dituliskan sebagai waktu.
 ///
-/// KENAPA ada pemeriksaan bentuk sebelum parse: nama branch seperti
-/// `2026-10-01` sah sebagai nama berkas, dan tanpa pemeriksaan ini ia akan
-/// ditolak sebagai timestamp salah alih dibaca sebagai branch.
+/// KENAPA pemeriksaan bentuk ada sebelum parse: nama branch seperti
+/// `2026-q1-report` sah sebagai nama berkas dan tidak boleh dialihkan ke parser
+/// waktu. Hanya dua bentuk yang diperiksa: prefiks `@` dan awalan tanggal
+/// `YYYY-MM-DD`. Teks berbentuk tanggal yang tidak lengkap — misalnya
+/// `2026-10-01` — memang ditolak, dan pesan galatnya menyebut bentuk yang
+/// benar; nama pointer seperti itu tetap dapat disebut lewat `refs/heads/<nama>`.
 fn looks_like_time(text: &str) -> bool {
-    text.starts_with('@')
-        || text.ends_with('Z')
-        || (text.len() >= 10 && text.as_bytes().get(4) == Some(&b'-'))
+    text.starts_with(UNIX_PREFIX) || starts_with_civil_date(text)
+}
+
+/// Melaporkan apakah `text` diawali `YYYY-MM-DD`.
+fn starts_with_civil_date(text: &str) -> bool {
+    let Some(date) = text.as_bytes().get(..CIVIL_DATE_LEN) else {
+        return false;
+    };
+    date.iter().enumerate().all(|(index, byte)| match index {
+        4 | 7 => *byte == b'-',
+        _ => byte.is_ascii_digit(),
+    })
 }

@@ -63,20 +63,20 @@ impl FileTagPointer {
 impl TagPointer for FileTagPointer {
     /// Menunjuk tag `name` ke commit `id`, menolak nama yang sudah dipakai.
     ///
-    /// KONTEKS: pemeriksaan ada dilakukan sebelum penulisan; KENAPA: tag yang
-    /// bergeser diam-diam membuat laporan yang menyebut nama tag itu menyesatkan,
-    /// sehingga penolakan harus terjadi sebelum apa pun ditulis ke disk.
+    /// KONTEKS: pembuatan memakai `create_new` sehingga pembuatan pointer bersifat
+    /// atomik; KENAPA: tag yang bergeser diam-diam membuat laporan yang menyebut
+    /// nama tag itu menyesatkan, sehingga dua proses yang membuat nama tag sama
+    /// tidak boleh bergantian menulis pointer yang sama.
     ///
     /// # Errors
     ///
     /// Mengembalikan [`TagAlreadyExists`](VergeError::TagAlreadyExists) bila
     /// nama sudah dipakai dan error I/O bila pointer gagal ditulis.
     fn create(&self, name: &str, id: CommitId) -> Result<()> {
-        let path = self.tag_path(name)?;
-        if pointer_file::read(&path)?.is_some() {
+        if !pointer_file::write_new(&self.tag_path(name)?, &id.to_hex())? {
             return Err(VergeError::TagAlreadyExists(name.to_owned()));
         }
-        pointer_file::write(&path, &id.to_hex())
+        Ok(())
     }
 
     /// # Errors

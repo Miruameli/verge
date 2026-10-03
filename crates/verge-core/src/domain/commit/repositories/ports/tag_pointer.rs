@@ -19,8 +19,8 @@
 //! Related ADR:
 //!   - ADR-0008 (Time-travel AS OF dan tag immutable)
 //!
-//! ALTERNATIF: tag sebagai field pada objek commit; ditolak karena物件 yang
-//! berubah setelah commit undermines content-addressing: identifier commit
+//! ALTERNATIF: tag sebagai field pada objek commit; ditolak karena metadata
+//! yang berubah setelah commit merusak content-addressing: identifier commit
 //! harus tetap berarti byte yang sama selamanya.
 
 use crate::domain::commit::value_objects::commit_id::CommitId;

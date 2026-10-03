@@ -12,7 +12,7 @@
 //!
 //! Dependencies:
 //!   - `pointer_fixtures.rs`, `ref_pointer_tests.rs`,
-//!     `ref_pointer_branch_ops_tests.rs`
+//!     `ref_pointer_branch_ops_tests.rs`, `ref_tag_pointer_tests.rs`
 //!
 //! Related issues:
 //!   - #22 (Milestone 4)
@@ -25,3 +25,4 @@
 pub(crate) mod pointer_fixtures;
 mod ref_pointer_branch_ops_tests;
 mod ref_pointer_tests;
+mod ref_tag_pointer_tests;

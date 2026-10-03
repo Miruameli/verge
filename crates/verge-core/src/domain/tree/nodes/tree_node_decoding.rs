@@ -114,7 +114,7 @@ fn malformed(reason: &'static str) -> VergeError {
     VergeError::MalformedTreeNode { reason }
 }
 
-/// Membangun error node yang byte-nya lebih pendek dari yang di基金经理.
+/// Membangun error node untuk byte node yang lebih pendek dari yang dibaca.
 fn truncated() -> VergeError {
     malformed("truncated tree node")
 }
