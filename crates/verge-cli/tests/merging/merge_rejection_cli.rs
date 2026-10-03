@@ -12,7 +12,7 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - `support/mod.rs`
+//!   - `../support/mod.rs`
 //!
 //! Related issues:
 //!   - #22 (Milestone 4)
@@ -58,4 +58,54 @@ fn import_ulang_tidak_menimpa_merge_yang_sudah_tersimpan() {
         merged,
         "data kerja tidak boleh mengubah commit merge"
     );
+}
+
+#[test]
+fn strategi_tidak_dikenal_ditolak_sebelum_membaca_repository() {
+    let dir = diverged("merge-unknown-strategy");
+
+    let error = verge_error(
+        &dir,
+        &[
+            "merge",
+            "eksperimen",
+            "--table",
+            "users",
+            "--strategy",
+            "acak",
+            "--author",
+            "ana",
+        ],
+    );
+
+    assert!(error.contains("unknown merge strategy `acak`"), "{error}");
+    assert!(
+        error.contains("last-write-wins"),
+        "daftar harus disebutkan: {error}"
+    );
+}
+
+#[test]
+fn merge_branch_tanpa_commit_ditolak() {
+    let dir = diverged("merge-empty");
+    verge_stdout(&dir, &["branch", "create", "kosong"]);
+
+    let error = verge_error(
+        &dir,
+        &["merge", "kosong", "--table", "users", "--author", "ana"],
+    );
+
+    assert!(
+        error.contains("branch `kosong` has no commits to merge"),
+        "{error}"
+    );
+}
+
+#[test]
+fn merge_tanpa_tabel_ditolak_sebelum_membaca_repository() {
+    let dir = diverged("merge-no-table");
+
+    let error = verge_error(&dir, &["merge", "eksperimen", "--author", "ana"]);
+
+    assert!(error.contains("requires `--table <NAME>`"), "{error}");
 }

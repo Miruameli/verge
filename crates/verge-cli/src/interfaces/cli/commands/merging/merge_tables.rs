@@ -2,7 +2,7 @@
 //!
 //! Deskripsi: Perintah `verge merge`.
 //! Layer: interfaces/cli/commands/merging
-//! Tanggung jawab: Meminta merge branch lalu mencetak konflik yang tersisa.
+//! Tanggung jawab: Meminta merge branch lalu menyerahkan hasilnya ke pencetak laporan.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
@@ -13,6 +13,7 @@
 //! Dependencies:
 //!   - `application/version-control/use-cases/merging/merge_branch.rs`
 //!   - `infrastructure/{commit,storage}/file-system/**`
+//!   - `merge_report_printer.rs`
 //!
 //! Related issues:
 //!   - #22 (Milestone 4)
@@ -20,13 +21,10 @@
 //! Related ADR:
 //!   - ADR-0007 (Branch sebagai pointer dan merge tiga arah)
 
-use verge_core::application::version_control::dtos::merging::merge_report::MergeReport;
 use verge_core::application::version_control::use_cases::merging::merge_branch::{
     merge_branch, MergeBranchInput,
 };
-use verge_core::domain::ident::value_objects::digest_text::HexText;
 use verge_core::domain::merge::merge_strategy::MergeStrategy;
-use verge_core::domain::merge::rows::row_conflict::RowConflict;
 use verge_core::domain::table::value_objects::table_name::TableName;
 use verge_core::infrastructure::commit::file_system::file_commit_repository::FileCommitRepository;
 use verge_core::infrastructure::commit::file_system::refs::file_ref_pointer::FileRefPointer;
@@ -34,13 +32,11 @@ use verge_core::infrastructure::storage::file_system::file_block_store::FileBloc
 use verge_core::infrastructure::system::system_clock::now_unix_ms;
 
 use crate::config::cli_usage::USAGE;
+use crate::interfaces::cli::commands::merging::merge_report_printer::print_report;
 use crate::interfaces::cli::commands::table_versioning::{
     flag, object_store, split_args, workspace_layout,
 };
 use crate::shared::kernel::result::Result;
-
-/// Jumlah awalan hex yang dicetak pada merge dan konflik.
-const ID_PREFIX_LEN: usize = 12;
 
 /// Environment variable yang menjadi cadangan untuk author.
 const AUTHOR_ENV: &str = "VERGE_AUTHOR";
@@ -124,48 +120,4 @@ fn resolve_author(from_flag: Option<&str>) -> Result<String> {
         }
     }
     anyhow::bail!("`merge` requires `--author <NAME>` or $VERGE_AUTHOR")
-}
-
-/// Mencetak ringkasan merge; konflik ditulis ke stderr karena hasil merge
-/// tidak boleh dibaca berhasil dari stdout saja.
-fn print_report(report: &MergeReport) {
-    match report.commit {
-        Some(commit) => println!(
-            "merged {} into {} at {} ({} rows, strategy {})",
-            report.source,
-            report.current,
-            short(&commit.to_hex()),
-            report.rows,
-            report.strategy.label()
-        ),
-        None => eprintln!(
-            "merge cancelled: {} conflict(s) on strategy {}",
-            report.conflicts.len(),
-            report.strategy.label()
-        ),
-    }
-    for conflict in &report.conflicts {
-        print_conflict(conflict);
-    }
-}
-
-/// Mencetak satu konflik sebagai tiga sisi nilai yang dapat dibandingkan.
-fn print_conflict(conflict: &RowConflict) {
-    eprintln!(
-        "  {} base={} ours={} theirs={}",
-        conflict.key,
-        text(conflict.base_or_empty()),
-        text(conflict.ours_or_empty()),
-        text(conflict.theirs_or_empty())
-    );
-}
-
-/// Memotong hex ke awalan yang cukup untuk dicetak.
-fn short(hex: &str) -> String {
-    hex.chars().take(ID_PREFIX_LEN).collect()
-}
-
-/// Mengubah byte nilai baris menjadi teks yang aman dicetak.
-fn text(value: &[u8]) -> String {
-    String::from_utf8_lossy(value).into_owned()
 }

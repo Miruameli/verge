@@ -1,7 +1,7 @@
 //! File: `mod.rs`
 //!
 //! Deskripsi: Titik masuk use case tag.
-//! Layer: application/version-control/use-cases/tagging
+//! Layer: application/version-control/use-cases/refs/tagging
 //! Tanggung jawab: Mendaftarkan perintah pembuatan, penghapusan, dan daftar tag.
 //!
 //! Author: Miruameli

@@ -1,7 +1,7 @@
 //! File: `branch_fixtures.rs`
 //!
 //! Deskripsi: worlds dan helper bersama untuk test manipulasi branch.
-//! Layer: application/version-control/use-cases/branching/tests
+//! Layer: application/version-control/use-cases/refs/branching/tests
 //! Tanggung jawab: Menyediakan dunia ber-commit tanpa mengulang penyiapan.
 //!
 //! Author: Miruameli
@@ -17,7 +17,7 @@
 //!   - ADR-0007 (Branch sebagai pointer dan merge tiga arah)
 
 use crate::application::version_control::fakes::world::FakeWorld;
-use crate::application::version_control::use_cases::branching::create_branch::{
+use crate::application::version_control::use_cases::refs::branching::create_branch::{
     create_branch, CreateBranchInput,
 };
 use crate::domain::commit::repositories::ports::ref_pointer::RefPointer;

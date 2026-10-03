@@ -1,8 +1,8 @@
 //! File: `mod.rs`
 //!
-//! Deskripsi: Titik masuk test aturan merge.
-//! Layer: domain/merge
-//! Tanggung jawab: Mendaftarkan test baris merge dan merge base.
+//! Deskripsi: Titik masuk test aturan merge level baris.
+//! Layer: domain/merge/tests/rows
+//! Tanggung jawab: Mendaftarkan test konflik baris dan hasil strategi.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
@@ -16,6 +16,7 @@
 //! Related ADR:
 //!   - ADR-0007 (Branch sebagai pointer dan merge tiga arah)
 
-mod commit_chain_fixture;
-mod merge_base_tests;
-mod rows;
+mod conflict_tests;
+mod merged_output_tests;
+mod strategy_tests;
+mod support;

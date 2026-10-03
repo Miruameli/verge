@@ -1,7 +1,7 @@
 //! File: `branch_deletion_tests.rs`
 //!
 //! Deskripsi: Test penghapusan branch.
-//! Layer: application/version-control/use-cases/branching/tests
+//! Layer: application/version-control/use-cases/refs/branching/tests
 //! Tanggung jawab: Membuktikan penghapusan pointer tanpa kehilangan data.
 //!
 //! Author: Miruameli
@@ -17,7 +17,7 @@
 //!   - ADR-0007 (Branch sebagai pointer dan merge tiga arah)
 
 use super::fixtures::{create, world_with_commit};
-use crate::application::version_control::use_cases::branching::delete_branch::{
+use crate::application::version_control::use_cases::refs::branching::delete_branch::{
     delete_branch, DeleteBranchInput,
 };
 use crate::domain::commit::repositories::ports::ref_pointer::RefPointer;

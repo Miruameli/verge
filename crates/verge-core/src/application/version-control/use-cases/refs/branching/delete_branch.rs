@@ -1,7 +1,7 @@
 //! File: `delete_branch.rs`
 //!
 //! Deskripsi: Use case penghapusan pointer branch.
-//! Layer: application/version-control/use-cases/branching
+//! Layer: application/version-control/use-cases/refs/branching
 //! Tanggung jawab: Menghapus satu pointer dan melaporkan commit yang tersisa.
 //!
 //! Author: Miruameli
@@ -66,7 +66,7 @@ pub struct DeletedBranch {
 ///
 /// Example:
 /// ```no_run
-/// use verge_core::application::version_control::use_cases::branching::delete_branch::{
+/// use verge_core::application::version_control::use_cases::refs::branching::delete_branch::{
 ///     delete_branch, DeleteBranchInput,
 /// };
 /// use verge_core::config::repository_layout::RepositoryLayout;

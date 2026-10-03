@@ -29,17 +29,16 @@
 #[cfg(test)]
 mod tests;
 
-pub mod branching;
 pub mod merging;
+pub mod queries;
+pub mod refs;
 
 mod recording;
 
 pub mod diff_tables;
-pub mod queries;
 pub mod read_history;
 pub mod read_snapshot;
 pub mod stage_table;
-pub mod tagging;
 
 // Use case commit tinggal di subfolder agar folder ini tetap di bawah batas
 // lima berkas; path publiknya sengaja tidak berubah lewat re-export ini.

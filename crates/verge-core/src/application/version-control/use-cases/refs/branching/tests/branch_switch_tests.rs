@@ -1,7 +1,7 @@
 //! File: `branch_switch_tests.rs`
 //!
 //! Deskripsi: Test perpindahan branch aktif.
-//! Layer: application/version-control/use-cases/branching/tests
+//! Layer: application/version-control/use-cases/refs/branching/tests
 //! Tanggung jawab: Membuktikan efek `switch` terhadap `HEAD`.
 //!
 //! Author: Miruameli
@@ -17,7 +17,7 @@
 //!   - ADR-0007 (Branch sebagai pointer dan merge tiga arah)
 
 use super::fixtures::{create, world_with_commit};
-use crate::application::version_control::use_cases::branching::switch_branch::{
+use crate::application::version_control::use_cases::refs::branching::switch_branch::{
     switch_branch, SwitchBranchInput,
 };
 use crate::domain::commit::repositories::ports::ref_pointer::RefPointer;

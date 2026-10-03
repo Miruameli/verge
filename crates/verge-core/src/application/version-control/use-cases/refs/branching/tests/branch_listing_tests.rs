@@ -1,7 +1,7 @@
 //! File: `branch_listing_tests.rs`
 //!
 //! Deskripsi: Test pembacaan daftar branch.
-//! Layer: application/version-control/use-cases/branching/tests
+//! Layer: application/version-control/use-cases/refs/branching/tests
 //! Tanggung jawab: Membuktikan isi dan urutan daftar branch.
 //!
 //! Author: Miruameli
@@ -17,10 +17,10 @@
 //!   - ADR-0007 (Branch sebagai pointer dan merge tiga arah)
 
 use super::fixtures::{create, world_with_commit};
-use crate::application::version_control::use_cases::branching::delete_branch::{
+use crate::application::version_control::use_cases::refs::branching::delete_branch::{
     delete_branch, DeleteBranchInput,
 };
-use crate::application::version_control::use_cases::branching::list_branches::list_branches;
+use crate::application::version_control::use_cases::refs::branching::list_branches::list_branches;
 
 #[test]
 fn daftar_branch_menandai_branch_aktif_dan_terurut() {

@@ -11,7 +11,7 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - `domain/merge/merge_strategy.rs`, `row_resolution.rs`
+//!   - `domain/merge/{merge_strategy,row_lookup,row_resolution}.rs`
 //!   - `domain/tree/value-objects/table_row.rs`
 //!
 //! Related issues:
@@ -22,7 +22,8 @@
 
 use crate::domain::merge::merge_strategy::MergeStrategy;
 use crate::domain::merge::rows::row_conflict::RowConflict;
-use crate::domain::merge::rows::row_resolution::{all_keys, resolve, value_of, Resolution, Sides};
+use crate::domain::merge::rows::row_lookup::{all_keys, value_of};
+use crate::domain::merge::rows::row_resolution::{resolve, Resolution, Sides};
 use crate::domain::tree::value_objects::table_row::TableRow;
 
 /// Hasil merge baris: baris gabungan dan daftar konflik yang tersisa.

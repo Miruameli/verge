@@ -22,14 +22,14 @@
 //!   - ADR-0003 (Arsitektur 7-layer)
 
 use verge_core::application::version_control::dtos::branching::branch_list::BranchList;
-use verge_core::application::version_control::use_cases::branching::create_branch::{
+use verge_core::application::version_control::use_cases::refs::branching::create_branch::{
     create_branch, CreateBranchInput,
 };
-use verge_core::application::version_control::use_cases::branching::delete_branch::{
+use verge_core::application::version_control::use_cases::refs::branching::delete_branch::{
     delete_branch, DeleteBranchInput,
 };
-use verge_core::application::version_control::use_cases::branching::list_branches::list_branches;
-use verge_core::application::version_control::use_cases::branching::switch_branch::{
+use verge_core::application::version_control::use_cases::refs::branching::list_branches::list_branches;
+use verge_core::application::version_control::use_cases::refs::branching::switch_branch::{
     switch_branch, SwitchBranchInput,
 };
 use verge_core::domain::ident::value_objects::digest_text::HexText;

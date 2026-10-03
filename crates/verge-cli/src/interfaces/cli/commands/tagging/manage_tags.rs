@@ -11,7 +11,7 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - `application/version-control/use-cases/tagging/tag_command.rs`
+//!   - `application/version-control/use-cases/refs/tagging/tag_command.rs`
 //!   - `infrastructure/{commit,storage}/file-system/...`
 //!
 //! Related issues:
@@ -20,7 +20,7 @@
 //! Related ADR:
 //!   - ADR-0008 (Time-travel AS OF dan tag immutable)
 
-use verge_core::application::version_control::use_cases::tagging::tag_command::{
+use verge_core::application::version_control::use_cases::refs::tagging::tag_command::{
     create_tag, delete_tag, list_tags,
 };
 use verge_core::infrastructure::commit::file_system::file_commit_repository::FileCommitRepository;

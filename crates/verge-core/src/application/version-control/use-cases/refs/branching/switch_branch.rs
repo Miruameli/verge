@@ -1,7 +1,7 @@
 //! File: `switch_branch.rs`
 //!
 //! Deskripsi: Use case perpindahan branch aktif.
-//! Layer: application/version-control/use-cases/branching
+//! Layer: application/version-control/use-cases/refs/branching
 //! Tanggung jawab: Mengalihkan `HEAD` tanpa mengubah data.
 //!
 //! Author: Miruameli
@@ -60,7 +60,7 @@ pub struct SwitchedBranch {
 ///
 /// Example:
 /// ```no_run
-/// use verge_core::application::version_control::use_cases::branching::switch_branch::{
+/// use verge_core::application::version_control::use_cases::refs::branching::switch_branch::{
 ///     switch_branch, SwitchBranchInput,
 /// };
 /// use verge_core::config::repository_layout::RepositoryLayout;

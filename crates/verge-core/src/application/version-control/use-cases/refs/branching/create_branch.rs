@@ -1,7 +1,7 @@
 //! File: `create_branch.rs`
 //!
 //! Deskripsi: Use case pembuatan branch baru.
-//! Layer: application/version-control/use-cases/branching
+//! Layer: application/version-control/use-cases/refs/branching
 //! Tanggung jawab: Menulis satu pointer branch tanpa menyalin data.
 //!
 //! Author: Miruameli
@@ -64,7 +64,7 @@ pub struct CreatedBranch {
 ///
 /// Example:
 /// ```no_run
-/// use verge_core::application::version_control::use_cases::branching::create_branch::{
+/// use verge_core::application::version_control::use_cases::refs::branching::create_branch::{
 ///     create_branch, CreateBranchInput,
 /// };
 /// use verge_core::config::repository_layout::RepositoryLayout;

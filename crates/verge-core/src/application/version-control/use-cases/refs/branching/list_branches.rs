@@ -1,7 +1,7 @@
 //! File: `list_branches.rs`
 //!
 //! Deskripsi: Use case pembacaan daftar branch.
-//! Layer: application/version-control/use-cases/branching
+//! Layer: application/version-control/use-cases/refs/branching
 //! Tanggung jawab: Mengumpulkan seluruh branch beserta ujung commit-nya.
 //!
 //! Author: Miruameli
@@ -44,7 +44,7 @@ use crate::shared::kernel::result::Result;
 ///
 /// Example:
 /// ```no_run
-/// use verge_core::application::version_control::use_cases::branching::list_branches::list_branches;
+/// use verge_core::application::version_control::use_cases::refs::branching::list_branches::list_branches;
 /// use verge_core::config::repository_layout::RepositoryLayout;
 /// use verge_core::infrastructure::commit::file_system::refs::file_ref_pointer::FileRefPointer;
 ///

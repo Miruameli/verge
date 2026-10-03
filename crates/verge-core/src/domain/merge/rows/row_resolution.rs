@@ -12,7 +12,7 @@
 //!
 //! Dependencies:
 //!   - `domain/merge/merge_strategy.rs`, `row_conflict.rs`
-//!   - `domain/tree/value-objects/{row_key,table_row}.rs`
+//!   - `domain/tree/value-objects/row_key.rs`
 //!
 //! Related issues:
 //!   - #22 (Milestone 4)
@@ -23,7 +23,6 @@
 use crate::domain::merge::merge_strategy::MergeStrategy;
 use crate::domain::merge::rows::row_conflict::RowConflict;
 use crate::domain::tree::value_objects::row_key::RowKey;
-use crate::domain::tree::value_objects::table_row::TableRow;
 
 /// Nilai ketiga sisi untuk satu kunci; `None` berarti baris tidak ada.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -115,47 +114,4 @@ pub fn resolve(sides: &Sides, strategy: MergeStrategy, ours_is_newer: bool) -> R
             }
         }
     }
-}
-
-/// Mengembalikan seluruh kunci dari tiga sisi dalam urutan menaik tanpa duplikat.
-///
-/// Args:
-/// - base — baris pada merge base.
-/// - ours — baris pada branch aktif.
-/// - theirs — baris pada branch yang digabung.
-///
-/// Returns:
-/// - Vec<RowKey> — kunci unik terurut menaik.
-///
-/// Performance: satu alokasi; `dedup` berjalan setelah pengurutan sehingga
-/// jumlah perbandingan tetap O(n log n).
-#[must_use]
-pub fn all_keys(base: &[TableRow], ours: &[TableRow], theirs: &[TableRow]) -> Vec<RowKey> {
-    let mut keys: Vec<RowKey> = base
-        .iter()
-        .chain(ours)
-        .chain(theirs)
-        .map(TableRow::key)
-        .cloned()
-        .collect();
-    keys.sort_unstable();
-    keys.dedup();
-    keys
-}
-
-/// Mengembalikan nilai baris pada kunci tertentu, atau `None` bila tidak ada.
-///
-/// Args:
-/// - rows — baris terurut menurut kunci.
-/// - key — kunci yang dicari.
-///
-/// Returns:
-/// - Option<Vec<u8>> — salinan nilai baris bila kunci ditemukan.
-///
-/// Performance: pencarian biner karena `rows` dijamin terurut.
-#[must_use]
-pub fn value_of(rows: &[TableRow], key: &RowKey) -> Option<Vec<u8>> {
-    rows.binary_search_by_key(&key, TableRow::key)
-        .ok()
-        .map(|position| rows[position].value().to_vec())
 }

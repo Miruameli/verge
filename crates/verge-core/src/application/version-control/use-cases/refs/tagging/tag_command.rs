@@ -1,7 +1,7 @@
 //! File: `tag_command.rs`
 //!
 //! Deskripsi: Use case pembuatan dan penghapusan tag.
-//! Layer: application/version-control/use-cases/tagging
+//! Layer: application/version-control/use-cases/refs/tagging
 //! Tanggung jawab: Menerjemahkan perintah tag menjadi perubahan pointer.
 //!
 //! Author: Miruameli
