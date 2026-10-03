@@ -4,7 +4,7 @@ Semua perubahan penting pada proyek ini dicatat di berkas ini.
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/),
 dan versioning mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.0] — 2026-10-03
+## [0.3.0] — 2026-10-04
 
 ### Added
 

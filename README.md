@@ -30,7 +30,7 @@ berfungsi hari ini:
 | Tag immutable                 | Selesai — `verge tag create/list/delete`             |
 | SQL + ekstensi Verge          | Rencana — M5                                          |
 
-Rilis terbaru: [`v0.2.0`](https://github.com/Miruameli/verge/releases/tag/v0.2.0) —
+Rilis terbaru: [`v0.3.0`](https://github.com/Miruameli/verge/releases/tag/v0.3.0) —
 binary untuk linux (x86_64, aarch64), macOS (arm64), dan Windows (x86_64),
 lengkap dengan `SHA256SUMS` dan SBOM CycloneDX per target.
 
