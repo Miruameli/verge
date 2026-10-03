@@ -24,6 +24,12 @@ use crate::application::version_control::use_cases::stage_table::{stage_table, S
 use crate::domain::ident::value_objects::digest_text::HexText;
 use crate::domain::table::value_objects::table_name::TableName;
 
+/// Tabel yang dipakai seluruh test resolusi revisi.
+#[must_use]
+pub fn users_table() -> TableName {
+    TableName::parse("users").unwrap()
+}
+
 /// Membangun dunia dengan `count` commit tabel `users`.
 ///
 /// Setiap iterasi mengubah satu baris sehingga commit tidak pernah ditolak

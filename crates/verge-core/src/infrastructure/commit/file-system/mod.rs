@@ -11,6 +11,8 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
+//!   - `file_commit_repository.rs`, `refs/`
+//!
 //!   - `file_commit_repository.rs`, `file_ref_pointer.rs`
 //!
 //! Related issues:
@@ -23,6 +25,4 @@
 mod tests;
 
 pub mod file_commit_repository;
-pub mod file_ref_pointer;
-pub mod pointer_dir;
-pub mod pointer_file;
+pub mod refs;

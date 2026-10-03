@@ -4,6 +4,62 @@ Semua perubahan penting pada proyek ini dicatat di berkas ini.
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/),
 dan versioning mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-10-03
+
+### Added
+
+- Nilai waktu `Timestamp` (RFC 3339 UTC dan `@<unix_ms>`) dengan konversi kalender
+  murni tanpa dependensi eksternal; dipakai `verge query` dan `verge log`.
+- CLI `verge query --table <NAME> --as-of <WHEN>`: `WHEN` dapat berupa RFC 3339
+  UTC (`2026-10-01T10:00:00Z`, opsi milidetik `.123Z`), unix milidetik
+  (`@1767225600000`), nama tag, `refs/tags/<nama>`, `refs/heads/<nama>`, commit
+  id penuh, awalan hex 12–63, `HEAD`, atau `HEAD~N`. Offset selain nol ditolak
+  agar audit tetap reproducible.
+- CLI `verge tag create <NAME> [--revision <REV>]`, `verge tag list`, dan
+  `verge tag delete <NAME>`; tag bersifat immutable (`TagAlreadyExists`) dan
+  menunjuk satu commit di `refs/tags/` tanpa menyalin blok.
+- `verge log` kini mencetak `123456789abc 2026-10-01T10:00:00.000Z author summary`
+  sehingga waktu yang tercetak dapat langsung disalin ke `--as-of`.
+- Port `TagPointer` dan adapter `FileTagPointer`; `revision_resolver` kini
+  memakai `TagPointer` sehingga `verge show` dan `verge diff` juga menerima tag
+  dan timestamp.
+- CLI `verge branch create|switch|list|delete`: pointer branch O(1) di
+  `refs/heads/` tanpa menyalin blok, dengan validasi nama lintas platform
+  (menolak karakter terlarang Windows dan nama device tercadang).
+- CLI `verge merge <BRANCH> --table <NAME>`: merge tiga arah terhadap merge base
+  leluhur terdekat (seluruh parent, bukan hanya first-parent), dengan strategi
+  `manual` (bawaan), `ours`, `theirs`, dan `last-write-wins`; merge yang sudah
+  ada ditolak dengan `AlreadyMerged`.
+- ADR-0008: semantik `AS OF` pada rantai first-parent dan tag immutable.
+- ADR-0009: merge base mengikuti seluruh parent; bagian "Merge base" pada
+  ADR-0007 ditandai superseded.
+
+### Changed
+
+- `resolve_revision` menerima `Option<&TableName>` agar `--as-of <TIMESTAMP>`
+  dapat diselesaikan untuk tabel tertentu; pemanggil non-waktu meneruskan `None`.
+- `read_snapshot` dan `diff_tables` menerima `&dyn TagPointer` tambahan.
+- `infrastructure/commit/file-system` dipisah menjadi `file-system/refs/` untuk
+  pointer branch/tag dan `file-system/tests/` untuk commit store.
+- Berkas dan folder yang melewati batas modularisasi dipecah per tanggung jawab:
+  `use-cases/refs/` untuk pointer branch/tag, `domain/merge/rows/row_lookup.rs`,
+  `merge_report_printer.rs` di CLI, dan `docs/engineering/audit/` satu berkas
+  per entri.
+
+### Fixed
+
+- Nama branch atau tag yang tidak berbentuk tanggal tidak lagi ditolak sebagai
+  timestamp: `verge show 2026-q1-report` dan `verge query --as-of 2026-q1-report`
+  kembali membaca nama tersebut sebagai pointer.
+- `verge tag create` tidak lagi bergantung pada pemeriksaan "sudah ada" lalu
+  tulis; pointer tag dibuat dengan `create_new` sehingga dua proses tidak dapat
+  bergantian menimpa tag yang sama.
+- `AS OF` yang melebihi 10.000 commit kini melaporkan batas penelusuran yang
+  sebenarnya (`SearchLimitReached`) alih-alih menyebut waktu commit tertua
+  yang salah.
+- Nama branch dan tag lebih dari 255 byte ditolak sebagai `InvalidName` sebelum
+  menyentuh disk, bukan gagal sebagai error I/O.
+
 ## [0.2.0] — 2026-10-03
 
 ### Added
@@ -59,5 +115,6 @@ Masuk lebih awal pada versi yang sama:
 - Quality gate: `rustfmt`, `clippy` (pedantic, `-D warnings`), `cargo test`,
   `gitleaks`, `cargo audit`, dan dependabot.
 
+[0.3.0]: https://github.com/Miruameli/verge/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Miruameli/verge/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Miruameli/verge/releases/tag/v0.1.0

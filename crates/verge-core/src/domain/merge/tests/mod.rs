@@ -2,7 +2,7 @@
 //!
 //! Deskripsi: Titik masuk test aturan merge.
 //! Layer: domain/merge
-//! Tanggung jawab: Mendaftarkan test resolusi baris dan merge base.
+//! Tanggung jawab: Mendaftarkan test baris merge dan merge base.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
@@ -18,5 +18,4 @@
 
 mod commit_chain_fixture;
 mod merge_base_tests;
-mod row_conflict_tests;
-mod row_strategy_tests;
+mod rows;

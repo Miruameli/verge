@@ -21,5 +21,6 @@
 //!   - ADR-0006 (Prolly tree untuk tabel)
 
 pub mod diff_tables;
+pub mod query_table;
 pub mod read_history;
 pub mod read_snapshot;

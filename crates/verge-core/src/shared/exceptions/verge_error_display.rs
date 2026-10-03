@@ -27,6 +27,26 @@ impl fmt::Display for VergeError {
             Self::MissingParent(id) => write!(f, "parent commit {id} is unknown to the graph"),
             Self::InvalidName(name) => write!(f, "invalid reference name `{name}`"),
             Self::TagAlreadyExists(name) => write!(f, "tag `{name}` already exists"),
+            Self::UnknownTag(name) => write!(f, "tag `{name}` does not exist"),
+            Self::TagCannotPointAtInstant(text) => write!(
+                f,
+                "a tag cannot point at a timestamp (`{text}`); point it at a commit, branch, or existing tag"
+            ),
+            Self::InvalidTimestamp(text) => write!(
+                f,
+                "invalid timestamp `{text}`; use RFC 3339 UTC (2026-10-01T10:00:00Z) or unix milliseconds (@1767225600000)"
+            ),
+            Self::NoCommitAtInstant { requested, oldest } => write!(
+                f,
+                "no commit at or before {requested}; oldest commit is {oldest}"
+            ),
+            Self::SearchLimitReached {
+                requested,
+                boundary,
+            } => write!(
+                f,
+                "search for {requested} stopped after the scan limit at {boundary}; use a branch or tag name instead"
+            ),
             Self::InvalidRef(text) => write!(f, "invalid reference `{text}`"),
             Self::InvalidDigest(source) => source.fmt(f),
             Self::RepositoryAlreadyExists(path) => {

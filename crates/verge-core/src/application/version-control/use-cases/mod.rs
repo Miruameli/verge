@@ -29,8 +29,9 @@
 #[cfg(test)]
 mod tests;
 
-pub mod branching;
 pub mod merging;
+pub mod queries;
+pub mod refs;
 
 mod recording;
 

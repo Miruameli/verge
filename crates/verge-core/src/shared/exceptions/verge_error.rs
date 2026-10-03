@@ -48,6 +48,26 @@ pub enum VergeError {
     InvalidName(String),
     /// Tag dengan nama tersebut sudah ada; tag bersifat immutable.
     TagAlreadyExists(String),
+    /// Tag yang diminta tidak punya pointer di `refs/tags/`.
+    UnknownTag(String),
+    /// Tag tidak dapat menunjuk waktu: tag tidak punya konsep tabel.
+    TagCannotPointAtInstant(String),
+    /// Teks waktu bukan RFC 3339 UTC atau unix milidetik yang diperbolehkan.
+    InvalidTimestamp(String),
+    /// Tidak ada commit tabel tersebut pada atau sebelum waktu yang diminta.
+    NoCommitAtInstant {
+        /// Waktu yang diminta pengguna, dalam bentuk RFC 3339.
+        requested: String,
+        /// Waktu commit tertua yang tersedia, dalam bentuk RFC 3339.
+        oldest: String,
+    },
+    /// Pencarian `AS OF` berhenti pada batas commit yang dipindai.
+    SearchLimitReached {
+        /// Waktu yang diminta pengguna, dalam bentuk RFC 3339.
+        requested: String,
+        /// Waktu commit terakhir yang sempat diperiksa, dalam RFC 3339.
+        boundary: String,
+    },
     /// Referensi gagal di-parse.
     InvalidRef(String),
     /// String digest gagal di-parse.

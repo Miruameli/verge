@@ -17,6 +17,7 @@
 //! Related ADR:
 //!   - ADR-0006 (Prolly tree untuk tabel)
 //!   - ADR-0007 (Branch sebagai pointer dan merge tiga arah)
+use super::fixtures::revision_fixtures::users_table;
 use super::fixtures::revision_fixtures::world_with_commits;
 use crate::application::version_control::revision_resolver::resolve_revision;
 use crate::application::version_control::use_cases::read_snapshot::{
@@ -34,8 +35,8 @@ use crate::shared::exceptions::verge_error::VergeError;
 fn awalan_hex_yang_tidak_ada_ditolak() {
     let (world, _) = world_with_commits(2);
 
-    let error =
-        resolve_revision("0123456789ab", &world, &world).expect_err("awalan asing harus ditolak");
+    let error = resolve_revision("0123456789ab", &world, &world, &world, Some(&users_table()))
+        .expect_err("awalan asing harus ditolak");
 
     assert!(matches!(error, VergeError::InvalidRef(_)));
 }
@@ -45,7 +46,7 @@ fn awalan_terlalu_pendek_dianggap_nama_branch_ditolak_bukan_diterka() {
     let (world, _) = world_with_commits(1);
 
     assert!(
-        resolve_revision("abc", &world, &world).is_err(),
+        resolve_revision("abc", &world, &world, &world, Some(&users_table())).is_err(),
         "awalan di bawah 12 hex tidak boleh diterka menjadi commit"
     );
 }
@@ -85,6 +86,7 @@ fn commit_tabel_lain_ditolak_saat_membaca_snapshot() {
         &world,
         &world,
         &world,
+        &world,
     )
     .expect_err("commit tabel users tidak boleh dipakai untuk tabel orders");
 
@@ -100,6 +102,7 @@ fn snapshot_dapat_dibaca_lewat_awalan_hex() {
             table: TableName::parse("users").unwrap(),
             revision: ids[0][..12].to_owned(),
         },
+        &world,
         &world,
         &world,
         &world,

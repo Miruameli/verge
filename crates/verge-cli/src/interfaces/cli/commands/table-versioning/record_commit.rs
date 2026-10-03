@@ -25,7 +25,7 @@ use verge_core::application::version_control::use_cases::record_commit::{
 };
 use verge_core::domain::table::value_objects::table_name::TableName;
 use verge_core::infrastructure::commit::file_system::file_commit_repository::FileCommitRepository;
-use verge_core::infrastructure::commit::file_system::file_ref_pointer::FileRefPointer;
+use verge_core::infrastructure::commit::file_system::refs::file_ref_pointer::FileRefPointer;
 use verge_core::infrastructure::system::system_clock::now_unix_ms;
 use verge_core::infrastructure::table::file_system::file_table_workspace::FileTableWorkspace;
 

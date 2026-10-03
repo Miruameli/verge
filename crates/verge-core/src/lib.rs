@@ -47,6 +47,7 @@ pub use domain::commit::entities::commit::Commit;
 pub use domain::commit::repositories::commit_graph::CommitGraph;
 pub use domain::commit::repositories::ports::commit_repository::CommitRepository;
 pub use domain::commit::repositories::ports::ref_pointer::RefPointer;
+pub use domain::commit::repositories::ports::tag_pointer::TagPointer;
 pub use domain::commit::value_objects::commit_id::CommitId;
 pub use domain::commit::value_objects::commit_ref::Ref;
 pub use domain::ident::value_objects::digest::Digest;

@@ -123,3 +123,13 @@ pub fn head_id(dir: &Path) -> String {
     let pointer = dir.join(".verge/refs/heads/main");
     fs::read_to_string(pointer).expect("baca pointer branch")
 }
+
+/// Memberi jeda sehingga commit berikutnya mendapat milidetik berbeda.
+///
+/// KENAPA helper ini ada: presisi `timestamp_unix_ms` adalah milidetik, dan
+/// beberapa commit dalam milidetik yang sama tidak dapat dibedakan `AS OF`.
+/// Tanpa jeda, test time-travel akan lulus atau gagal tergantung kecepatan
+/// mesin — persis jenis test flaky yang dilarang.
+pub fn gap() {
+    std::thread::sleep(std::time::Duration::from_millis(20));
+}

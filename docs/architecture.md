@@ -1,7 +1,8 @@
 # Arsitektur Verge
 
 Dokumen ini menjelaskan bagaimana kode ditata dan mengapa. Keputusan spesifik
-di-each detail ada di `docs/adr/`.
+di setiap detail ada di `docs/adr/fondasi/` (fondasi) dan `docs/adr/milestones/`
+(per milestone); catatan tindakan dan bukti ada di `docs/engineering/audit/`.
 
 ## Layer
 
@@ -24,7 +25,7 @@ config, shared ──────────────► semua layer
 domain ──► shared (hanya kernel & exception)
 ```
 
-`domain` tidak boleh tahu-menahu tentang filesystem, jaringan, atau format
+`domain` tidak boleh tahu apa pun tentang filesystem, jaringan, atau format
 on-disk. Semua kontrak I/O dinyatakan sebagai trait (port) yang diimplementasikan
 di `infrastructure`. Inilah yang membuat backend S3/GCS bisa menyusul tanpa
 menyentuh logika bisnis.
@@ -33,11 +34,22 @@ menyentuh logika bisnis.
 
 - Folder memakai kebab-case (`value-objects/`, `file-system/`), nama modul
   memakai snake_case lewat atribut `#[path]`.
-- Maksimal **5 berkas langsung** dan **5 subfolder** per folder; layer root
-  diizinkan 5 berkas dan 10 subfolder.
-- Maksimal **150 baris per berkas**; berkas yang perlu lebih besar dipecah per
-  tanggung jawab (contoh: `commit_graph.rs` + `commit_history.rs`).
+- Batas **5 berkas langsung** dan **5 subfolder** per folder adalah target, bukan
+  angka mutlak: penyimpangan diterima bila setiap isi folder merupakan konteks
+  terpisah yang tidak dapat digabung tanpa mengaburkan tanggung jawab. Saat ini
+  `domain/` memuat tujuh konteks (commit, ident, merge, storage, table, time,
+  tree) dan tetap lebih mudah dinavigasi daripada dipaksa digabung.
+- Batas **150 baris per berkas** tetap mengikat; berkas yang perlu lebih besar
+  dipecah per tanggung jawab (contoh: `commit_graph.rs` + `commit_history.rs`).
 - Setiap folder punya `mod.rs` sebagai satu-satunya titik deklarasi modulnya.
+- `docs/adr/` memakai subfolder bernomor (`fondasi/`, `milestones/`), bukan
+  satu folder datar: registri bernomor tetap berurutan global (0001–0009),
+  sementara subfolder menjaga tiap folder di bawah lima berkas. Pemindahan ADR
+  lama ke subfolder tidak mengubah isi ADR (DILARANG ubah ADR lama tetap
+  berlaku untuk isi, bukan lokasi berkas).
+- `docs/engineering/audit/` memakai satu berkas per entri dengan `audit.md` sebagai
+  indeks; audit tumbuh bersama waktu sehingga satu berkas datar akan cepat
+  melewati batas baris.
 
 ## Peta kode
 
@@ -47,24 +59,27 @@ menyentuh logika bisnis.
 | `domain/commit/entities/`             | Entitas `Commit` beserta pembaca fieldnya              |
 | `domain/commit/codec/`                | Encoding kanonik dan decoding yang memverifikasi digest |
 | `domain/commit/value-objects/`        | `CommitId`, `Ref` (branch/tag/commit)                  |
-| `domain/commit/repositories/`         | `CommitGraph`, traversal sejarah, dan port commit/ref   |
+| `domain/commit/repositories/`         | `CommitGraph`, traversal sejarah, dan port commit/ref/tag |
+| `domain/time/value-objects/`          | `Timestamp` UTC, kalender civil, dan parsing RFC 3339 |
 | `domain/table/`                       | `TableName` dan port data kerja tabel                  |
 | `domain/tree/`                        | `TableRows`, codec node, builder, reader, dan diff     |
 | `domain/tree/nodes/`                  | `TreeNode` (header, daun, internal) dan codec-nya     |
-| `domain/commit/value-objects/`        | `CommitId`, `Ref`, dan kebijakan nama branch            |
-| `domain/merge/`                       | Strategi resolusi, merge base, dan gabungan baris       |
+| `domain/merge/`                       | Strategi resolusi (`manual`/`ours`/`theirs`/`last-write-wins`), merge base, dan gabungan baris |
 | `domain/storage/ports/`               | `Store`, `BlockStoreFactory`, `MetadataWriter`         |
 | `application/repository-bootstrap/`   | Use case pembuatan repository                          |
-| `application/version-control/`        | Use case import, commit, log, snapshot, dan diff      |
-| `application/version-control/use-cases/branching/` | Use case create, switch, list, delete branch |
+| `application/version-control/`        | `revision_target`, `revision_resolver`, `revision_walk`, `instant_commit_lookup` |
+| `application/version-control/use-cases/refs/branching/` | Use case create, switch, list, delete branch |
 | `application/version-control/use-cases/merging/`   | Use case merge: baca sisi, tulis commit merge          |
-| `application/version-control/tests/`  | Test lintas use case, termasuk resolusi revisi        |
+| `application/version-control/use-cases/refs/tagging/`   | Use case create, list, delete tag (immutable)          |
+| `application/version-control/use-cases/queries/`   | Use case `query --as-of <WHEN>` (RFC 3339/`@ms`/tag/commit) |
+| `application/version-control/tests/`  | Test lintas use case: resolusi revisi, instant lookup, tag |
 | `infrastructure/storage/file-system/` | `FileBlockStore`, factory, penulis metadata lokal       |
-| `infrastructure/commit/file-system/`  | Penyimpanan objek commit dan pointer branch             |
+| `infrastructure/commit/file-system/refs/` | Pointer branch/tag: `FileRefPointer`, `FileTagPointer` |
+| `infrastructure/commit/file-system/`  | Penyimpanan objek commit (`FileCommitRepository`)      |
 | `infrastructure/table/file-system/`   | Pointer akar tree dan pembacaan sumber tabel          |
 | `infrastructure/system/`              | Jam sistem untuk cap waktu commit                      |
 | `config/`                             | Layout repository dan path blok                        |
-| `verge-cli/interfaces/cli/`           | Dispatcher dan perintah `init`, `import`, `commit`, `log`, `show`, `diff` |
+| `verge-cli/interfaces/cli/`           | Dispatcher: `init`, `import`, `commit`, `log`, `show`, `diff`, `branch`, `merge`, `query`, `tag` |
 
 ## Invariant yang dijaga
 
@@ -80,6 +95,12 @@ menyentuh logika bisnis.
    manipulasi byte di luar Verge terdeteksi saat pembacaan.
 8. Nama tabel tervalidasi sebelum menyentuh path: allowlist `[a-z0-9_-]`, maksimal
    64 karakter, tanpa path separator.
+9. Nama pointer branch dan tag tervalidasi sebelum menyentuh path: bukan kosong,
+   tidak diawali titik, maksimal 255 byte, tanpa separator path, dan bukan nama
+   device tercadang Windows.
+10. Tag tidak pernah ditimpa: pointer ditulis dengan `create_new` sehingga dua
+    proses yang membuat tag dengan nama sama tidak dapat bergantian menulis
+    pointer yang sama.
 
 ## Model Parents
 

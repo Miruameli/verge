@@ -48,8 +48,9 @@ Terima kasih sudah membaca. Dokumen ini menjelaskan alur kerja yang wajib diikut
 
 ## Aturan kualitas kode
 
-- Maksimal **150 baris per berkas**, **5 berkas langsung per folder**, dan
-  **5 subfolder per folder**. Struktur layer dijelaskan di
+- Batas **150 baris per berkas** mengikat. Batas **5 berkas langsung** dan
+  **5 subfolder** per folder adalah target: penyimpangan diterima bila setiap
+  isi folder merupakan konteks terpisah, dan alasannya ditulis di
   [`docs/architecture.md`](docs/architecture.md).
 - Setiap berkas punya header comment: `File`, `Deskripsi`, `Layer`,
   `Tanggung jawab`, `Author`, `Created`, `Modified`, `Version`, `License`,

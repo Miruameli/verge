@@ -130,7 +130,7 @@ pub(crate) fn diff(world: &FakeWorld, from: &str, to: &str) -> Result<TableDiffR
         from: from.to_owned(),
         to: to.to_owned(),
     };
-    diff_tables(&input, world, world, world)
+    diff_tables(&input, world, world, world, world)
 }
 
 /// Membandingkan dua commit berurutan sambil memeriksa identitas laporannya.

@@ -27,7 +27,8 @@ use verge_core::application::version_control::use_cases::diff_tables::{
 use verge_core::domain::table::value_objects::table_name::TableName;
 use verge_core::domain::tree::diff::row_change::RowChange;
 use verge_core::infrastructure::commit::file_system::file_commit_repository::FileCommitRepository;
-use verge_core::infrastructure::commit::file_system::file_ref_pointer::FileRefPointer;
+use verge_core::infrastructure::commit::file_system::refs::file_ref_pointer::FileRefPointer;
+use verge_core::infrastructure::commit::file_system::refs::file_tag_pointer::FileTagPointer;
 use verge_core::infrastructure::storage::file_system::file_block_store::FileBlockStore;
 
 use crate::config::cli_usage::USAGE;
@@ -68,10 +69,12 @@ pub fn run_diff(args: &[String]) -> Result<()> {
     let layout = workspace_layout()?;
     let store: FileBlockStore = object_store(&layout)?;
     let commits = FileCommitRepository::new(store.clone());
-    let refs = FileRefPointer::new(layout);
+    let refs = FileRefPointer::new(layout.clone());
+    let tags = FileTagPointer::new(layout);
     let report = diff_tables(
         &DiffTablesInput { table, from, to },
         &refs,
+        &tags,
         &commits,
         &store,
     )?;

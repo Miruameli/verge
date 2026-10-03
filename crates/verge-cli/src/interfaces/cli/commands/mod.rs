@@ -24,6 +24,7 @@
 pub mod branches;
 pub mod init_repository;
 pub mod merging;
+pub mod tagging;
 
 #[path = "table-versioning/mod.rs"]
 pub mod table_versioning;
