@@ -25,6 +25,32 @@ config, shared ──────────────► semua layer
 domain ──► shared (hanya kernel & exception)
 ```
 
+Arah ini hasil pengukuran otomatis atas seluruh `use` di repo, bukan
+kehendak. Hasil pengukuran per 2026-10-04:
+
+| Layer  | Layer yang diimpor                                      |
+| ------ | ------------------------------------------------------- |
+| domain | `shared`                                                 |
+| application | `domain`, `config`, `shared`                         |
+| infrastructure | `domain`, `config`, `shared`                    |
+| interfaces | `config`, `shared` (+ modul `cli` miliknya sendiri) |
+| shared | `domain` (hanya `Digest` pada varian galat)             |
+| config | `domain` (hanya `TableName`, `BlockId`, `HexText`)      |
+
+Dua baris terakhir adalah pengecualian yang disengaja: `shared/exceptions`
+memakai `Digest` sebagai isi galat dan `config/*` memvalidasi `TableName`,
+`BlockId`, serta `HexText` saat memetakan path. Keduanya hanya menyentuh
+value object murni tanpa I/O maupun layanan, dan memindahkannya hanya akan
+menyalin tipe. Yang tetap dilarang: `domain` mengimpor `application`,
+`infrastructure`, `interfaces`, atau `config` — termasuk di berkas test.
+Karena itu test merge base yang memakai adapter filesystem dipindahkan ke
+`crates/verge-core/tests/merge/`.
+
+Tidak ada lingkaran dependensi modul: graf `use` di seluruh repo dianalisis
+tanpa menemukan satu pun siklus. Dependensi antar crate juga sepele,
+`verge-cli` hanya bergantung pada `verge-core`, dan `verge-core` tidak
+bergantung pada crate lain di workspace.
+
 `domain` tidak boleh tahu apa pun tentang filesystem, jaringan, atau format
 on-disk. Semua kontrak I/O dinyatakan sebagai trait (port) yang diimplementasikan
 di `infrastructure`. Inilah yang membuat backend S3/GCS bisa menyusul tanpa
@@ -72,14 +98,16 @@ menyentuh logika bisnis.
 | `application/version-control/use-cases/merging/`   | Use case merge: baca sisi, tulis commit merge          |
 | `application/version-control/use-cases/refs/tagging/`   | Use case create, list, delete tag (immutable)          |
 | `application/version-control/use-cases/queries/`   | Use case `query --as-of <WHEN>` (RFC 3339/`@ms`/tag/commit) |
-| `application/version-control/tests/`  | Test lintas use case: resolusi revisi, instant lookup, tag |
+| `application/version-control/tests/`  | Test lintas use case: instant lookup (`revision/` untuk resolusi revisi, `tagging/` untuk tag) |
+| `crates/verge-core/tests/merge/`      | Test integrasi merge base memakai adapter filesystem nyata |
 | `infrastructure/storage/file-system/` | `FileBlockStore`, factory, penulis metadata lokal       |
 | `infrastructure/commit/file-system/refs/` | Pointer branch/tag: `FileRefPointer`, `FileTagPointer` |
 | `infrastructure/commit/file-system/`  | Penyimpanan objek commit (`FileCommitRepository`)      |
 | `infrastructure/table/file-system/`   | Pointer akar tree dan pembacaan sumber tabel          |
 | `infrastructure/system/`              | Jam sistem untuk cap waktu commit                      |
 | `config/`                             | Layout repository dan path blok                        |
-| `verge-cli/interfaces/cli/`           | Dispatcher: `init`, `import`, `commit`, `log`, `show`, `diff`, `branch`, `merge`, `query`, `tag` |
+| `verge-cli/interfaces/cli/`           | Dispatcher: `init`, `branch`, `merge`, `tag`, bantuan, versi |
+| `verge-cli/interfaces/cli/commands/table-versioning/dispatch.rs` | Router perintah tabel: `import`, `commit`, `log`, `show`, `diff`, `query` |
 
 ## Invariant yang dijaga
 

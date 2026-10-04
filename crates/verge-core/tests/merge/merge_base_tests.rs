@@ -1,12 +1,12 @@
 //! File: `merge_base_tests.rs`
 //!
 //! Deskripsi: Test pencarian merge base.
-//! Layer: domain/merge/tests
+//! Layer: tests (integration)
 //! Tanggung jawab: Membuktikan base terdekat pada rantai first-parent.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
+//! Modified: 2026-10-04
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
@@ -23,13 +23,13 @@
 use std::fs;
 use std::path::PathBuf;
 
-use crate::config::repository_layout::RepositoryLayout;
-use crate::domain::commit::entities::commit::Commit;
-use crate::domain::ident::value_objects::digest::Digest;
-use crate::domain::merge::merge_base::find_merge_base;
-use crate::domain::table::value_objects::table_name::TableName;
-use crate::infrastructure::commit::file_system::file_commit_repository::FileCommitRepository;
-use crate::infrastructure::storage::file_system::file_block_store::FileBlockStore;
+use verge_core::config::repository_layout::RepositoryLayout;
+use verge_core::domain::commit::entities::commit::Commit;
+use verge_core::domain::ident::value_objects::digest::Digest;
+use verge_core::domain::merge::merge_base::find_merge_base;
+use verge_core::domain::table::value_objects::table_name::TableName;
+use verge_core::infrastructure::commit::file_system::file_commit_repository::FileCommitRepository;
+use verge_core::infrastructure::storage::file_system::file_block_store::FileBlockStore;
 
 use super::commit_chain_fixture::commit_chain;
 

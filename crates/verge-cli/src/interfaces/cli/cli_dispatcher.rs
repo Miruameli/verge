@@ -6,8 +6,8 @@
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
-//! Version: 0.1.0
+//! Modified: 2026-10-04
+//! Version: 0.3.0
 //! License: Apache-2.0
 //!
 //! Dependencies:
@@ -29,12 +29,9 @@ use crate::config::cli_usage::{USAGE, VERSION};
 use crate::interfaces::cli::commands::branches::manage_branches::run_branch;
 use crate::interfaces::cli::commands::init_repository::run_init;
 use crate::interfaces::cli::commands::merging::merge_tables::run_merge;
-use crate::interfaces::cli::commands::table_versioning::queries::diff_tables::run_diff;
-use crate::interfaces::cli::commands::table_versioning::queries::query_table::run_query;
-use crate::interfaces::cli::commands::table_versioning::queries::read_history::run_log;
-use crate::interfaces::cli::commands::table_versioning::queries::read_snapshot::run_show;
-use crate::interfaces::cli::commands::table_versioning::record_commit::run_commit;
-use crate::interfaces::cli::commands::table_versioning::stage_table::run_import;
+use crate::interfaces::cli::commands::table_versioning::dispatch::{
+    is_table_command, run_table_command,
+};
 use crate::interfaces::cli::commands::tagging::manage_tags::run_tag;
 use crate::shared::kernel::result::Result;
 
@@ -53,14 +50,9 @@ use crate::shared::kernel::result::Result;
 pub fn dispatch(args: &[String]) -> Result<()> {
     match args.first().map(String::as_str) {
         Some("init") => run_init(&args[1..]),
-        Some("import") => run_import(&args[1..]),
-        Some("commit") => run_commit(&args[1..]),
-        Some("log") => run_log(&args[1..]),
-        Some("show") => run_show(&args[1..]),
-        Some("diff") => run_diff(&args[1..]),
+        Some(name) if is_table_command(name) => run_table_command(args),
         Some("branch") => run_branch(&args[1..]),
         Some("merge") => run_merge(&args[1..]),
-        Some("query") => run_query(&args[1..]),
         Some("tag") => run_tag(&args[1..]),
         Some("--help" | "-h" | "help") | None => {
             print!("{USAGE}");

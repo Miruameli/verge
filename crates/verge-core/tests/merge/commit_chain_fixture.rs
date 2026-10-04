@@ -1,12 +1,12 @@
 //! File: `commit_chain_fixture.rs`
 //!
 //! Deskripsi: Pembuat rantai commit untuk test merge base.
-//! Layer: domain/merge/tests
+//! Layer: tests (integration)
 //! Tanggung jawab: Menyimpan rantai commit linear di repository sementara.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
+//! Modified: 2026-10-04
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
@@ -21,14 +21,14 @@
 
 use std::path::Path;
 
-use crate::config::repository_layout::RepositoryLayout;
-use crate::domain::commit::entities::commit::Commit;
-use crate::domain::commit::repositories::ports::commit_repository::CommitRepository;
-use crate::domain::commit::value_objects::commit_id::CommitId;
-use crate::domain::ident::value_objects::digest::Digest;
-use crate::domain::table::value_objects::table_name::TableName;
-use crate::infrastructure::commit::file_system::file_commit_repository::FileCommitRepository;
-use crate::infrastructure::storage::file_system::file_block_store::FileBlockStore;
+use verge_core::config::repository_layout::RepositoryLayout;
+use verge_core::domain::commit::entities::commit::Commit;
+use verge_core::domain::commit::repositories::ports::commit_repository::CommitRepository;
+use verge_core::domain::commit::value_objects::commit_id::CommitId;
+use verge_core::domain::ident::value_objects::digest::Digest;
+use verge_core::domain::table::value_objects::table_name::TableName;
+use verge_core::infrastructure::commit::file_system::file_commit_repository::FileCommitRepository;
+use verge_core::infrastructure::storage::file_system::file_block_store::FileBlockStore;
 
 /// Table yang dipakai seluruh rantai commit pada fixture.
 const TABLE: &str = "users";

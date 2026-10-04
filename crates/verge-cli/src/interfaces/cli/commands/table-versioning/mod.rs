@@ -6,12 +6,12 @@
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
+//! Modified: 2026-10-04
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - `queries/`, `record_commit.rs`, `stage_table.rs`
+//!   - `dispatch.rs`, `tests/`, `queries/`, `record_commit.rs`, `stage_table.rs`
 //!
 //! Related issues:
 //!   - #8 (Milestone 2)
@@ -36,6 +36,10 @@ use verge_core::shared::exceptions::verge_error::VergeError;
 use crate::config::cli_usage::USAGE;
 use crate::shared::kernel::result::Result;
 
+#[cfg(test)]
+mod tests;
+
+pub mod dispatch;
 pub mod queries;
 pub mod record_commit;
 pub mod stage_table;

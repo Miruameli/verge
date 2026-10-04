@@ -16,6 +16,7 @@ menambah berkas di `audit/` dan satu baris tabel di bawah.
 | [`audit/milestone-4-branch-merge-time-travel.md`](audit/milestone-4-branch-merge-time-travel.md) | Branch O(1), merge tiga arah, `AS OF`, dan tag immutable |
 | [`audit/rilis/v0.1.0.md`](audit/rilis/v0.1.0.md) | Terbitan pertama, empat binary, checksum, SBOM           |
 | [`audit/rilis/v0.3.0.md`](audit/rilis/v0.3.0.md) | Terbitan Milestone 4 beserta pembuktiannya                |
+| [`audit/audit-kepatuhan-mandate.md`](audit/audit-kepatuhan-mandate.md) | Pengukuran aturan modularisasi dan lima perbaikannya |
 
 ## Aturan penulisan entri
 
