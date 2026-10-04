@@ -166,3 +166,55 @@ harus diambil dari berkas itu sendiri dan diverifikasi sebelum dan sesudah.
   berdasarkan `·` merusak nilai yang memuat koma. Normalisasi header bukan
   pekerjaan sekali-jalan; ia perlu pemeriksaan nilai sebelum dan sesudah,
   seperti yang tercatat pada Batasan yang diketahui di atas.
+
+---
+
+## 2026-10-04 — Perluasan cakupan gate ke seluruh berkas ter-track
+
+| Field    | Nilai                                                                                          |
+| -------- | ---------------------------------------------------------------------------------------------- |
+| Waktu    | 2026-10-04                                                                                     |
+| Aksi     | Menutup dua celah cakupan gate: huruf non-Latin di luar `crates/`, dan batas folder di luar `crates/` |
+| Pelaku   | Miruameli                                                                                      |
+| Alasan   | Gate ada untuk menegakkan aturan, tetapi dua aturan tidak berlaku di luar `crates/` sehingga hanya separuh repo yang diawasi |
+| Terkait  | Issue #43, PR #44                                                                              |
+| Dampak   | Tidak ada perubahan perilaku produk; 313 test lulus; gate memindai 310 berkas teks ter-track   |
+| Rollback | Kembalikan `git checkout` pada PR #44; tidak ada perubahan format data                        |
+
+### Dua celah yang ditemukan, dan cara membuktikannya
+
+| Celah                                                        | Cara dibuktikan                                              |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Aturan non-ASCII hanya memindai `crates/**/*.rs`             | Satu baris berkarakter Cyrillic disisuntik ke `docs/roadmap.md`, gate tetap keluar exit 0 |
+| Aturan batas folder hanya memindai `crates/`                 | Empat modul gate dikembalikan ke root `.github/scripts/`, folder mencapai tujuh berkas langsung, gate tetap exit 0 |
+
+Keduanya ditutup pada PR #44. Huruf non-Latin kini diperiksa pada seluruh
+berkas teks ter-track memakai daftar putih huruf Latin; batas folder kini juga
+mempakai `.github/scripts/` sebagai akar, dan akarnya sendiri ikut dihitung
+karena `rglob("*")` hanya mengembalikan turunan.
+
+### Kesalahan yang hampir lolos sebagai "lulus"
+
+| Kesalahan                                                                                  | Akibatnya                                                                 |
+| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| Probe menyuntik teks ASCII `U+041A`, bukan huruf Cyrillic                                   | Gate "lulus" tanpa menguji apa pun                                        |
+| Probe memakai `git checkout -- .` yang memulihkan dari indeks, bukan `HEAD`                 | Damage satu kasus bocor ke kasus berikutnya; tiga kasus melaporkan lokasi salah |
+| Berkas `text_rules.py` sendiri mengandung dua huruf Hangul, dan belum dilacak git         | Gate meloloskannya justru pada saat gate baru dibuat                      |
+| Perluasan batas folder versi pertama tidak menghitung akar                                  | Tujuh berkas di `.github/scripts` tetap lolos                              |
+
+Empat di antaranya adalah cacat pada alat verifikasi, bukan pada kode yang
+diperiksanya. Semuanya ditemukan karena probe dijalankan dan hasilnya dibaca,
+bukan karena gate_membersih_checkpoint berjalan. Pelajaran yang diambil: gate
+yang baru dibuat wajib diuji dengan menyuntikkan kerusakan, dan probe itu sendiri
+wajib diperiksa apakah ia benar-benar menyuntik apa yang diklaim.
+
+### Konsekuensi yang diterapkan
+
+- `tracked_text_files` memakai `--others --exclude-standard`, sehingga berkas
+  baru yang belum dilacak ikut diperiksa.
+- `sys.dont_write_bytecode` diset di gate agar proses read-only tidak menulis
+  `__pycache__/` ke dalam repo.
+- `check-structure.py` dipisah menjadi empat modul di `.github/scripts/structure/`;
+  berkas utama sempat naik ke 184 SLOC dan kini 115.
+- Empat modul tersebut dipindah agar `.github/scripts/` tidak melewati batas
+  lima berkas langsung.
