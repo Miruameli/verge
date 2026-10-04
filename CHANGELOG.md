@@ -29,7 +29,7 @@ dan versioning mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
-- Gate `structure` pada CI, dijalankan lewat `.github/scripts/check-structure.py`,
+- Gate `structure` pada CI, dijalankan lewat `.github/scripts/structure/check-structure.py`,
   yang menegakkan aturan yang sebelumnya hanya diukur manual: 150 SLOC per
   berkas, 5 berkas langsung per folder, 11 field header wajib pada setiap
   berkas `.rs` (tepat satu kali masing-masing), `TODO`/`FIXME`/`HACK` tanpa
@@ -37,6 +37,17 @@ dan versioning mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   Gate terakhir menangkap kelas kerusakan yang tidak terlihat dari `cargo`:
   pada PR #35 header comment kehilangan `License`, field terduplikasi, dan
   bullet hilang tanpa satu pun gate yang gagal.
+
+- Gate `structure` kini juga menegakkan aturan huruf non-Latin pada **seluruh**
+  berkas teks ter-track, bukan hanya `crates/**/*.rs`. Huruf Cyrillic, Greek,
+  Thai, CJK, dan fullwidth di `.md`, `.yml`, `.toml`, atau `.py` sebelumnya
+  keluar dari gate dengan exit 0. Aturan ini memakai daftar putih huruf Latin
+  sehingga tipografi sah seperti `—` dan `→` tetap diterima, dan huruf Latin
+  beraksen seperti `José` juga tetap sah.
+- Gate `structure` kini memindai `.github/scripts/` juga, bukan hanya
+  `crates/`. Empat modul gate dipindah ke `.github/scripts/structure/` agar
+  `.github/scripts/` tidak melewati batas lima berkas langsung — pelanggaran
+  yang sebelumnya tidak bisa ditangkap gate karena akarnya tidak dipindai.
 
 ## [0.3.0] — 2026-10-04
 
