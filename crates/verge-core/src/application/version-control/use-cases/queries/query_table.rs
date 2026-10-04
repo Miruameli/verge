@@ -6,8 +6,8 @@
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
-//! Version: 0.1.0
+//! Modified: 2026-10-04
+//! Version: 0.4.0
 //! License: Apache-2.0
 //!
 //! Dependencies:
@@ -16,6 +16,7 @@
 //!
 //! Related issues:
 //!   - #25 (Milestone 4)
+//!   - #31 (Tabel tag pada pesan galat)
 //!
 //! Related ADR:
 //!   - ADR-0008 (Time-travel AS OF dan tag immutable)
@@ -60,8 +61,9 @@ pub struct QueryTableInput {
 ///
 /// Mengembalikan error dari [`resolve_revision`] termasuk
 /// [`NoCommitAtInstant`](VergeError::NoCommitAtInstant) bila tidak ada commit
-/// pada waktu itu, [`InvalidRef`](VergeError::InvalidRef) bila commit hasil
-/// resolusi bukan untuk tabel tersebut, dan
+/// pada waktu itu,
+/// [`CommitBelongsToOtherTable`](VergeError::CommitBelongsToOtherTable) bila
+/// revisi menunjuk commit tabel lain, dan
 /// [`BlockNotFound`](VergeError::BlockNotFound) bila blok tabel hilang.
 ///
 /// Example:
@@ -96,7 +98,11 @@ pub fn query_table(
     let id = resolve_revision(&input.as_of, refs, tags, commits, Some(&input.table))?;
     let commit = commits.load(&id)?;
     if commit.table() != &input.table {
-        return Err(VergeError::InvalidRef(input.as_of.clone()));
+        return Err(VergeError::CommitBelongsToOtherTable {
+            revision: input.as_of.clone(),
+            commit_table: commit.table().clone(),
+            requested: input.table.clone(),
+        });
     }
     let rows = read_table(commit.tree(), store)?;
     Ok(SnapshotContent {

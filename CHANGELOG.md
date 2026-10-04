@@ -4,6 +4,19 @@ Semua perubahan penting pada proyek ini dicatat di berkas ini.
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/),
 dan versioning mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Galat saat revisi menunjuk commit tabel lain kini memakai varian
+  `CommitBelongsToOtherTable` yang menyebut revisi, tabel yang dimiliki commit,
+  dan tabel yang diminta; sebelumnya `verge query`, `verge show`, `verge diff`,
+  dan `verge merge` melaporkan `invalid reference`, sehingga tag yang benar
+  ikut disalahartikan rusak.
+- `verge tag list` mencetak kolom tabel pada setiap tag, diambil dari commit
+  yang ditunjuk tag. `TagEntry` berubah dari tuple tiga elemen menjadi struct
+  bernama `TagEntry { name, commit, table, summary }`.
+
 ## [0.3.0] — 2026-10-04
 
 ### Added
@@ -115,6 +128,8 @@ Masuk lebih awal pada versi yang sama:
 - Quality gate: `rustfmt`, `clippy` (pedantic, `-D warnings`), `cargo test`,
   `gitleaks`, `cargo audit`, dan dependabot.
 
+
+[Unreleased]: https://github.com/Miruameli/verge/compare/v0.3.0...HEAD
 [0.3.0]: https://github.com/Miruameli/verge/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Miruameli/verge/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Miruameli/verge/releases/tag/v0.1.0

@@ -83,8 +83,12 @@ fn diff_menolak_revisi_dan_tabel_yang_tidak_dikenal() {
     let orders = TableName::parse("orders").expect("nama tabel valid");
     let salah = try_diff(&harness, &orders, "HEAD", "HEAD").expect_err("tabel tak ada di commit");
     assert!(
-        matches!(salah, VergeError::InvalidRef(_)),
-        "error yang diharapkan: invalid reference, didapat: {salah:?}"
+        matches!(
+            salah,
+            VergeError::CommitBelongsToOtherTable { ref requested, ref commit_table, .. }
+                if requested.to_string() == "orders" && commit_table.to_string() == "users"
+        ),
+        "error yang diharapkan: commit milik tabel lain, didapat: {salah:?}"
     );
     cleanup(&dir);
 }

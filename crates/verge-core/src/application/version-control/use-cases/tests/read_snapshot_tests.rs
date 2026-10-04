@@ -89,7 +89,7 @@ fn revisi_commit_hex_membaca_data_yang_tepat_bukan_yang_terbaru() {
 }
 
 #[test]
-fn tabel_lain_pada_commit_yang_sama_ditolak() {
+fn tabel_lain_pada_commit_yang_sama_ditolak_dengan_pesan_yang_menyebut_keduanya() {
     let world = FakeWorld::new();
     let users = commit(&world, "users", b"id\n1,ana\n", "feat: users", 1_000);
 
@@ -105,7 +105,14 @@ fn tabel_lain_pada_commit_yang_sama_ditolak() {
     )
     .expect_err("tabel yang berbeda harus ditolak");
 
-    assert!(matches!(error, VergeError::InvalidRef(_)));
+    assert!(
+        matches!(
+            error,
+            VergeError::CommitBelongsToOtherTable { ref requested, ref commit_table, .. }
+                if requested.to_string() == "orders" && commit_table.to_string() == "users"
+        ),
+        "pesan harus menyebut tabel commit dan tabel yang diminta: {error:?}"
+    );
 }
 
 #[test]

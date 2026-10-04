@@ -90,7 +90,14 @@ fn commit_tabel_lain_ditolak_saat_membaca_snapshot() {
     )
     .expect_err("commit tabel users tidak boleh dipakai untuk tabel orders");
 
-    assert!(matches!(error, VergeError::InvalidRef(_)));
+    assert!(
+        matches!(
+            error,
+            VergeError::CommitBelongsToOtherTable { ref requested, ref commit_table, .. }
+                if requested.to_string() == "orders" && commit_table.to_string() == "users"
+        ),
+        "pesan harus menyebut kedua tabel: {error:?}"
+    );
 }
 
 #[test]

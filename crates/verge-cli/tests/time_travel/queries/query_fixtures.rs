@@ -6,8 +6,8 @@
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
-//! Version: 0.1.0
+//! Modified: 2026-10-04
+//! Version: 0.4.0
 //! License: Apache-2.0
 //!
 //! Dependencies:
@@ -15,13 +15,16 @@
 //!
 //! Related issues:
 //!   - #25 (Milestone 4)
+//!   - #31 (Tabel tag pada pesan galat)
 //!
 //! Related ADR:
 //!   - ADR-0008 (Time-travel AS OF dan tag immutable)
 
 use std::path::{Path, PathBuf};
 
-use super::support::{gap, stage_and_commit, staged_repository, verge_stdout};
+use super::support::{
+    gap, stage_and_commit, stage_and_commit_table, staged_repository, verge_stdout,
+};
 
 /// Repository dengan tiga commit; mengembalikan foldernya.
 ///
@@ -34,6 +37,22 @@ pub(super) fn timeline(name: &str) -> PathBuf {
     stage_and_commit(&dir, "id,name\n1,ana\n2,budi\n", "feat: budi");
     gap();
     stage_and_commit(&dir, "id,name\n1,ana\n2,budi\n3,citra\n", "feat: citra");
+    dir
+}
+
+/// Repository dengan commit `users` lalu commit `orders`; tag `q3` menunjuk
+/// commit `orders`.
+///
+/// KENAPA tag dibuat tanpa `--revision`: dengan begitu tag menunjuk `HEAD`,
+/// dan `HEAD` berisi commit tabel yang berbeda dari tabel yang akan
+/// ditanyakan — kondisi yang membuat tag benar tetapi tidak berlaku untuk
+/// tabel lain.
+pub(super) fn tag_of_other_table(name: &str) -> PathBuf {
+    let dir = staged_repository(name, "id,name\n1,ana\n");
+    stage_and_commit(&dir, "id,name\n1,ana\n", "feat: users");
+    gap();
+    stage_and_commit_table(&dir, "orders", "id,total\n1,900\n", "feat: orders");
+    drop(verge_stdout(&dir, &["tag", "create", "q3"]));
     dir
 }
 

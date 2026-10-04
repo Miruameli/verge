@@ -6,8 +6,8 @@
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
-//! Version: 0.1.0
+//! Modified: 2026-10-04
+//! Version: 0.4.0
 //! License: Apache-2.0
 //!
 //! Dependencies:
@@ -15,6 +15,7 @@
 //!
 //! Related issues:
 //!   - #8 (Milestone 2)
+//!   - #31 (Tabel tag pada pesan galat)
 //!
 //! Related ADR:
 //!   - ADR-0005 (Tabel sebagai blok content-addressed)
@@ -95,13 +96,34 @@ pub fn commit_ok(dir: &Path, message: &str) -> String {
     verge_stdout(dir, &commit_args(message))
 }
 
-/// Mengimpor `users.csv` berisi `seed` ke tabel `users`.
-pub fn import_users(dir: &Path, seed: &str) {
-    fs::write(dir.join("users.csv"), seed).expect("tulis data");
-    drop(verge_stdout(
+/// Mengimpor `seed` ke tabel `table` lewat berkas `data.csv`.
+///
+/// KENAPA nama berkasnya tetap: `import` memvalidasi nama berkas sebagai
+/// segmen path, dan test tidak perlu membedakan nama sumber antar tabel.
+pub fn import_table(dir: &Path, table: &str, seed: &str) {
+    fs::write(dir.join("data.csv"), seed).expect("tulis data");
+    drop(verge_stdout(dir, &["import", "data.csv", "--table", table]));
+}
+
+/// Commit `message` untuk tabel `table` sebagai `ana`.
+pub fn commit_table_ok(dir: &Path, table: &str, message: &str) -> String {
+    verge_stdout(
         dir,
-        &["import", "users.csv", "--table", "users"],
-    ));
+        &[
+            "commit",
+            "--table",
+            table,
+            "--message",
+            message,
+            "--author",
+            "ana",
+        ],
+    )
+}
+
+/// Mengimpor `seed` ke tabel `users`; dipakai fixture yang hanya butuh `users`.
+pub fn import_users(dir: &Path, seed: &str) {
+    import_table(dir, "users", seed);
 }
 
 /// Repository dengan `seed` yang sudah di-import ke tabel `users`.
@@ -116,6 +138,12 @@ pub fn staged_repository(name: &str, seed: &str) -> PathBuf {
 pub fn stage_and_commit(dir: &Path, seed: &str, message: &str) {
     import_users(dir, seed);
     drop(commit_ok(dir, message));
+}
+
+/// Mengimpor `seed` ke tabel `table` lalu me-commit-nya.
+pub fn stage_and_commit_table(dir: &Path, table: &str, seed: &str, message: &str) {
+    import_table(dir, table, seed);
+    drop(commit_table_ok(dir, table, message));
 }
 
 /// Id commit yang ditunjuk branch `main` di repository `dir`.

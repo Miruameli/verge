@@ -58,10 +58,13 @@ fn diff_menerima_nama_branch_sebagai_revisi() {
 }
 
 #[test]
-fn diff_untuk_tabel_yang_berbeda_menolak_tabel_lain() {
+fn diff_untuk_tabel_yang_berbeda_menyebut_kedua_tabel() {
     let (dir, _) = two_revisions("wrong-table");
     let stderr = verge_error(&dir, &["diff", "main..main", "--table", "orders"]);
-    assert!(stderr.contains("invalid reference"), "{stderr}");
+    assert!(
+        stderr.contains("points to table `users`, not `orders`"),
+        "{stderr}"
+    );
     drop(fs::remove_dir_all(&dir));
 }
 
