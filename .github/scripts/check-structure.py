@@ -19,7 +19,7 @@ Aturan yang ditegakkan:
 Dua bentuk header diterima: kanonik (satu field per baris `//!`) dan ringkas
 (`//! Author: X · Created: Y`). Bentuk ringkas masih dipakai 32 berkas, jadi
 menolaknya sekarang akan membuat gate tidak dapat dijalankan; normalisasi ke
-bentuk kanonik dicatat terpisah di issue #40.
+bentuk kanonik dicatat terpisah di issue #41.
 
 Metode SLOC: baris non-kosong dan bukan baris komentar, sama dengan audit di
 `docs/engineering/audit/audit-kepatuhan-mandate.md`. Menghitung baris mentah
