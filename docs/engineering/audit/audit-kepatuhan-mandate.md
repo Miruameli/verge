@@ -204,9 +204,9 @@ karena `rglob("*")` hanya mengembalikan turunan.
 
 Empat di antaranya adalah cacat pada alat verifikasi, bukan pada kode yang
 diperiksanya. Semuanya ditemukan karena probe dijalankan dan hasilnya dibaca,
-bukan karena gate_membersih_checkpoint berjalan. Pelajaran yang diambil: gate
-yang baru dibuat wajib diuji dengan menyuntikkan kerusakan, dan probe itu sendiri
-wajib diperiksa apakah ia benar-benar menyuntik apa yang diklaim.
+bukan karena pemeriksaan otomatisnya berjalan. Pelajaran yang diambil: gate
+yang baru dibuat wajib diuji dengan menyuntikkan kerusakan, dan probe itu
+sendiri wajib diperiksa apakah ia benar-benar menyuntik apa yang diklaim.
 
 ### Konsekuensi yang diterapkan
 
