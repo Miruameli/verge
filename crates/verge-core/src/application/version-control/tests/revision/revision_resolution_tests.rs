@@ -1,18 +1,18 @@
 //! File: `revision_resolution_tests.rs`
 //!
 //! Deskripsi: Test resolusi `HEAD`, `HEAD~N`, dan nama branch.
-//! Layer: application/version-control/tests
+//! Layer: application/version-control/tests/revision
 //! Tanggung jawab: Membuktikan navigasi commit sebagai nama revisi.
 //! Bentuk teks yang menyerupai waktu diuji di `revision_shape_tests.rs`.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
+//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-04
 //! Version: 0.1.0 · License: Apache-2.0
 //!
 //! Dependencies: `revision_resolver.rs`, `revision_target.rs`
 //! Related issues: #18 (Milestone 3), #25 (Milestone 4)
 //! Related ADR: ADR-0006 (Prolly tree untuk tabel), ADR-0008 (AS OF dan tag)
 
-use super::fixtures::revision_fixtures::{users_table, world_with_commits};
+use super::super::fixtures::revision_fixtures::{users_table, world_with_commits};
 use crate::application::version_control::fakes::world::FakeWorld;
 use crate::application::version_control::revision_resolver::resolve_revision;
 use crate::domain::ident::value_objects::digest_text::HexText;

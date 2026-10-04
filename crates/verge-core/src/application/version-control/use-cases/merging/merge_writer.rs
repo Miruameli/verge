@@ -20,6 +20,7 @@
 //!   - ADR-0007 (Branch sebagai pointer dan merge tiga arah)
 
 use crate::application::version_control::use_cases::merging::merge_branch::MergeBranchInput;
+use crate::application::version_control::use_cases::merging::merge_reader::MergeSides;
 use crate::domain::commit::entities::commit::Commit;
 use crate::domain::commit::repositories::ports::commit_repository::CommitRepository;
 use crate::domain::commit::repositories::ports::ref_pointer::RefPointer;
@@ -39,9 +40,8 @@ use crate::shared::kernel::result::Result;
 /// Args:
 /// - input — metadata commit merge.
 /// - `current` — branch aktif yang akan digeser.
-/// - `ours`, `theirs` — ujung kedua sisi merge.
-/// - header — header tabel dari branch aktif.
-/// - rows — baris hasil gabungan.
+/// - `sides` — ketiga versi tabel; commit `ours` dan `theirs` menjadi parent.
+/// - `merged` — tabel hasil resolusi strategi.
 /// - refs — port pointer branch.
 /// - commits — port penyimpanan objek commit.
 /// - store — port object store blok.
@@ -52,24 +52,21 @@ use crate::shared::kernel::result::Result;
 /// # Errors
 ///
 /// Mengembalikan error dari port bila blok atau commit gagal ditulis.
-#[allow(clippy::too_many_arguments)]
 pub fn write_merge_commit(
     input: &MergeBranchInput,
     current: &str,
-    ours: CommitId,
-    theirs: CommitId,
-    header: &[u8],
-    rows: Vec<crate::domain::tree::value_objects::table_row::TableRow>,
+    sides: &MergeSides,
+    merged: &TableRows,
     refs: &dyn RefPointer,
     commits: &dyn CommitRepository,
     store: &dyn Store,
 ) -> Result<CommitId> {
-    let plan = build_plan(&TableRows::from_parts(header.to_vec(), rows))?;
+    let plan = build_plan(merged)?;
     for node in &plan.nodes {
         store.put(&encode_node(node))?;
     }
     let commit = Commit::new(
-        vec![ours, theirs],
+        vec![sides.ours_commit.id(), sides.theirs_commit.id()],
         plan.root,
         &input.table,
         input.author.clone(),

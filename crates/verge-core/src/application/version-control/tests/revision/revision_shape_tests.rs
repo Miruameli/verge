@@ -1,7 +1,7 @@
 //! File: `revision_shape_tests.rs`
 //!
 //! Deskripsi: Test pemilah bentuk teks revisi.
-//! Layer: application/version-control/tests
+//! Layer: application/version-control/tests/revision
 //! Tanggung jawab: Membuktikan bentuk waktu hanya dialihkan ke parser waktu
 //!   dan nama pointer berbentuk tanggal tidak salah ditolak.
 //!
@@ -20,7 +20,7 @@
 //! Related ADR:
 //!   - ADR-0008 (Time-travel AS OF dan tag immutable)
 
-use super::fixtures::revision_fixtures::{users_table, world_with_commits};
+use super::super::fixtures::revision_fixtures::{users_table, world_with_commits};
 use crate::application::version_control::revision_resolver::resolve_revision;
 use crate::application::version_control::revision_target::{self, RevisionTarget};
 use crate::domain::commit::repositories::ports::ref_pointer::RefPointer;

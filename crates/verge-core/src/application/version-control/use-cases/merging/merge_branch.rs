@@ -29,6 +29,7 @@ use crate::domain::merge::merge_strategy::MergeStrategy;
 use crate::domain::merge::rows::row_merge::merge_rows;
 use crate::domain::storage::ports::block_store::Store;
 use crate::domain::table::value_objects::table_name::TableName;
+use crate::domain::tree::table_codec::TableRows;
 use crate::shared::exceptions::verge_error::VergeError;
 use crate::shared::kernel::result::Result;
 
@@ -121,10 +122,8 @@ pub fn merge_branch(
     report.commit = Some(write_merge_commit(
         input,
         &current,
-        ours,
-        theirs,
-        sides.ours.header(),
-        merged.rows,
+        &sides,
+        &TableRows::from_parts(sides.ours.header().to_vec(), merged.rows),
         refs,
         commits,
         store,

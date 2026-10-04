@@ -1,12 +1,12 @@
 //! File: `revision_prefix_tests.rs`
 //!
 //! Deskripsi: Test resolusi awalan hex dan penolakan revisi lintas tabel.
-//! Layer: application/version-control/tests
+//! Layer: application/version-control/tests/revision
 //! Tanggung jawab: Membuktikan aturan awalan 12 hex seperti yang dicetak log.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
+//! Modified: 2026-10-04
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
@@ -17,8 +17,8 @@
 //! Related ADR:
 //!   - ADR-0006 (Prolly tree untuk tabel)
 //!   - ADR-0007 (Branch sebagai pointer dan merge tiga arah)
-use super::fixtures::revision_fixtures::users_table;
-use super::fixtures::revision_fixtures::world_with_commits;
+use super::super::fixtures::revision_fixtures::users_table;
+use super::super::fixtures::revision_fixtures::world_with_commits;
 use crate::application::version_control::revision_resolver::resolve_revision;
 use crate::application::version_control::use_cases::read_snapshot::{
     read_snapshot, ReadSnapshotInput,

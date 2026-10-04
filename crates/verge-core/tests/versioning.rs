@@ -56,13 +56,32 @@ fn commit(tree: verge_core::BlockId, parents: Vec<verge_core::CommitId>, message
     )
 }
 
-#[test]
-fn sejarah_immutable_dan_branching_tidak_menyalin_data() {
+/// Keadaan awal yang dipakai test histori: satu repository, satu graph, dan dua
+/// commit pada dua branch yang berbagi blok penyimpanan yang sama.
+struct Skenario {
+    /// Direktori kerja yang harus dibersihkan setelah test.
+    dir: PathBuf,
+    /// Penyimpanan blok yang dibaca test.
+    store: FileBlockStore,
+    /// Commit graph yang sudah berisi branch `main` dan `feature`.
+    graph: CommitGraph,
+    /// Id blok snapshot `users-v2` yang dipakai branch `feature`.
+    feature_tree: verge_core::BlockId,
+    /// Id blok snapshot `users-v1`.
+    base: verge_core::BlockId,
+    /// Id commit puncak branch `main`.
+    main_tip: verge_core::CommitId,
+    /// Id commit puncak branch `feature`.
+    feature_tip: verge_core::CommitId,
+}
+
+/// Membangun repository, graph, dan dua branch yang mengubah satu tabel.
+fn skenario_branch_dan_tag() -> Skenario {
     let dir = scratch("versioning");
     let layout = RepositoryLayout::under(&dir);
     let repository = initialize_repository(&layout, &FileStoreFactory, &LocalFileSystem)
         .expect("repository harus terbentuk");
-    let store: &FileBlockStore = repository.store();
+    let store: FileBlockStore = repository.store().clone();
     let mut graph = CommitGraph::new();
 
     let base = store.put(b"users-v1").expect("tulis snapshot awal");
@@ -83,14 +102,38 @@ fn sejarah_immutable_dan_branching_tidak_menyalin_data() {
     let feature_tip = graph
         .resolve(&Ref::Branch("feature".to_owned()))
         .expect("branch feature resolve");
+
+    Skenario {
+        dir,
+        store,
+        graph,
+        base: base.id,
+        feature_tree: feature_tree.id,
+        main_tip,
+        feature_tip,
+    }
+}
+
+#[test]
+fn sejarah_immutable_dan_branching_tidak_menyalin_data() {
+    let Skenario {
+        dir,
+        store,
+        mut graph,
+        base,
+        feature_tree,
+        main_tip,
+        feature_tip,
+    } = skenario_branch_dan_tag();
+
     assert!(graph.is_ancestor(main_tip, feature_tip));
     assert_eq!(graph.len(), 2, "branch tidak menambah commit");
 
     // Main tetap membaca snapshot-nya sendiri meski branch fitur bergerak.
     let main_tree = graph.commit(&main_tip).expect("commit main").tree();
     let feature_snapshot = graph.commit(&feature_tip).expect("commit feature").tree();
-    assert_eq!(main_tree, base.id);
-    assert_eq!(feature_snapshot, feature_tree.id);
+    assert_eq!(main_tree, base);
+    assert_eq!(feature_snapshot, feature_tree);
 
     // Tag membekukan keadaan untuk audit.
     graph.set_tag("v0.1.0", main_tip).expect("buat tag");
