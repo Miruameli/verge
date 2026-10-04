@@ -27,6 +27,17 @@ dan versioning mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   id commit hex (`merge`), sedangkan dokumentasi lama hanya menyebut yang
   pertama sehingga bertentangan dengan pemanggilnya.
 
+### Added
+
+- Gate `structure` pada CI, dijalankan lewat `.github/scripts/check-structure.py`,
+  yang menegakkan aturan yang sebelumnya hanya diukur manual: 150 SLOC per
+  berkas, 5 berkas langsung per folder, 11 field header wajib pada setiap
+  berkas `.rs` (tepat satu kali masing-masing), `TODO`/`FIXME`/`HACK` tanpa
+  referensi issue, serta karakter di luar daftar tanda baca yang disetujui.
+  Gate terakhir menangkap kelas kerusakan yang tidak terlihat dari `cargo`:
+  pada PR #35 header comment kehilangan `License`, field terduplikasi, dan
+  bullet hilang tanpa satu pun gate yang gagal.
+
 ## [0.3.0] — 2026-10-04
 
 ### Added
