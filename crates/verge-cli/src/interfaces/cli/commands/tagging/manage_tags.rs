@@ -6,8 +6,8 @@
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
-//! Version: 0.1.0
+//! Modified: 2026-10-04
+//! Version: 0.4.0
 //! License: Apache-2.0
 //!
 //! Dependencies:
@@ -16,6 +16,7 @@
 //!
 //! Related issues:
 //!   - #25 (Milestone 4)
+//!   - #31 (Tabel tag pada pesan galat)
 //!
 //! Related ADR:
 //!   - ADR-0008 (Time-travel AS OF dan tag immutable)
@@ -78,6 +79,9 @@ fn run_create(args: &[String]) -> Result<()> {
 }
 
 /// Menjalankan `verge tag list`.
+///
+/// Kolom tabel dicetak karena tag tidak pernah menyimpan nama tabelnya sendiri:
+/// tanpa kolom itu pengguna harus menebak tabel mana yang berlaku untuk tag.
 fn run_list() -> Result<()> {
     let layout = workspace_layout()?;
     let store: FileBlockStore = object_store(&layout)?;
@@ -86,8 +90,14 @@ fn run_list() -> Result<()> {
     let names = tags.tags()?;
     let list = list_tags(&names, &tags, &commits)?;
 
-    for (name, commit, summary) in &list.entries {
-        println!("{name} {} {summary}", short_id(commit));
+    for entry in &list.entries {
+        println!(
+            "{} {} {} {}",
+            entry.name,
+            short_id(&entry.commit),
+            entry.table,
+            entry.summary
+        );
     }
     Ok(())
 }

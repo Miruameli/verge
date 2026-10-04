@@ -39,7 +39,10 @@ fn merge_dengan_tabel_lain_ditolak_bukan_menggabungkan_salah_tabel() {
         ],
     );
 
-    assert!(error.contains("not for table `orders`"), "{error}");
+    assert!(
+        error.contains("points to table `users`, not `orders`"),
+        "pesan harus menyebut kedua tabel: {error}"
+    );
 }
 
 #[test]

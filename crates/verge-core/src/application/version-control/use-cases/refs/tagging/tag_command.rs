@@ -6,8 +6,8 @@
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
-//! Version: 0.1.0
+//! Modified: 2026-10-04
+//! Version: 0.4.0
 //! License: Apache-2.0
 //!
 //! Dependencies:
@@ -15,11 +15,12 @@
 //!
 //! Related issues:
 //!   - #25 (Milestone 4)
+//!   - #31 (Tabel tag pada pesan galat)
 //!
 //! Related ADR:
 //!   - ADR-0008 (Time-travel AS OF dan tag immutable)
 
-use crate::application::version_control::dtos::tag_list::TagList;
+use crate::application::version_control::dtos::tag_list::{TagEntry, TagList};
 use crate::application::version_control::revision_resolver::resolve_revision;
 use crate::application::version_control::revision_target::{self, RevisionTarget};
 use crate::domain::commit::repositories::ports::commit_repository::CommitRepository;
@@ -64,7 +65,7 @@ pub fn delete_tag(name: &str, tags: &dyn TagPointer) -> Result<()> {
     tags.delete(name)
 }
 
-/// Menyusun daftar tag beserta commit yang ditunjuknya.
+/// Menyusun daftar tag beserta commit, tabel, dan ringkasan yang ditunjuknya.
 ///
 /// # Errors
 ///
@@ -78,7 +79,12 @@ pub fn list_tags(
     for name in names {
         if let Some(commit) = tags.resolve(name)? {
             let target = commits.load(&commit)?;
-            entries.push((name.clone(), commit, target.summary().to_owned()));
+            entries.push(TagEntry {
+                name: name.clone(),
+                commit,
+                table: target.table().clone(),
+                summary: target.summary().to_owned(),
+            });
         }
     }
     Ok(TagList { entries })

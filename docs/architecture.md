@@ -129,6 +129,9 @@ menyentuh logika bisnis.
 10. Tag tidak pernah ditimpa: pointer ditulis dengan `create_new` sehingga dua
     proses yang membuat tag dengan nama sama tidak dapat bergantian menulis
     pointer yang sama.
+11. Tag menyimpan commit id saja, bukan nama tabel. Tabel suatu tag dibaca dari
+    commit yang ditunjuknya; galat karena tabel berbeda menyebut kedua nama
+    tabel, bukan melaporkan referensi rusak.
 
 ## Model Parents
 

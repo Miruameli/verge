@@ -4,11 +4,11 @@
 //! Layer: shared/exceptions
 //! Tanggung jawab: Menjaga pesan error ringkas dan tanpa detail internal.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
-//! Version: 0.1.0 · License: Apache-2.0
+//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-04
+//! Version: 0.4.0 · License: Apache-2.0
 //!
 //! Dependencies: `verge_error.rs`
-//! Related issues: #1 (Milestone 1), #18 (Milestone 3)
+//! Related issues: #1 (Milestone 1), #18 (Milestone 3), #31 (Tabel tag pada pesan galat)
 //! Related ADR: ADR-0002 (Storage immutable content-addressed)
 
 use core::fmt;
@@ -48,6 +48,14 @@ impl fmt::Display for VergeError {
                 "search for {requested} stopped after the scan limit at {boundary}; use a branch or tag name instead"
             ),
             Self::InvalidRef(text) => write!(f, "invalid reference `{text}`"),
+            Self::CommitBelongsToOtherTable {
+                revision,
+                commit_table,
+                requested,
+            } => write!(
+                f,
+                "reference `{revision}` points to table `{commit_table}`, not `{requested}`"
+            ),
             Self::InvalidDigest(source) => source.fmt(f),
             Self::RepositoryAlreadyExists(path) => {
                 write!(f, "a Verge repository already exists at {}", path.display())

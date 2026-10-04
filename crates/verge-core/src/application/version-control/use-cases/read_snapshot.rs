@@ -6,8 +6,8 @@
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
-//! Version: 0.1.0
+//! Modified: 2026-10-04
+//! Version: 0.4.0
 //! License: Apache-2.0
 //!
 //! Dependencies:
@@ -20,6 +20,7 @@
 //! Related issues:
 //!   - #8 (Milestone 2)
 //!   - #18 (Milestone 3)
+//!   - #31 (Tabel tag pada pesan galat)
 //!
 //! Related ADR:
 //!   - ADR-0006 (Prolly tree untuk tabel)
@@ -58,8 +59,10 @@ pub struct ReadSnapshotInput {
 ///
 /// # Errors
 ///
-/// Revisi yang tidak dikenal, ambigu, atau menunjuk commit untuk tabel lain
-/// menghasilkan [`InvalidRef`](VergeError::InvalidRef), dan
+/// Revisi yang tidak dikenal atau ambigu menghasilkan
+/// [`InvalidRef`](VergeError::InvalidRef), revisi yang menunjuk commit tabel
+/// lain menghasilkan
+/// [`CommitBelongsToOtherTable`](VergeError::CommitBelongsToOtherTable), dan
 /// [`BlockNotFound`](VergeError::BlockNotFound) bila blok tabel hilang.
 ///
 /// Example:
@@ -94,7 +97,11 @@ pub fn read_snapshot(
     let id = resolve_revision(&input.revision, refs, tags, commits, Some(&input.table))?;
     let commit = commits.load(&id)?;
     if commit.table() != &input.table {
-        return Err(VergeError::InvalidRef(input.revision.clone()));
+        return Err(VergeError::CommitBelongsToOtherTable {
+            revision: input.revision.clone(),
+            commit_table: commit.table().clone(),
+            requested: input.table.clone(),
+        });
     }
     let rows = read_table(commit.tree(), store)?;
     Ok(SnapshotContent {

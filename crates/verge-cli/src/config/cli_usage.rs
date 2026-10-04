@@ -6,8 +6,8 @@
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
-//! Version: 0.1.0
+//! Modified: 2026-10-04
+//! Version: 0.4.0
 //! License: Apache-2.0
 //!
 //! Dependencies:
@@ -18,6 +18,7 @@
 //!   - #8 (Milestone 2)
 //!   - #18 (Milestone 3)
 //!   - #22 (Milestone 4)
+//!   - #31 (Tabel tag pada pesan galat)
 //!
 //! Related ADR:
 //!   - ADR-0003 (Arsitektur 7-layer)
@@ -49,7 +50,7 @@ Usage:
                  <WHEN> is an RFC 3339 UTC timestamp (2026-10-01T10:00:00Z),
                  unix milliseconds (@1767225600000), a tag, or a commit id
   verge tag create <NAME> [--revision <REV>]      Tag a commit; tags are immutable
-  verge tag list                                  List tags with the commit each points at
+  verge tag list                                  List tags with the commit and table each points at
   verge tag delete <NAME>                         Delete a tag (data is kept)
   verge --help                                    Show this message
   verge --version                                 Show the version

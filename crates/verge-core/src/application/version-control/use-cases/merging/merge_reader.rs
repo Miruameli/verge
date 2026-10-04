@@ -6,8 +6,8 @@
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
-//! Version: 0.1.0
+//! Modified: 2026-10-04
+//! Version: 0.4.0
 //! License: Apache-2.0
 //!
 //! Dependencies:
@@ -15,6 +15,7 @@
 //!
 //! Related issues:
 //!   - #22 (Milestone 4)
+//!   - #31 (Tabel tag pada pesan galat)
 //!
 //! Related ADR:
 //!   - ADR-0007 (Branch sebagai pointer dan merge tiga arah)
@@ -79,8 +80,9 @@ pub fn read_sides(
 ///
 /// # Errors
 ///
-/// Mengembalikan [`InvalidRef`](VergeError::InvalidRef) bila tabel commit lain
-/// dan error dari port bila commit tidak dapat dibaca.
+/// Mengembalikan
+/// [`CommitBelongsToOtherTable`](VergeError::CommitBelongsToOtherTable) bila
+/// commit milik tabel lain dan error dari port bila commit tidak dapat dibaca.
 fn commit_of_table(
     id: CommitId,
     commits: &dyn CommitRepository,
@@ -88,10 +90,11 @@ fn commit_of_table(
 ) -> Result<Commit> {
     let commit = commits.load(&id)?;
     if commit.table() != table {
-        return Err(VergeError::InvalidRef(format!(
-            "commit {} is not for table `{table}`",
-            id.to_hex()
-        )));
+        return Err(VergeError::CommitBelongsToOtherTable {
+            revision: id.to_hex(),
+            commit_table: commit.table().clone(),
+            requested: table.clone(),
+        });
     }
     Ok(commit)
 }

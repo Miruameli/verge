@@ -135,7 +135,9 @@ id,name
 ```
 
 Tag bersifat immutable: `verge tag create` menolak nama yang sudah ada, sehingga
-laporan yang menyebut `q3` selalu menunjuk keadaan yang sama.
+laporan yang menyebut `q3` selalu menunjuk keadaan yang sama. `verge tag list`
+mencetak nama, commit, dan tabel yang dimiliki setiap tag, sehingga tag tidak
+perlu ditebak sebelum dipakai sebagai `--as-of`.
 
 Layout repository yang dihasilkan:
 

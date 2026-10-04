@@ -6,15 +6,17 @@
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
-//! Version: 0.1.0
+//! Modified: 2026-10-04
+//! Version: 0.4.0
 //! License: Apache-2.0
 //!
 //! Dependencies:
 //!   - `shared/exceptions/parse_digest_error.rs`
+//!   - `domain/ident/value-objects/digest.rs`, `domain/table/value-objects/table_name.rs`
 //!
 //! Related issues:
 //!   - #1 (Milestone 1)
+//!   - #31 (Tabel tag pada pesan galat)
 //!
 //! Related ADR:
 //!   - ADR-0002 (Storage immutable content-addressed)
@@ -25,6 +27,7 @@ use std::path::PathBuf;
 mod display;
 
 use crate::domain::ident::value_objects::digest::Digest;
+use crate::domain::table::value_objects::table_name::TableName;
 use crate::shared::exceptions::parse_digest_error::ParseDigestError;
 
 /// Semua kegagalan yang dapat terjadi di dalam engine.
@@ -70,6 +73,19 @@ pub enum VergeError {
     },
     /// Referensi gagal di-parse.
     InvalidRef(String),
+    /// Commit yang ditunjuk revisi bukan milik tabel yang ditanyakan.
+    ///
+    /// KENAPA varian tersendiri: pesan `invalid reference` membuat pengguna
+    /// menduga tag atau branch rusak, padahal keduanya benar dan hanya tabelnya
+    /// yang berbeda. Menyebut kedua tabel membuat kesalahan dapat diperbaiki.
+    CommitBelongsToOtherTable {
+        /// Revisi yang diketik pengguna, bukan hasil resolusi.
+        revision: String,
+        /// Tabel yang memiliki commit tersebut.
+        commit_table: TableName,
+        /// Tabel yang ditanyakan pengguna.
+        requested: TableName,
+    },
     /// String digest gagal di-parse.
     InvalidDigest(ParseDigestError),
     /// Repository sudah ada; bootstrap tidak menimpa data pengguna.
