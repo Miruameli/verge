@@ -6,8 +6,8 @@
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
-//! Version: 0.1.0
+//! Modified: 2026-10-04
+//! Version: 0.4.0
 //! License: Apache-2.0
 //!
 //! Dependencies:
@@ -15,6 +15,8 @@
 //!
 //! Related issues:
 //!   - #8 (Milestone 2)
+//!   - #31 (Tabel tag pada pesan galat)
+//!   - #36 (Test show lintas tabel dan dokumentasi field revision)
 //!
 //! Related ADR:
 //!   - ADR-0005 (Tabel sebagai blok content-addressed)
@@ -22,7 +24,9 @@
 use std::fs;
 use std::path::PathBuf;
 
-use super::support::{head_id, scratch, stage_and_commit, verge_error, verge_stdout};
+use super::support::{
+    head_id, scratch, stage_and_commit, stage_and_commit_table, verge_error, verge_stdout,
+};
 
 /// Repository dengan dua commit; mengembalikan folder dan id commit pertama.
 fn versioned_repository(name: &str) -> (PathBuf, String) {
@@ -32,6 +36,18 @@ fn versioned_repository(name: &str) -> (PathBuf, String) {
     let first_id = head_id(&dir);
     stage_and_commit(&dir, "id,name\n1,ana\n2,budi\n", "add budi");
     (dir, first_id)
+}
+
+/// Repository dengan satu commit `users` lalu satu commit `orders`.
+///
+/// KENAPA dua tabel: `show` pada revisi harus menolak commit milik tabel lain,
+/// dan itu hanya mungkin bila branch benar-benar memuat commit dua tabel.
+fn two_table_repository(name: &str) -> PathBuf {
+    let dir = scratch(name);
+    drop(verge_stdout(&dir, &["init"]));
+    stage_and_commit(&dir, "id,name\n1,ana\n", "seed users");
+    stage_and_commit_table(&dir, "orders", "id,total\n1,900\n", "seed orders");
+    dir
 }
 
 #[test]
@@ -69,6 +85,17 @@ fn show_menolak_revisi_yang_tidak_dikenal() {
     let (dir, _) = versioned_repository("bad-revision");
     let stderr = verge_error(&dir, &["show", "v1.0", "--table", "users"]);
     assert!(stderr.contains("invalid reference"), "{stderr}");
+    drop(fs::remove_dir_all(&dir));
+}
+
+#[test]
+fn show_menolak_revisi_yang_menunjuk_commit_tabel_lain() {
+    let dir = two_table_repository("cross-table");
+    let stderr = verge_error(&dir, &["show", "HEAD", "--table", "users"]);
+    assert!(
+        stderr.contains("points to table `orders`, not `users`"),
+        "{stderr}"
+    );
     drop(fs::remove_dir_all(&dir));
 }
 
