@@ -17,6 +17,16 @@ dan versioning mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   yang ditunjuk tag. `TagEntry` berubah dari tuple tiga elemen menjadi struct
   bernama `TagEntry { name, commit, table, summary }`.
 
+### Fixed
+
+- `verge show` kini punya test end-to-end untuk revisi yang menunjuk commit
+  tabel lain, sejajar dengan test `query`, `diff`, dan `merge` yang sudah ada.
+  Tanpa test itu, perbaikan pesan tabel pada `show` dapat kembali diam-diam.
+- Dokumentasi field `CommitBelongsToOtherTable.revision` digeneralisasi:
+  field itu menerima teks revisi dari pengguna (`query`, `show`, `diff`) dan
+  id commit hex (`merge`), sedangkan dokumentasi lama hanya menyebut yang
+  pertama sehingga bertentangan dengan pemanggilnya.
+
 ## [0.3.0] — 2026-10-04
 
 ### Added

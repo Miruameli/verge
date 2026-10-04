@@ -17,6 +17,7 @@
 //! Related issues:
 //!   - #1 (Milestone 1)
 //!   - #31 (Tabel tag pada pesan galat)
+//!   - #36 (Test show lintas tabel dan dokumentasi field revision)
 //!
 //! Related ADR:
 //!   - ADR-0002 (Storage immutable content-addressed)
@@ -79,7 +80,8 @@ pub enum VergeError {
     /// menduga tag atau branch rusak, padahal keduanya benar dan hanya tabelnya
     /// yang berbeda. Menyebut kedua tabel membuat kesalahan dapat diperbaiki.
     CommitBelongsToOtherTable {
-        /// Revisi yang diketik pengguna, bukan hasil resolusi.
+        /// Teks referensi pada pesan: revisi yang diketik pengguna, atau id
+        /// commit dalam hex bila pemanggil sudah menyelesaikan resolusi.
         revision: String,
         /// Tabel yang memiliki commit tersebut.
         commit_table: TableName,
