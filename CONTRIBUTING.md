@@ -38,6 +38,7 @@ Terima kasih sudah membaca. Dokumen ini menjelaskan alur kerja yang wajib diikut
    cargo clippy --all-targets --all-features -- -D warnings
    cargo test --all
    gitleaks detect
+   python3 .github/scripts/check-structure.py
    ```
 
 5. **Self-review** sebelum membuka PR: baca ulang diff seolah-olah Anda orang lain,
