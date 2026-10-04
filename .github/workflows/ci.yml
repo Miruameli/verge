@@ -44,7 +44,7 @@ jobs:
       # KENAPA: aturan modularisasi dan kelengkapan header tidak terlihat
       #         dari cargo; damage header pada PR #35 lolos dari seluruh gate.
       - name: Gate struktur repository
-        run: python3 .github/scripts/check-structure.py
+        run: python3 .github/scripts/structure/check-structure.py
 
   lint:
     name: lint
