@@ -94,3 +94,75 @@ Seluruh angka di bawah dihitung dari isi repo, bukan dari ingatan:
 - Dua dari lima pelanggaran (nomor 3 dan 4) muncul karena pengukuran, bukan
   karena kegagalan test: keduanya tidak mengubah perilaku dan seluruh test
   lulus sebelum dan sesudah.
+
+---
+
+## 2026-10-04 — Penegakan aturan lewat gate otomatis
+
+| Field    | Nilai                                                                                                    |
+| -------- | -------------------------------------------------------------------------------------------------------- |
+| Waktu    | 2026-10-04                                                                                               |
+| Aksi     | Mengubah pengukuran manual menjadi job CI `structure` yang menolak PR                                      |
+| Pelaku   | Miruameli                                                                                                |
+| Alasan   | Pengukuran pada audit sebelumnya hanya hidup di percakapan; tidak ada artefak yang menyimpan hasilnya        |
+| Terkait  | Issue #39, Issue #41, PR #40                                                                              |
+| Dampak   | Tidak ada perubahan perilaku; 313 test lulus; gate baru menambah satu status check pada `main`            |
+| Rollback | Hapus job `structure` dari `.github/workflows/ci.yml`; tidak ada perubahan kode produksi                  |
+
+### Apa yang ditegakkan
+
+| Aturan                                                        | Batas                        |
+| ------------------------------------------------------------- | ---------------------------- |
+| SLOC per berkas `.rs`                                          | 150                          |
+| Berkas langsung per folder                                     | 5                            |
+| Subfolder per folder                                           | 5, atau 10 untuk root layer |
+| Field header wajib per berkas `.rs`                             | 11, masing-masing satu kali  |
+| `TODO`/`FIXME`/`HACK` tanpa referensi issue                     | 0                            |
+| Karakter di luar daftar tanda baca yang disetujui               | 0                            |
+
+### Cara memverifikasi gate-nya sendiri
+
+Gate struktur baru diuji dengan menyuntikkan delapan kelas kerusakan ke
+salinan repo, lalu menjalankan gate atas salinan itu:
+
+| Kerusakan yang disuntikkan                    | Hasil     |
+| -------------------------------------------- | --------- |
+| `License:` dihapus                            | tertangkap |
+| `Version:` terduplikasi                      | tertangkap |
+| `Related issues:` terduplikasi               | tertangkap |
+| `Related ADR:` dihapus                       | tertangkap |
+| Homoglif Cyrillic pada `KENAPA`              | tertangkap |
+| CJK nyasar pada komentar                      | tertangkap |
+| `TODO` tanpa referensi issue                 | tertangkap |
+| SLOC 155                                      | tertangkap |
+
+Setelah kedelapan kerusakan dipulihkan, gate kembali lulus dengan exit 0.
+Tanpa langkah ini, gate hanya diklaim bekerja dan tidak dibuktikan.
+
+### Batasan yang diketahui
+
+Terdapat **dua bentuk header** yang masih hidup berdampingan: bentuk kanonik
+satu field per baris (234 berkas) dan bentuk ringkas dengan pemisah `·`
+(32 berkas). Gate menerima keduanya selama bentuk ringkas masih ada;
+normalisasi dicatat pada Issue #41.
+
+Dua percobaan normalisasi otomatis pada sesi yang sama **gagal dan tidak
+di-commit**: pemecah berdasarkan `·` merusak nilai yang memuat koma sehingga
+baris `Dependencies` berisi `` `, ` `` alih-alih nama modul. Pelajaran yang
+diambil: normalisasi header bukan pekerjaan sekali-jalan; nilai setiap field
+harus diambil dari berkas itu sendiri dan diverifikasi sebelum dan sesudah.
+
+### Catatan proses
+
+- Commit gate struktur sempat mendarat di branch lokal `chore/header-konsisten`
+  yang dibuat untuk percobaan normalisasi header yang dibatalkan, bukan di
+  branch `ci/structure-gate`. Akibatnya PR #40 sempat tidak menampilkan
+  perubahan sama sekali. Perbaikannya: PR #38 di-merge lebih dulu, commit gate
+  di-cherry-pick ke atas `main`, lalu branch fitur di-force-push dengan
+  `--force-with-lease`. `--force-push` hanya dipakai pada branch fitur; `main`
+  tidak pernah di-force-push.
+- Dua percobaan normalisasi header otomatis gagal dan di-revert lewat
+  `git checkout -- crates` sebelum sempat ter-commit. Penyebabnya pemecah
+  berdasarkan `·` merusak nilai yang memuat koma. Normalisasi header bukan
+  pekerjaan sekali-jalan; ia perlu pemeriksaan nilai sebelum dan sesudah,
+  seperti yang tercatat pada Batasan yang diketahui di atas.
