@@ -8,6 +8,13 @@ edition = "2021"
 rust-version = "1.82"
 license = "Apache-2.0"
 repository = "https://github.com/Miruameli/verge"
+# KENAPA: crates.io menampilkan metadata ini di halaman paket. Tanpa
+#         keywords dan categories, paket sulit ditemukan lewat pencarian
+#         dan tidak muncul di daftar kategori yang relevan.
+homepage = "https://github.com/Miruameli/verge"
+readme = "README.md"
+keywords = ["database", "version-control", "git", "time-travel", "merge"]
+categories = ["database-implementations", "data-structures", "command-line-utilities"]
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
