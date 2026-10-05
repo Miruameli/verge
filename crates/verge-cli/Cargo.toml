@@ -6,6 +6,10 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [[bin]]
 name = "verge"
@@ -16,4 +20,8 @@ workspace = true
 
 [dependencies]
 anyhow.workspace = true
-verge-core = { path = "../verge-core" }
+# KENAPA: `version` wajib ada selain `path`. Tanpa itu `cargo package`
+#         dan `cargo publish` gagal dengan "all dependencies must have a
+#         version specified when packaging". Nilai harus sama dengan
+#         versi crate yang sedang dirilis.
+verge-core = { version = "0.3.0", path = "../verge-core" }

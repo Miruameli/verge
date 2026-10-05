@@ -1,0 +1,156 @@
+# Runbook: publishing to crates.io
+
+## Purpose
+
+Publish a release of `verge-core` and `verge-cli` to the public crates.io
+registry so users can install them with `cargo add` and `cargo install`.
+
+This runbook covers the **backfill** of the three historical releases
+(`v0.1.0`, `v0.2.0`, `v0.3.0`) that were tagged on GitHub but never published
+to crates.io, and the normal process for every release after that.
+
+## Prerequisites
+
+- [x] The release tag exists on GitHub and points at a green commit.
+- [x] `CARGO_REGISTRY_TOKEN` is set as a GitHub Actions secret on the
+      repository. Verify with `gh secret list`. The value is never echoed, and
+      never committed.
+- [x] Both crate names are free on crates.io. `verge-core` and `verge-cli`
+      were verified available on 2026-10-05.
+
+## Constraints that cannot be worked around
+
+Read these before starting. They are properties of the registry, not of this
+repository.
+
+1. **A publish is permanent.** The version can never be overwritten and the
+   uploaded code can never be deleted. The only remedy for a bad upload is
+   `cargo yank`, which stops new dependency resolution but leaves existing
+   lockfiles working and does not remove the files.
+
+2. **Publish timestamps cannot be backdated.** crates.io records the moment a
+   version is uploaded. The backfilled `0.1.0`, `0.2.0` and `0.3.0` will all
+   show today's date on the version list, not the original tag dates of
+   2026-10-03 and 2026-10-04. This is deliberate registry behaviour and there
+   is no supported way to influence it.
+
+3. **The crate name `verge` is unavailable.** It has been taken on crates.io
+   since 2024-08-21 by an unrelated project and names are first-come
+   first-serve with no reclaim path. The CLI publishes as `verge-cli`. The
+   installed binary is still named `verge` because `[[bin]] name = "verge"` is
+   a build target name and does not need registry uniqueness.
+
+4. **Order matters within a version.** `verge-cli` depends on `verge-core` by
+   version, so `verge-core` must exist on the registry before `verge-cli` can
+   be packaged. Publishing the CLI first fails with
+   `no matching package named 'verge-core' found`.
+
+## Content fidelity
+
+The backfill publishes the code from each historical tag, not a reconstruction.
+This was verified on 2026-10-05: `cargo package` succeeds at all three tags,
+and unpacking the resulting `.crate` file and diffing its `src/` directory
+against `git archive <tag>/src` produces no differences.
+
+```
+v0.1.0  Packaged 109 files, 218.6 KiB (47.0 KiB compressed)
+v0.2.0  Packaged 141 files, 306.0 KiB (66.5 KiB compressed)
+v0.3.0  Packaged 216 files, 481.1 KiB (103.2 KiB compressed)
+```
+
+## Steps
+
+Publishing is driven by the `publish-crate` workflow, which runs manually.
+One run publishes one crate at one version, so every upload has its own
+auditable run record.
+
+For each version, run the core crate first:
+
+1. Trigger the workflow for `verge-core` at the version being released:
+
+   ```
+   gh workflow run publish-crate.yml \
+     --repo Miruameli/verge \
+     -f crate=verge-core \
+     -f version=0.1.0
+   ```
+
+2. Wait for it to finish. It re-runs the full gate (format, clippy, tests,
+   structure) before uploading, so a green run also proves the tag is
+   releasable.
+
+3. Only after that run succeeds, publish the CLI for the same version:
+
+   ```
+   gh workflow run publish-crate.yml \
+     --repo Miruameli/verge \
+     -f crate=verge-cli \
+     -f version=0.1.0
+   ```
+
+4. Repeat steps 1 to 3 for `0.2.0`, then for `0.3.0`.
+
+The workflow refuses to run when the version in the manifest does not match the
+version requested in the input, which prevents publishing a tarball whose
+contents disagree with the number users pin.
+
+### Backfill pre-flight
+
+Before the first run, confirm the historical tags can still be packaged:
+
+```
+git worktree add /tmp/verge-backfill v0.1.0
+cd /tmp/verge-backfill
+cargo publish -p verge-core --dry-run --allow-dirty
+git worktree remove /tmp/verge-backfill
+```
+
+`verge-cli` at the historical tags cannot be dry-run before `verge-core` is on
+the registry, because cargo resolves the CLI's dependency from crates.io. That
+failure is expected and is not a defect; it resolves itself once step 1
+completes.
+
+## Verification
+
+After each publish:
+
+1. The version appears on the crate page with the expected file list.
+2. The version can be resolved from a clean checkout:
+
+   ```
+   cargo add verge-core@0.1.0
+   ```
+
+3. A full local verification, from outside the repository:
+
+   ```
+   cargo install verge-cli --version 0.1.0 --locked
+   verge --version
+   ```
+
+## Rollback plan
+
+A publish cannot be undone. The available response is:
+
+```
+cargo yank --crate verge-core --version 0.1.0
+```
+
+A yank prevents new projects from resolving that version. It does not break
+existing lockfiles and does not delete anything. Use it only for a broken or
+unsafe upload. For a mistake in metadata that does not break builds, leaving
+the version in place and documenting it is usually better.
+
+## Escalation
+
+crates.io account and token management happen on the crates.io website, not
+through the CLI. If the token is suspected compromised, revoke it at
+`https://crates.io/settings/tokens`, create a replacement, and update the
+repository secret with:
+
+```
+gh secret set CARGO_REGISTRY_TOKEN --repo Miruameli/verge < /path/to/new/token
+chmod 600 /path/to/new/token
+```
+
+## Last Updated: 2026-10-05
