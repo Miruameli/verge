@@ -1,37 +1,38 @@
-# Kontribusi ke Verge
+# Contributing to Verge
 
-Terima kasih sudah membaca. Dokumen ini menjelaskan alur kerja yang wajib diikuti.
+Thank you for reading. This document describes the workflow that must be followed.
 
-## Prasyarat
+## Prerequisites
 
-- Rust toolchain sesuai `rust-toolchain.toml` (dipasang lewat `rustup`).
-- `gitleaks` untuk deteksi secret lokal.
-- `gh` CLI untuk seluruh operasi GitHub.
+- A Rust toolchain matching `rust-toolchain.toml` (installed through `rustup`).
+- `gitleaks` for local secret detection.
+- The `gh` CLI for all GitHub operations.
 
-## Alur kerja wajib
+## Mandatory workflow
 
-1. **Issue lebih dulu.** Setiap perubahan kode dimulai dari issue yang menjelaskan
-   masalah, dampak, dan prioritas. PR tanpa closing issue akan ditolak.
-2. **Branch terpisah** dari `main`:
+1. **Issue first.** Every code change starts from an issue that explains the
+   problem, the impact, and the priority. A PR without a closing issue is
+   rejected.
+2. **A separate branch** off `main`:
 
-   | Jenis    | Prefix      | Contoh                   |
-   | -------- | ----------- | ------------------------ |
-   | Fitur    | `feat/`     | `feat/prolly-tree`       |
-   | Perbaikan | `fix/`     | `fix/atomic-block-write` |
-   | Refaktor | `refactor/` | `refactor/commit-graph`  |
-   | Docs     | `docs/`     | `docs/architecture`      |
-   | Chores   | `chore/`    | `chore/dependabot`       |
+   | Type     | Prefix      | Example                   |
+   | -------- | ----------- | ------------------------- |
+   | Feature  | `feat/`     | `feat/prolly-tree`       |
+   | Fix      | `fix/`      | `fix/atomic-block-write` |
+   | Refactor | `refactor/` | `refactor/commit-graph`  |
+   | Docs     | `docs/`     | `docs/architecture`       |
+   | Chores   | `chore/`    | `chore/dependabot`        |
 
-3. **Commit Conventional Commits** dengan subject imperatif ≤72 karakter:
+3. **Conventional Commits** with an imperative subject of at most 72 characters:
 
    ```text
-   feat(storage): tulis blok secara atomik dengan rename
+   feat(storage): write blocks atomically with rename
 
-   Blok yang belum selesai tertulis bisa dibaca sebagai data rusak.
-   Rename setelah fsync membuat blok hanya terlihat utuh.
+   A block that is only partially written can be read as corrupted data.
+   Rename after fsync makes the block visible only when it is whole.
    ```
 
-4. **Quality gate lokal** — semuanya wajib hijau:
+4. **Local quality gates** — all of them must be green:
 
    ```bash
    cargo fmt --all --check
@@ -41,39 +42,41 @@ Terima kasih sudah membaca. Dokumen ini menjelaskan alur kerja yang wajib diikut
    python3 .github/scripts/structure/check-structure.py
    ```
 
-5. **Self-review** sebelum membuka PR: baca ulang diff seolah-olah Anda orang lain,
-   periksa kode mati, duplikasi, dan test yang hanya menguji wiring.
-6. **PR** berisi Problem, Approach, Alternatives, Risks/Rollback, dan Verification.
-   Sertakan `Closes #<issue>`.
-7. **Merge** hanya setelah CI hijau dan checklist PR terpenuhi.
+5. **Self-review** before opening the PR: read the diff again as if you were
+   someone else, and check for dead code, duplication, and tests that only
+   exercise wiring.
+6. **The PR** contains Problem, Approach, Alternatives, Risks/Rollback, and
+   Verification. Include `Closes #<issue>`.
+7. **Merge** only after CI is green and the PR checklist is complete.
 
-## Aturan kualitas kode
+## Code quality rules
 
-- Batas **150 baris per berkas** mengikat. Batas **5 berkas langsung** dan
-  **5 subfolder** per folder adalah target: penyimpangan diterima bila setiap
-  isi folder merupakan konteks terpisah, dan alasannya ditulis di
+- The **150-line-per-file** limit is binding. The **5 direct files** and
+  **5 subfolders** per folder are targets: a deviation is accepted when every
+  item in the folder is a separate context, and the reason is written in
   [`docs/architecture.md`](docs/architecture.md).
-- Setiap berkas punya header comment: `File`, `Deskripsi`, `Layer`,
+- Every file has a header comment: `File`, `Deskripsi`, `Layer`,
   `Tanggung jawab`, `Author`, `Created`, `Modified`, `Version`, `License`,
   `Dependencies`, `Related issues`, `Related ADR`.
-- Setiap fungsi publik, struct, dan trait punya doc comment yang menyebut argumen,
-  return, error, dan contoh bila relevan.
-- `TODO`/`FIXME`/`HACK` wajib menyertakan nomor issue; tanpa itu PR ditolak.
-- Kode tidak boleh melewati layer secara langsung: presentation menyentuh
-  application, application dan infrastructure menyentuh domain, tidak sebaliknya.
+- Every public function, struct, and trait has a doc comment that states the
+  arguments, return, errors, and an example where relevant.
+- `TODO`/`FIXME`/`HACK` must include an issue number; without one the PR is
+  rejected.
+- Code must not cross layers directly: presentation touches application,
+  application and infrastructure touch the domain, never the other way around.
 
-## Test
+## Tests
 
-- Unit test untuk logika domain, integration test untuk jalur storage end-to-end,
-  dan E2E test untuk perilaku CLI lewat binary sungguhan.
-- Test wajib deterministik: tanpa ketergantungan jaringan, jam sistem, atau urutan
-  eksekusi. Direktori sementara memakai nama unik per proses.
+- Unit tests for domain logic, integration tests for the end-to-end storage
+  path, and E2E tests for CLI behavior through the real binary.
+- Tests must be deterministic: no dependency on the network, the system clock,
+  or execution order. Temporary directories use a unique name per process.
 
 ## ADR
 
-Keputusan arsitektur yang signifikan ditulis sebagai ADR baru di `docs/adr/`.
-ADR lama tidak pernah diedit; koreksi dibuat sebagai ADR baru yang menimpanya.
+Significant architectural decisions are written as a new ADR in `docs/adr/`.
+Old ADRs are never edited; a correction is a new ADR that supersedes it.
 
-## Pelaporan kerentanan
+## Reporting vulnerabilities
 
-Jangan membuka issue publik untuk kerentanan. Ikuti [`SECURITY.md`](SECURITY.md).
+Do not open a public issue for a vulnerability. Follow [`SECURITY.md`](SECURITY.md).

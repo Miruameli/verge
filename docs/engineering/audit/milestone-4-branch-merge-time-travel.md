@@ -1,54 +1,55 @@
-# Audit: Milestone 4 — branch, merge, dan time travel
+# Audit: Milestone 4 — branch, merge, and time travel
 
-## 2026-10-03 — Milestone 4: branch O(1), merge tiga arah, dan `AS OF`
+## 2026-10-03 — Milestone 4: O(1) branch, three-way merge, and `AS OF`
 
-| Field    | Nilai                                                                 |
-| -------- | --------------------------------------------------------------------- |
-| Waktu    | 2026-10-03                                                            |
-| Aksi     | Merge PR #23 (branch), #24 (merge), #26 (time-travel + tag) ke `main`  |
-| Pelaku   | Miruameli                                                             |
-| Alasan   | Menutup issue #22 dan #25; janji "branching O(1)", "3-way merge", dan "time-travel query" belum terpenuhi tanpa ketiganya |
-| Terkait  | Issue #22, #25, PR #23, #24, #26, ADR-0007, ADR-0008, ADR-0009        |
-| Dampak   | `verge branch`, `verge merge`, `verge query --as-of`, dan `verge tag` bekerja; time-travel dapat dijawab tanpa mencari commit id |
-| Rollback | `git revert` masing-masing commit merge; blok lama tetap terbaca karena content-addressed |
+| Field  | Value                                                              |
+| ------ | ------------------------------------------------------------------ |
+| Time   | 2026-10-03                                                         |
+| Action | Merge PR #23 (branch), #24 (merge), #26 (time-travel + tag) into `main` |
+| Actor  | Miruameli                                                          |
+| Reason | Close issue #22 and #25; the "O(1) branching", "3-way merge", and "time-travel query" promises are unmet without all three |
+| Related | Issue #22, #25, PR #23, #24, #26, ADR-0007, ADR-0008, ADR-0009       |
+| Impact | `verge branch`, `verge merge`, `verge query --as-of`, and `verge tag` work; time travel can be answered without searching for a commit id |
+| Rollback | `git revert` on each merge commit; old blocks stay readable because they are content-addressed |
 
-### Bukti
+### Evidence
 
-- 306 test lulus setelah review; `clippy -D warnings` dan `cargo fmt` bersih; CI
-  hijau pada ketiga PR (`format`, `lint`, `test`, `audit`, `secrets`).
-- Smoke run branch: `verge branch create eksperimen` menambah pointer tanpa
-  menambah blok data; `branch switch` menulis `HEAD` lengkap.
-- Smoke run merge: `verge merge eksperimen --table users --strategy ours`
-  melaporkan `merged eksperimen into main at 66ed2fc47af2 (3 rows, strategy ours)`.
-- Smoke run time travel: `tag create q3` → `query --as-of q3` mengembalikan isi
-  saat tag dibuat; `query --as-of 2026-10-01T00:00:00Z` sebelum commit pertama
-  ditolak dengan pesan yang menyebut waktu commit tertua.
+- 306 tests passed after review; `clippy -D warnings` and `cargo fmt` clean; CI
+  green on all three PRs (`format`, `lint`, `test`, `audit`, `secrets`).
+- Branch smoke run: `verge branch create eksperimen` adds a pointer without
+  adding a data block; `branch switch` writes the complete `HEAD`.
+- Merge smoke run: `verge merge eksperimen --table users --strategy ours`
+  reports `merged eksperimen into main at 66ed2fc47af2 (3 rows, strategy ours)`.
+- Time travel smoke run: `tag create q3` → `query --as-of q3` returns the
+  contents from when the tag was created; `query --as-of 2026-10-01T00:00:00Z`
+  before the first commit is rejected with a message naming the oldest commit
+  time.
 
-### Cacat yang ditemukan saat review dan diperbaiki dalam PR yang sama
+### Defects found during review and fixed in the same PR
 
-1. `looks_like_time` menganggap teks apa pun dengan karakter ke-5 `-` sebagai
-   waktu, sehingga branch `2026-q1-report` yang berhasil dibuat tidak lagi bisa
-   dibaca `show` maupun `query`. Hanya prefiks `@` dan awalan `YYYY-MM-DD` yang
-   kini dialihkan ke parser waktu.
-2. `tag create` tidak atomik: read-lalu-tulis lalu `fs::rename` yang menimpa
-   pointer, sehingga dua proses dapat bergantian menggeser tag. Sekarang memakai
-   `create_new`.
-3. Batas 10.000 commit melaporkan batas penelusuran sebagai "oldest commit"
-   padahal ada commit lebih lama. Sekarang melaporkan `SearchLimitReached`.
-4. Nama pointer lebih dari 255 byte mencapai `fs::write` dan muncul sebagai
-   error I/O mentah. Sekarang ditolak sebagai `InvalidName`.
+1. `looks_like_time` treated any text with a `-` as the 5th character as a time,
+   so the successfully created branch `2026-q1-report` could no longer be read
+   by `show` or `query`. Only the `@` prefix and a `YYYY-MM-DD` prefix are now
+   routed to the time parser.
+2. `tag create` was not atomic: read-then-write followed by `fs::rename`, which
+   overwrites the pointer, so two processes could take turns moving the tag. It
+   now uses `create_new`.
+3. The 10,000 commit limit reported the traversal limit as "oldest commit" even
+   though older commits exist. It now reports `SearchLimitReached`.
+4. A pointer name longer than 255 bytes reached `fs::write` and surfaced as a
+   raw I/O error. It is now rejected as `InvalidName`.
 
-### Temuan proses
+### Process findings
 
-- `FileTagPointer` tidak pernah punya test adapter sama sekali meski seluruh
-  test use case memakai `FakeWorld`. Test adapter ditambahkan pada PR #26.
-- Bukti bahwa test baru benar-benar menangkap perilaku diambil dengan mutasi
-  kode sengaja: menghapus filter tabel pada `instant_commit_lookup` membuat dua
-  test `instant_table_filter_tests` gagal.
+- `FileTagPointer` never had an adapter test at all even though every use case
+  test uses `FakeWorld`. The adapter test was added in PR #26.
+- Proof that the new tests really capture behavior was obtained by deliberate
+  code mutation: removing the table filter in `instant_commit_lookup` made two
+  `instant_table_filter_tests` fail.
 
-### Utang teknis yang dicatat
+### Technical debt recorded
 
-- `verge query --as-of <TAG>` masih memberi pesan `invalid reference` bila tag
-  menunjuk commit tabel lain (issue #31).
-- Motor query SQL belum ada; issue #30 merumuskan lexer dan parser SELECT
-  sederhana.
+- `verge query --as-of <TAG>` still gives an `invalid reference` message when the
+  tag points at another table's commit (issue #31).
+- The SQL query engine does not exist yet; issue #30 specifies a lexer and a
+  simple SELECT parser.

@@ -1,50 +1,52 @@
-# ADR-0004: Ketergantungan minimal dan versi dipin
+# ADR-0004: Minimal dependencies and pinned versions
 
 ## Status
 
 Accepted
 
-## Konteks
+## Context
 
-Untuk database, setiap dependensi adalah bagian dari permukaan serangan dan dari
-beban pemeliharaan. Spesifikasi juga menuntut proyek yang self-hostable dan bebas
-vendor lock-in.
+For a database, every dependency is part of the attack surface and part of the
+maintenance load. The specification also demands a self-hostable project with
+no vendor lock-in.
 
-## Keputusan
+## Decision
 
-1. `verge-core` hanya memakai satu dependensi eksternal: `sha2` (SHA-256 dari
+1. `verge-core` uses only one external dependency: `sha2` (SHA-256 from
    RustCrypto).
-2. `verge-cli` memakai `anyhow` sebagai batas error aplikasi.
-3. Versi dipin di `Cargo.toml` dan `Cargo.lock` ikut di-commit sehingga build
-   bersifat reproducible.
-4. `cargo audit` (RustSec advisory database) dan dependabot wajib hijau di setiap
-   PR.
+2. `verge-cli` uses `anyhow` as the application error boundary.
+3. Versions are pinned in `Cargo.toml` and `Cargo.lock`, which are committed, so
+   builds are reproducible.
+4. `cargo audit` (the RustSec advisory database) and dependabot must be green on
+   every PR.
 
-## Alternatif yang dipertimbangkan
+## Alternatives Considered
 
-- **Implementasi hashing sendiri (kurang dari 100 baris)** — menghindari
-  dependensi, tetapi mengulang primitif kriptografi yang berisiko dan bertentangan
-  dengan prinsip tidak membuat algoritma kriptografi sendiri.
-- **BLAKE3** — lebih cepat, belum se-mapan SHA-256 untuk keperluan audit, dan
-  menambah satu dependensi baru.
-- **Tanpa lockfile** — build tidak reproducible dan audit dependensi mustahil.
+- **A hand-written hashing implementation (fewer than 100 lines)** — avoids a
+  dependency, but re-implements a risky cryptographic primitive and contradicts
+  the principle of never writing your own cryptographic algorithms.
+- **BLAKE3** — faster, not yet as established as SHA-256 for audit purposes, and
+  it adds one more dependency.
+- **No lockfile** — builds are not reproducible and dependency auditing becomes
+  impossible.
 
-## Konsekuensi
+## Consequences
 
-- Surface serangan engine tetap kecil dan mudah diaudit.
-- Upgrade dependensi harus dipertimbangkan dengan sadar; dependabot membantu
-  menjaga tugas itu tetap terlihat.
-- Hashing dibatasi pada SHA-256; untuk keperluan integritas dan audit hal ini memadai.
+- The engine's attack surface stays small and easy to audit.
+- Dependency upgrades must be considered deliberately; dependabot helps keep
+  that task visible.
+- Hashing is limited to SHA-256; for integrity and audit purposes this is
+  sufficient.
 
-## Justifikasi
+## Justification
 
-Kualitas dan keamanan selalu menang atas kecepatan. Satu dependensi yang sudah
-teraudit jauh lebih murah daripada beberapa dependensi yang belum tentu aman.
+Quality and security always win over speed. One already-audited dependency is
+far cheaper than several that may not be safe.
 
-## Tanggal
+## Date
 
 2026-10-03
 
-## Penulis
+## Author
 
-Miruameli
+Miruamel

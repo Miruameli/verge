@@ -1,40 +1,42 @@
 # Decision Log
 
-Catatan keputusan yang lebih ringan daripada ADR. Keputusan yang mengubah
-arsitektur dicatat penuh di `docs/adr/`.
+Lighter-weight notes than ADRs. Decisions that change the architecture are
+recorded in full in `docs/adr/`.
 
-## 2026-10-03 — Mulai dari nol dengan arsitektur 7 layer
+## 2026-10-03 — Start from zero with a 7-layer architecture
 
-**Keputusan:** repository dibangun ulang dari kosong dengan struktur 7 layer sejak
-commit pertama, bukan ditambal setelah fitur pertama selesai.
+**Decision:** the repository was rebuilt from nothing with a 7-layer structure
+from the very first commit, instead of being patched once the first feature was
+done.
 
-**Alasan:** biaya memindahkan struktur layer bertambah cepat seiring waktu karena
-setiap fitur baru pasti menyentuh folder yang keliru. Aturan modularisasi harus
-berlaku sejak mulai.
+**Reason:** the cost of moving layer structures grows quickly over time, because
+every new feature is bound to touch the wrong folder. The modularization rules
+have to apply from the start.
 
-**Alternatif:** modul datar per crate dengan konvensi nama.
+**Alternative:** a flat module layout per crate with naming conventions.
 
-**Konsekuensi:** lebih banyak berkas kecil sejak awal; navigasi harus disiplin.
+**Consequence:** more small files from the beginning; navigation must be
+disciplined.
 
-## 2026-10-03 — `Result` memakai parameter error default
+## 2026-10-03 — `Result` uses a default error parameter
 
-**Keputusan:** engine memakai `pub type Result<T, E = VergeError>`, CLI memakai
+**Decision:** the engine uses `pub type Result<T, E = VergeError>`, the CLI uses
 `pub type Result<T, E = anyhow::Error>`.
 
-**Alasan:** library tetap memiliki error bertipe ketat, sedangkan batas aplikasi
-membutuhkan error dinamis yang membawa context. Keduanya tetap menyediakan escape
-hatch lewat parameter kedua.
+**Reason:** the library keeps strictly typed errors, while the application
+boundary needs dynamic errors that carry context. Both still provide an escape
+hatch through the second parameter.
 
-**Konsekuensi:** call site library dapat menulis `Result<T>` tanpa mengulang nama
-error, dan test dapat menuliskannya secara eksplisit.
+**Consequence:** library call sites can write `Result<T>` without repeating the
+error name, and tests can write it explicitly.
 
-## 2026-10-03 — Bootstrap repository memakai port, bukan `std::fs`
+## 2026-10-03 — Repository bootstrap uses ports, not `std::fs`
 
-**Keputusan:** use case `initialize_repository` hanya berbicara dengan port
-`MetadataWriter` dan `BlockStoreFactory`.
+**Decision:** the `initialize_repository` use case talks only to the
+`MetadataWriter` and `BlockStoreFactory` ports.
 
-**Alasan:** use case dapat diuji tanpa filesystem, termasuk skenario rollback dan
-kegagalan I/O yang sulit direproduksi pada disk sungguhan.
+**Reason:** the use case can be tested without a filesystem, including rollback
+scenarios and I/O failures that are hard to reproduce on a real disk.
 
-**Konsekuensi:** ada satu trait tambahan di domain, tetapi seluruh operasi I/O
-tetap berada di infrastructure.
+**Consequence:** there is one extra trait in the domain, but all I/O operations
+stay in infrastructure.

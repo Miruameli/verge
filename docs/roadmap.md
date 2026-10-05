@@ -1,55 +1,58 @@
 # Roadmap
 
-Target bersifat perkiraan dan dapat berubah; perubahan besar perlu ADR baru.
+Targets are estimates and may change; major changes require a new ADR.
 
-## M1 — Content-addressed storage dan commit graph (selesai)
+## M1 — Content-addressed storage and commit graph (done)
 
-- Block store immutable dengan deduplikasi dan tulis atomik.
-- Commit immutable dengan identifier turunan encoding kanonik.
-- Branch sebagai pointer bergerak, tag sebagai pointer immutable.
-- `verge init` untuk membuat repository.
-- Quality gate penuh: format, lint, test, audit dependensi, deteksi secret.
+- Immutable block store with deduplication and atomic writes.
+- Immutable commits with an identifier derived from the canonical encoding.
+- Branch as a movable pointer, tag as an immutable pointer.
+- `verge init` to create a repository.
+- Full quality gate: format, lint, test, dependency audit, secret detection.
 
-## M2 — Versioning data tabel (selesai)
+## M2 — Table data versioning (done)
 
-- Isi tabel disimpan sebagai blok content-addressed; pointer `tables/<nama>/working`
-  hanya menyimpan digest sehingga data tidak pernah ada di dua tempat.
-- Commit dan pointer branch disimpan sebagai blok yang diverifikasi ulang saat
-  dibaca; byte yang dimanipulasi ditolak.
-- `verge import`, `verge commit`, `verge log`, dan `verge show` untuk time-travel read.
-- Batasan yang diterima dan dicatat di ADR-0005: satu commit menyimpan satu blok
-  penuh per tabel; deduplikasi per baris menunggu prolly tree.
+- Table content is stored as a content-addressed block; the pointer
+  `tables/<nama>/working` stores only the digest, so data never exists in two
+  places.
+- Commits and branch pointers are stored as blocks that are verified again when
+  read; manipulated bytes are rejected.
+- `verge import`, `verge commit`, `verge log`, and `verge show` for time-travel
+  reads.
+- Limitation accepted and recorded in ADR-0005: one commit stores one full block
+  per table; per-row deduplication waits for the prolly tree.
 
-## M3 — Prolly tree dan diff (selesai)
+## M3 — Prolly tree and diff (done)
 
-- Prolly tree untuk baris tabel terurut dan deterministik; daun yang tidak
-  berubah dipakai ulang antar commit.
-- Diff row-level antar dua commit, termasuk kolom yang berubah pada baris sama.
-- `verge diff <rev-a>..<rev-b>` dengan output stabil, plus resolusi `HEAD~N` dan
-  awalan commit.
+- Prolly tree for sorted, deterministic table rows; unchanged leaves are reused
+  across commits.
+- Row-level diff between two commits, including the columns that changed in the
+  same row.
+- `verge diff <rev-a>..<rev-b>` with stable output, plus `HEAD~N` resolution and
+  commit prefixes.
 
-## M4 — Branch, merge, dan time travel (selesai)
+## M4 — Branch, merge, and time travel (done)
 
-- Branch `create`/`switch`/`list`/`delete` yang O(1) tanpa menyalin data — selesai.
-- Three-way merge dengan base dari merge-base — selesai.
-- Strategi resolusi: manual, ours, theirs, last-write-wins — selesai; custom
-  resolver menyusul bersama API query.
-- Query `AS OF <commit | tag | timestamp>` — selesai.
+- O(1) branch `create`/`switch`/`list`/`delete` without copying data — done.
+- Three-way merge with a base taken from merge-base — done.
+- Resolution strategies: manual, ours, theirs, last-write-wins — done; a custom
+  resolver follows together with the query API.
+- Query `AS OF <commit | tag | timestamp>` — done.
 
 ## M5 — Query engine
 
-- Parser dan planner SQL standar beserta ekstensi Verge.
-- WASM UDF dan Python UDF tanpa restart server.
-- Executor dengan batas memori dan waktu.
+- Standard SQL parser and planner plus the Verge extensions.
+- WASM UDFs and Python UDFs without restarting the server.
+- Executor with memory and time limits.
 
-## M6 — Server, SDK, dan Web UI
+## M6 — Server, SDK, and Web UI
 
-- Server dengan gRPC, HTTP, dan protokol wire PostgreSQL.
-- SDK Python (pyo3) dan Rust.
-- Web UI untuk commit graph, diff viewer, dan conflict resolver.
+- Server with gRPC, HTTP, and the PostgreSQL wire protocol.
+- Python (pyo3) and Rust SDKs.
+- Web UI for the commit graph, diff viewer, and conflict resolver.
 
-## Lintas milestone
+## Cross-milestone
 
-- Backend object storage S3 dan GCS.
-- Ownership dan garbage collection berbasis reachability.
-- Rilis dengan checksum, SBOM, dan artefak lintas platform.
+- S3 and GCS object storage backends.
+- Ownership and garbage collection based on reachability.
+- Releases with checksum, SBOM, and cross-platform artifacts.

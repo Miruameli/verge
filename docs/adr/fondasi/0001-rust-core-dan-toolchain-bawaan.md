@@ -1,55 +1,56 @@
-# ADR-0001: Rust sebagai core engine
+# ADR-0001: Rust as the core engine
 
 ## Status
 
 Accepted
 
-## Konteks
+## Context
 
-Verge membutuhkan engine penyimpanan dan query yang cepat, memory-safe, dapat
-dikembangkan sendiri tanpa vendor lock-in, dan bisa dimasukkan ke kontainer tanpa
-runtime bahasa yang besar. Spesifikasi produk menyebut "Rust core: performa
-tinggi, aman, tanpa GC pause".
+Verge needs a storage and query engine that is fast, memory-safe, developable
+in-house without vendor lock-in, and able to be shipped inside a container
+without a large language runtime. The product specification states "Rust core:
+high performance, safe, no GC pauses".
 
-## Keputusan
+## Decision
 
-Engine ditulis dalam Rust memakai toolchain bawaannya:
+The engine is written in Rust using its bundled toolchain:
 
-| Kebutuhan        | Tool                  |
-| ----------------- | --------------------- |
-| Build dan test    | `cargo`               |
-| Format kode       | `rustfmt` (bawaan)    |
-| Lint              | `clippy` (bawaan)     |
-| Pin versi toolchain | `rust-toolchain.toml` |
+| Requirement          | Tool                  |
+| -------------------- | --------------------- |
+| Build and test       | `cargo`               |
+| Code format          | `rustfmt` (bundled)   |
+| Lint                 | `clippy` (bundled)    |
+| Toolchain version pin | `rust-toolchain.toml` |
 
-Versi Rust dipin ke `1.82`, MSRV crate disamakan dengan versi itu, dan seluruh
-crate diwajibkan memakai `forbid(unsafe_code)`.
+The Rust version is pinned to `1.82`, the crate MSRV is set to that same
+version, and every crate is required to use `forbid(unsafe_code)`.
 
-## Alternatif yang dipertimbangkan
+## Alternatives Considered
 
-- **Zig** — toolchain sangat baik karena build, test, dan format semuanya bawaan.
-  Ditolak karena ekosistem pustakanya masih jauh lebih tipis untuk kebutuhan
-  storage dan serialisasi, serta banyak memuat `unsafe` di pustaka standarnya.
-- **Go** — matang dan mudah dipelajari. Ditolak karena orientasi garbage
-  collector dan pertumbuhan heap pada beban query panjang.
-- **C++** — performa setara, tetapi risiko keamanan jauh lebih tinggi dan
-  kebutuhan tooling pendukung jauh lebih besar.
+- **Zig** — an excellent toolchain because build, test, and format are all
+  bundled. Rejected because its library ecosystem is still far thinner for
+  storage and serialization needs, and much of its standard library contains
+  `unsafe`.
+- **Go** — mature and easy to learn. Rejected because of its garbage collector
+  orientation and heap growth under long query loads.
+- **C++** — comparable performance, but with far higher security risk and a much
+  larger supporting tooling requirement.
 
-## Konsekuensi
+## Consequences
 
-- Build cepat, dependensi native minim, binary kecil.
-- Tidak ada script custom untuk quality gate: semuanya memakai tool resmi.
-- Kurva belajar Rust; diterima sebagai risiko yang perlu disadari.
+- Fast builds, minimal native dependencies, small binaries.
+- No custom scripts for the quality gate: everything uses official tooling.
+- A Rust learning curve; accepted as a risk that must be acknowledged.
 
-## Justifikasi
+## Justification
 
-Rust adalah bahasa produksi mainstream yang memberi memory safety tanpa garbage
-collector, dengan quality tooling bawaan dan ekosistem crate yang besar.
+Rust is a mainstream production language that provides memory safety without a
+garbage collector, with bundled quality tooling and a large crate ecosystem.
 
-## Tanggal
+## Date
 
 2026-10-03
 
-## Penulis
+## Author
 
-Miruameli
+Miruamel

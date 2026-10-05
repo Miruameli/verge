@@ -1,75 +1,75 @@
-# ADR-0005: Tabel sebagai blok content-addressed dan pointer on-disk
+# ADR-0005: Table as a content-addressed block and on-disk pointer
 
 ## Status
 
 Accepted
 
-## Konteks
+## Context
 
-Milestone 1 membuktikan blok immutable dan commit graph, tetapi belum ada data
-yang bisa di-versioning. Pemanggilan `verge show <commit>` pada commit lama hanya
-bisa dibuktikan kalau isi tabel benar-benar tersimpan dan dapat dibaca kembali
-dari disk.
+Milestone 1 proved immutable blocks and the commit graph, but there was no data
+that could be versioned. A `verge show <commit>` call on an old commit can only
+be proven if the table contents are genuinely stored and can be read back from
+disk.
 
-Pertanyaan utamanya adalah di mana data tabel hidup: sebagai berkas kerja biasa
-di luar block store, atau sebagai objek immutable di dalam block store.
+The main question is where table data lives: as an ordinary working file outside
+the block store, or as an immutable object inside the block store.
 
-## Keputusan
+## Decision
 
-1. Isi tabel disimpan sebagai satu blok content-addressed di `objects/`.
-2. Berkas `tables/<nama>/working` hanya berisi digest blok kerja (64 karakter
-   hex + newline). Berkas ini pointer, bukan data.
-3. `Commit` juga disimpan sebagai blok; byte yang disimpan adalah encoding
-   kanonik yang sama dengan byte yang di-hash menjadi `CommitId`, sehingga
-   pembaca dapat memverifikasi integritas setiap kali memuat commit.
-4. Pointer branch (`refs/heads/<nama>`) berisi `CommitId` dengan format yang
-   sama; `HEAD` menunjuk nama branch.
-5. CLI adalah composition root: ia menyusun adapter filesystem, jam sistem,
-   dan use case, lalu meneruskannya sebagai dependency.
+1. Table contents are stored as a single content-addressed block in `objects/`.
+2. The file `tables/<nama>/working` holds only the working block digest (64
+   hexadecimal characters plus a newline). That file is a pointer, not data.
+3. `Commit` is stored as a block too; the stored bytes are the same canonical
+   encoding as the bytes that are hashed into `CommitId`, so a reader can verify
+   integrity every time it loads a commit.
+4. The branch pointer (`refs/heads/<nama>`) holds a `CommitId` in the same
+   format; `HEAD` points to a branch name.
+5. The CLI is the composition root: it wires the filesystem adapter, the system
+   clock, and the use cases, then passes them as dependencies.
 
-## Batasan yang diterima
+## Accepted Limitations
 
-- Satu commit menyimpan satu blok penuh untuk tabel tersebut. Dua commit dengan
-  isi identik memakai blok yang sama (tanpa duplikasi), tetapi satu perubahan
-  sekecil satu byte menulis ulang seluruh blok tabel.
-- Konsekuensinya, `diff` dan `merge` berbasis baris belum mungkin; keduanya
-  bergantung pada struktur prolly tree yang direncanakan pada Milestone 3.
-- Ukuran tabel dibatasi oleh memori proses saat commit dibuat.
+- One commit stores one full block for that table. Two commits with identical
+  contents use the same block (no duplication), but a change as small as one byte
+  rewrites the whole table block.
+- Consequently, row-based `diff` and `merge` are not yet possible; both depend on
+  the prolly tree structure planned for Milestone 3.
+- Table size is bounded by process memory when the commit is created.
 
-## Alternatif yang dipertimbangkan
+## Alternatives Considered
 
-- **Prolly tree sekarang juga** — memberi dedup di tingkat baris, tetapi
-  membutuhkan struktur tree dan algoritma sisip yang belum diuji. Membangunnya
-  tanpa bukti kebenaran berisiko tinggi.
-- **Data tabel di luar block store** — menggandakan penyimpanan, memutus
-  content addressing, dan membuat working copy bisa berbeda dari yang tercatat.
-- **Database eksternal untuk tabel** — memindahkan sumber kebenaran ke luar
-  repository dan menutup audit trail.
+- **Prolly tree right away** — gives row-level dedup, but requires a tree
+  structure and an insertion algorithm that have not been proven yet. Building
+  them without evidence of correctness carries high risk.
+- **Table data outside the block store** — duplicates storage, breaks content
+  addressing, and allows the working copy to diverge from what was recorded.
+- **External database for tables** — moves the source of truth outside the
+  repository and closes off the audit trail.
 
-## Konsekuensi
+## Consequences
 
-- `verge log` dan `verge show` dapat dibuktikan dengan data nyata.
-- Data yang tidak berubah tidak pernah ditulis dua kali.
-- Commit yang byte-nya dimanipulasi di disk ditolak saat dibaca.
-- Beban memori saat commit sebanding dengan ukuran tabel; prolly tree pada
-  Milestone 3 menghapus batasan ini.
+- `verge log` and `verge show` can be proven with real data.
+- Unchanged data is never written twice.
+- A commit whose bytes are manipulated on disk is rejected on read.
+- Memory use at commit time is proportional to table size; the prolly tree in
+  Milestone 3 removes this limitation.
 
-## Justifikasi
+## Justification
 
-Kebutuhan
+Requirements:
 
-- audit trail yang dapat diverifikasi,
-- time-travel read pada commit lama,
-- dedup tanpa duplikasi fisik.
+- a verifiable audit trail,
+- time-travel read on old commits,
+- dedup without physical duplication.
 
-Solusi ini memenuhi ketiganya dengan mekanisme yang sama seperti blok biasa,
-tanpa menambah konsep baru, dan batasannya terdokumentasi apa adanya.
+This solution meets all three with the same mechanism as ordinary blocks, adds no
+new concept, and documents its limitations as they are.
 
-## Tanggal
+## Date
 
 2026-10-03
 
-## Penulis
+## Author
 
 Miruameli
 
