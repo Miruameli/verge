@@ -21,6 +21,14 @@ scope" before starting.
       never committed.
 - [x] Both crate names are free on crates.io. `verge-core` and `verge-cli`
       were verified available on 2026-10-05.
+- [ ] The crates.io account owning `CARGO_REGISTRY_TOKEN` has a **verified**
+      email address
+      (<https://crates.io/settings/profile>). Without it every upload fails
+      at the last step with `400 Bad Request: A verified email address is
+      required`, after all gates have passed. Found the hard way on
+      2026-10-05: run `37341155506` (`verge-core 0.1.0`) went green through
+      fmt, clippy, 106 tests and the manifest check, then failed only at
+      `cargo publish`. Nothing was uploaded (crates.io still 404).
 
 ## Constraints that cannot be worked around
 
