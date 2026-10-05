@@ -1,140 +1,141 @@
-# Arsitektur Verge
+# Verge Architecture
 
-Dokumen ini menjelaskan bagaimana kode ditata dan mengapa. Keputusan spesifik
-di setiap detail ada di `docs/adr/fondasi/` (fondasi) dan `docs/adr/milestones/`
-(per milestone); catatan tindakan dan bukti ada di `docs/engineering/audit/`.
+This document explains how the code is laid out and why. Decisions specific to
+each detail live in `docs/adr/fondasi/` (foundation) and `docs/adr/milestones/`
+(per milestone); action notes and evidence live in `docs/engineering/audit/`.
 
-## Layer
+## Layers
 
 ```
-Layer 1  domain/          Entitas, value object, port (tanpa I/O)
-Layer 2  application/     Use case yang mengorkestrasi port
-Layer 3  infrastructure/  Implementasi port (filesystem lokal)
-Layer 4  presentation/    (milestone berikutnya: HTTP/Web UI)
-Layer 5  interfaces/      Entry point: CLI, jobs, event handler
-Layer 6  shared/          Kernel dan exception lintas layer
-Layer 7  config/          Konstanta layout dan konfigurasi
+Layer 1  domain/          Entities, value objects, ports (no I/O)
+Layer 2  application/     Use cases that orchestrate ports
+Layer 3  infrastructure/  Port implementations (local filesystem)
+Layer 4  presentation/    (next milestone: HTTP/Web UI)
+Layer 5  interfaces/      Entry points: CLI, jobs, event handlers
+Layer 6  shared/          Kernel and cross-layer exceptions
+Layer 7  config/          Layout constants and configuration
 ```
 
-Aturan ketergantungan — satu arah, tanpa lingkaran:
+Dependency rules — one direction, no cycles:
 
 ```
 interfaces  ──► application ──► domain
 infrastructure ──────────────► domain
-config, shared ──────────────► semua layer
-domain ──► shared (hanya kernel & exception)
+config, shared ──────────────► all layers
+domain ──► shared (kernel and exceptions only)
 ```
 
-Arah ini hasil pengukuran otomatis atas seluruh `use` di repo, bukan
-kehendak. Hasil pengukuran per 2026-10-04:
+This direction is the result of automated measurement of every `use` in the repo,
+not a preference. Measurement result as of 2026-10-04:
 
-| Layer  | Layer yang diimpor                                      |
-| ------ | ------------------------------------------------------- |
-| domain | `shared`                                                 |
-| application | `domain`, `config`, `shared`                         |
-| infrastructure | `domain`, `config`, `shared`                    |
-| interfaces | `config`, `shared` (+ modul `cli` miliknya sendiri) |
-| shared | `domain` (hanya `Digest` pada varian galat)             |
-| config | `domain` (hanya `TableName`, `BlockId`, `HexText`)      |
+| Layer  | Layers imported                                       |
+| ------ | ----------------------------------------------------- |
+| domain | `shared`                                               |
+| application | `domain`, `config`, `shared`                       |
+| infrastructure | `domain`, `config`, `shared`                  |
+| interfaces | `config`, `shared` (plus its own `cli` module)     |
+| shared | `domain` (`Digest` in the error variant only)         |
+| config | `domain` (`TableName`, `BlockId`, `HexText` only)     |
 
-Dua baris terakhir adalah pengecualian yang disengaja: `shared/exceptions`
-memakai `Digest` sebagai isi galat dan `config/*` memvalidasi `TableName`,
-`BlockId`, serta `HexText` saat memetakan path. Keduanya hanya menyentuh
-value object murni tanpa I/O maupun layanan, dan memindahkannya hanya akan
-menyalin tipe. Yang tetap dilarang: `domain` mengimpor `application`,
-`infrastructure`, `interfaces`, atau `config` — termasuk di berkas test.
-Karena itu test merge base yang memakai adapter filesystem dipindahkan ke
-`crates/verge-core/tests/merge/`.
+The last two rows are deliberate exceptions: `shared/exceptions` uses `Digest` as
+the error payload and `config/*` validates `TableName`, `BlockId`, and `HexText`
+when mapping paths. Both touch only pure value objects, without I/O and without
+services, and moving them would only copy types. What remains forbidden: `domain`
+importing `application`, `infrastructure`, `interfaces`, or `config` — including
+in test files. That is why the merge base test that uses the filesystem adapter
+was moved to `crates/verge-core/tests/merge/`.
 
-Tidak ada lingkaran dependensi modul: graf `use` di seluruh repo dianalisis
-tanpa menemukan satu pun siklus. Dependensi antar crate juga sepele,
-`verge-cli` hanya bergantung pada `verge-core`, dan `verge-core` tidak
-bergantung pada crate lain di workspace.
+There are no module dependency cycles: the `use` graph across the whole repo was
+analyzed without finding a single cycle. Inter-crate dependencies are also
+trivial, `verge-cli` depends only on `verge-core`, and `verge-core` does not
+depend on any other crate in the workspace.
 
-`domain` tidak boleh tahu apa pun tentang filesystem, jaringan, atau format
-on-disk. Semua kontrak I/O dinyatakan sebagai trait (port) yang diimplementasikan
-di `infrastructure`. Inilah yang membuat backend S3/GCS bisa menyusul tanpa
-menyentuh logika bisnis.
+`domain` must not know anything about the filesystem, the network, or the on-disk
+format. All I/O contracts are expressed as traits (ports) that are implemented in
+`infrastructure`. That is what lets an S3/GCS backend arrive later without
+touching the business logic.
 
-## Konvensi folder
+## Folder conventions
 
-- Folder memakai kebab-case (`value-objects/`, `file-system/`), nama modul
-  memakai snake_case lewat atribut `#[path]`.
-- Batas **5 berkas langsung** dan **5 subfolder** per folder adalah target, bukan
-  angka mutlak: penyimpangan diterima bila setiap isi folder merupakan konteks
-  terpisah yang tidak dapat digabung tanpa mengaburkan tanggung jawab. Saat ini
-  `domain/` memuat tujuh konteks (commit, ident, merge, storage, table, time,
-  tree) dan tetap lebih mudah dinavigasi daripada dipaksa digabung.
-- Batas **150 baris per berkas** tetap mengikat; berkas yang perlu lebih besar
-  dipecah per tanggung jawab (contoh: `commit_graph.rs` + `commit_history.rs`).
-- Setiap folder punya `mod.rs` sebagai satu-satunya titik deklarasi modulnya.
-- `docs/adr/` memakai subfolder bernomor (`fondasi/`, `milestones/`), bukan
-  satu folder datar: registri bernomor tetap berurutan global (0001–0009),
-  sementara subfolder menjaga tiap folder di bawah lima berkas. Pemindahan ADR
-  lama ke subfolder tidak mengubah isi ADR (DILARANG ubah ADR lama tetap
-  berlaku untuk isi, bukan lokasi berkas).
-- `docs/engineering/audit/` memakai satu berkas per entri dengan `audit.md` sebagai
-  indeks; audit tumbuh bersama waktu sehingga satu berkas datar akan cepat
-  melewati batas baris.
+- Folders use kebab-case (`value-objects/`, `file-system/`); module names use
+  snake_case through the `#[path]` attribute.
+- The limit of **5 direct files** and **5 subfolders** per folder is a target, not
+  an absolute number: deviations are accepted when each folder content is a
+  separate context that cannot be merged without blurring responsibilities. Today
+  `domain/` holds seven contexts (commit, ident, merge, storage, table, time,
+  tree) and stays easier to navigate than if forced to be merged.
+- The limit of **150 lines per file** remains binding; files that need to be
+  larger are split by responsibility (example: `commit_graph.rs` +
+  `commit_history.rs`).
+- Every folder has `mod.rs` as its single module declaration point.
+- `docs/adr/` uses numbered subfolders (`fondasi/`, `milestones/`), not one flat
+  folder: the numbered registry stays globally ordered (0001–0009), while the
+  subfolders keep each folder under five files. Moving old ADRs into subfolders
+  does not change ADR content (it is FORBIDDEN to change old ADRs; that rule
+  applies to content, not to file location).
+- `docs/engineering/audit/` uses one file per entry with `audit.md` as the index;
+  the audit grows over time, so one flat file would quickly pass the line limit.
 
-## Peta kode
+## Code map
 
-| Path                                  | Tanggung jawab                                        |
-| ------------------------------------- | ------------------------------------------------------ |
-| `domain/ident/value-objects/`         | Digest SHA-256 dan representasi hexnya                 |
-| `domain/commit/entities/`             | Entitas `Commit` beserta pembaca fieldnya              |
-| `domain/commit/codec/`                | Encoding kanonik dan decoding yang memverifikasi digest |
-| `domain/commit/value-objects/`        | `CommitId`, `Ref` (branch/tag/commit)                  |
-| `domain/commit/repositories/`         | `CommitGraph`, traversal sejarah, dan port commit/ref/tag |
-| `domain/time/value-objects/`          | `Timestamp` UTC, kalender civil, dan parsing RFC 3339 |
-| `domain/table/`                       | `TableName` dan port data kerja tabel                  |
-| `domain/tree/`                        | `TableRows`, codec node, builder, reader, dan diff     |
-| `domain/tree/nodes/`                  | `TreeNode` (header, daun, internal) dan codec-nya     |
-| `domain/merge/`                       | Strategi resolusi (`manual`/`ours`/`theirs`/`last-write-wins`), merge base, dan gabungan baris |
-| `domain/storage/ports/`               | `Store`, `BlockStoreFactory`, `MetadataWriter`         |
-| `application/repository-bootstrap/`   | Use case pembuatan repository                          |
+| Path                                  | Responsibility                                             |
+| ------------------------------------- | ---------------------------------------------------------- |
+| `domain/ident/value-objects/`         | SHA-256 Digest and its hex representation               |
+| `domain/commit/entities/`             | The `Commit` entity and its field readers                  |
+| `domain/commit/codec/`                | Canonical encoding and decoding that verifies the digest    |
+| `domain/commit/value-objects/`        | `CommitId`, `Ref` (branch/tag/commit)                      |
+| `domain/commit/repositories/`         | `CommitGraph`, history traversal, and commit/ref/tag ports  |
+| `domain/time/value-objects/`          | UTC `Timestamp`, civil calendar, and RFC 3339 parsing       |
+| `domain/table/`                       | `TableName` and table working-data ports                    |
+| `domain/tree/`                        | `TableRows`, node codec, builder, reader, and diff          |
+| `domain/tree/nodes/`                  | `TreeNode` (header, leaf, internal) and its codec           |
+| `domain/merge/`                       | Resolution strategy (`manual`/`ours`/`theirs`/`last-write-wins`), merge base, and row merging |
+| `domain/storage/ports/`               | `Store`, `BlockStoreFactory`, `MetadataWriter`              |
+| `application/repository-bootstrap/`   | Repository creation use case                                |
 | `application/version-control/`        | `revision_target`, `revision_resolver`, `revision_walk`, `instant_commit_lookup` |
-| `application/version-control/use-cases/refs/branching/` | Use case create, switch, list, delete branch |
-| `application/version-control/use-cases/merging/`   | Use case merge: baca sisi, tulis commit merge          |
-| `application/version-control/use-cases/refs/tagging/`   | Use case create, list, delete tag (immutable)          |
-| `application/version-control/use-cases/queries/`   | Use case `query --as-of <WHEN>` (RFC 3339/`@ms`/tag/commit) |
-| `application/version-control/tests/`  | Test lintas use case: instant lookup (`revision/` untuk resolusi revisi, `tagging/` untuk tag) |
-| `crates/verge-core/tests/merge/`      | Test integrasi merge base memakai adapter filesystem nyata |
-| `infrastructure/storage/file-system/` | `FileBlockStore`, factory, penulis metadata lokal       |
-| `infrastructure/commit/file-system/refs/` | Pointer branch/tag: `FileRefPointer`, `FileTagPointer` |
-| `infrastructure/commit/file-system/`  | Penyimpanan objek commit (`FileCommitRepository`)      |
-| `infrastructure/table/file-system/`   | Pointer akar tree dan pembacaan sumber tabel          |
-| `infrastructure/system/`              | Jam sistem untuk cap waktu commit                      |
-| `config/`                             | Layout repository dan path blok                        |
-| `verge-cli/interfaces/cli/`           | Dispatcher: `init`, `branch`, `merge`, `tag`, bantuan, versi |
-| `verge-cli/interfaces/cli/commands/table-versioning/dispatch.rs` | Router perintah tabel: `import`, `commit`, `log`, `show`, `diff`, `query` |
+| `application/version-control/use-cases/refs/branching/` | Branch create, switch, list, delete use cases |
+| `application/version-control/use-cases/merging/`   | Merge use case: read the sides, write the merge commit     |
+| `application/version-control/use-cases/refs/tagging/`   | Tag create, list, delete use cases (immutable)     |
+| `application/version-control/use-cases/queries/`   | `query --as-of <WHEN>` use case (RFC 3339/`@ms`/tag/commit) |
+| `application/version-control/tests/`  | Cross-use-case tests: instant lookup (`revision/` for revision resolution, `tagging/` for tags) |
+| `crates/verge-core/tests/merge/`      | Merge base integration tests using the real filesystem adapter |
+| `infrastructure/storage/file-system/` | `FileBlockStore`, factory, local metadata writer            |
+| `infrastructure/commit/file-system/refs/` | Branch/tag pointers: `FileRefPointer`, `FileTagPointer` |
+| `infrastructure/commit/file-system/`  | Commit object storage (`FileCommitRepository`)              |
+| `infrastructure/table/file-system/`   | Tree root pointer and table source reading                  |
+| `infrastructure/system/`              | System clock for commit timestamps                          |
+| `config/`                             | Repository layout and block paths                           |
+| `verge-cli/interfaces/cli/`           | Dispatcher: `init`, `branch`, `merge`, `tag`, help, version |
+| `verge-cli/interfaces/cli/commands/table-versioning/dispatch.rs` | Table command router: `import`, `commit`, `log`, `show`, `diff`, `query` |
 
-## Invariant yang dijaga
+## Enforced invariants
 
-1. Objek yang sudah ditulis tidak pernah berubah; nama objek = hash isinya.
-2. Branch adalah pointer bergerak; tag adalah pointer immutable.
-3. Commit hanya masuk graph bila seluruh parent-nya sudah ada.
-4. Penulisan blok bersifat atomik: temp file + fsync + rename.
-5. Bootstrap repository bersifat all-or-nothing: kegagalan apa pun menghapus
-   jejak yang sudah dibuat.
-6. Isi tabel hanya hidup di dalam block store; berkas di `.verge/tables/` adalah
-   pointer digest akar tree, bukan data.
-7. Commit yang dimuat dari disk diverifikasi ulang terhadap digest-nya, sehingga
-   manipulasi byte di luar Verge terdeteksi saat pembacaan.
-8. Nama tabel tervalidasi sebelum menyentuh path: allowlist `[a-z0-9_-]`, maksimal
-   64 karakter, tanpa path separator.
-9. Nama pointer branch dan tag tervalidasi sebelum menyentuh path: bukan kosong,
-   tidak diawali titik, maksimal 255 byte, tanpa separator path, dan bukan nama
-   device tercadang Windows.
-10. Tag tidak pernah ditimpa: pointer ditulis dengan `create_new` sehingga dua
-    proses yang membuat tag dengan nama sama tidak dapat bergantian menulis
-    pointer yang sama.
-11. Tag menyimpan commit id saja, bukan nama tabel. Tabel suatu tag dibaca dari
-    commit yang ditunjuknya; galat karena tabel berbeda menyebut kedua nama
-    tabel, bukan melaporkan referensi rusak.
+1. An object that has already been written never changes; an object name = the
+   hash of its content.
+2. A branch is a movable pointer; a tag is an immutable pointer.
+3. A commit enters the graph only when all of its parents already exist.
+4. Block writes are atomic: temp file + fsync + rename.
+5. Repository bootstrap is all-or-nothing: any failure deletes the trace that has
+   already been created.
+6. Table content lives only inside the block store; files in `.verge/tables/` are
+   tree root digest pointers, not data.
+7. A commit loaded from disk is verified again against its digest, so byte
+   manipulation outside Verge is detected at read time.
+8. Table names are validated before any path is touched: allowlist `[a-z0-9_-]`,
+   at most 64 characters, no path separator.
+9. Branch and tag pointer names are validated before any path is touched: not
+   empty, not starting with a dot, at most 255 bytes, no path separator, and not
+   a reserved Windows device name.
+10. A tag is never overwritten: the pointer is written with `create_new`, so two
+    processes that create a tag with the same name cannot take turns writing the
+    same pointer.
+11. A tag stores only a commit id, not a table name. The table of a tag is read
+    from the commit it points to; an error caused by a different table names both
+    tables instead of reporting a broken reference.
 
-## Model Parents
+## Parents Model
 
-Commit memakai urutan parent eksplisit. Elemen pertama adalah *first parent* —
-branch tempat commit dibuat — dan dipakai saat traversal log. Sisanya adalah
-parent tambahan dari merge, sehingga topologi DAG dapat direkonstruksi persis.
+A commit uses an explicit parent order. The first element is the *first parent* —
+the branch where the commit was created — and it is used when traversing the log.
+The rest are additional parents from merges, so the DAG topology can be
+reconstructed exactly.

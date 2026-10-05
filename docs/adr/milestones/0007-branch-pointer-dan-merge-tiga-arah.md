@@ -1,100 +1,100 @@
-# ADR-0007: Branch sebagai pointer dan merge tiga arah
+# ADR-0007: Branch as a pointer and three-way merge
 
 ## Status
 
-Accepted — diterapkan bertahap. Branch (pointer O(1)) pada v0.3.0; merge tiga
-arah menyusul pada rilis yang sama.
+Accepted — rolled out in stages. Branch (O(1) pointer) in v0.3.0; three-way
+merge follows in the same release.
 
-## Konteks
+## Context
 
-Pada v0.2.0 repository hanya punya satu branch: `HEAD` menunjuk `main` dan
-pointer branch tidak pernah ditulis ulang. Janji produk "setiap eksperimen adalah
-branch" belum dapat ditepati karena tidak ada tempat lain untuk bereksperimen.
+At v0.2.0 the repository had only one branch: `HEAD` pointed to `main` and the
+branch pointer was never rewritten. The product promise "every experiment is a
+branch" could not be kept, because there was nowhere else to experiment.
 
-Dua batasan yang harus dipenuhi:
+Two constraints must be met:
 
-1. **Branching harus O(1).** Copy data per branch membuat ukuran repository
-   tumbuh sebanding dengan jumlah branch dan experiment, yang bertentangan dengan
-   model content-addressed yang sudah dibangun di ADR-0002 dan ADR-0006.
-2. **Merge harus dapat diaudit.** Hasil merge harus dapat dijelaskan kembali
-   ke asal-usulnya: base, sisi ours, dan sisi theirs.
+1. **Branching must be O(1).** Copying data per branch makes the repository size
+   grow in proportion to the number of branches and experiments, which conflicts
+   with the content-addressed model already built in ADR-0002 and ADR-0006.
+2. **Merge must be auditable.** A merge result must be traceable back to its
+   origins: base, ours side, and theirs side.
 
-## Keputusan
+## Decision
 
 ### Branch = pointer
 
-Branch disimpan sebagai satu berkas berisi 64 hex di `refs/heads/<nama>`.
-Membuat branch hanya menulis satu berkas kecil; tidak ada blok tabel yang
-disalin atau ditulis ulang. Menghapus branch menghapus pointer saja, bukan
-blok, sehingga commit yang sudah dibagikan masih dapat dibaca lewat identifier
-dan audit trail tetap utuh.
+A branch is stored as a single file containing 64 hex characters in
+`refs/heads/<nama>`. Creating a branch writes only one small file; no table block
+is copied or rewritten. Deleting a branch removes only the pointer, not the
+block, so commits that have already been shared can still be read by identifier
+and the audit trail stays intact.
 
-### Batas nama branch
+### Branch name limits
 
-Nama branch menjadi nama berkas, jadi divalidasi sebagai satu segmen path yang
-aman di semua platform: bukan kosong, tidak diawali titik, tidak memuat
-separator path, karakter terlarang Windows (`<>:"|?*`), karakter kontrol,
-tidak diakhiri titik atau spasi, dan bukan nama device tercadang (`con`, `nul`,
-`com1`, …). Modul `domain/commit/value-objects/branch_name_policy.rs` menyimpan
-kebijakan ini sebagai fungsi murni agar dapat diuji tanpa `Result`.
+A branch name becomes a file name, so it is validated as one path segment that is
+safe on every platform: not empty, not starting with a dot, containing no path
+separators, no Windows forbidden characters (`<>:"|?*`), no control characters,
+not ending in a dot or a space, and not a reserved device name (`con`, `nul`,
+`com1`, …). The module `domain/commit/value-objects/branch_name_policy.rs` stores
+this policy as a pure function so it can be tested without `Result`.
 
-### Merge base (superseded oleh ADR-0009)
+### Merge base (superseded by ADR-0009)
 
-Merge base adalah commit pertama yang menjadi leluhur dari kedua ujung branch,
-dihitung dengan berjalan pada rantai `first-parent` keduanya. Ini mengikuti
-histori linear yang dipakai `verge commit`; bila suatu hari commit bisa punya
-dua parent dari proses non-merge, penelusuran harus diperluas ke seluruh DAG dan
-kebijakan "base terdekat" perlu keputusan tersendiri.
+The merge base is the first commit that is an ancestor of both ends of the
+branches, computed by walking the `first-parent` chain of each. This follows the
+linear history that `verge commit` uses; if commits ever have two parents from a
+non-merge process, the walk must be extended to the whole DAG and a "nearest
+base" policy would need a decision of its own.
 
-CATATAN: bagian ini tidak lagi berlaku. Praktik menunjukkan penelusuran
-`first-parent` menghasilkan base yang terlalu awal begitu commit merge memiliki
-dua parent; keputusan penggantinya ada di ADR-0009.
+NOTE: this section no longer applies. Practice showed that the `first-parent`
+walk yields a base that is too early as soon as a merge commit has two parents;
+its replacement decision lives in ADR-0009.
 
-### Konflik
+### Conflicts
 
-Baris digabung menurut kunci.Satu sisi yang tidak berubah dari base tidak pernah
-menjadi konflik. Konflik hanya terjadi bila `ours` dan `theirs` sama-sama
-mengubah nilai yang sama dari nilai base yang sama. Penghapusan baris yang
-diubah sisi lain dianggap konflik, bukan diam-diam diabaikan.
+Rows are merged by key. A side that is unchanged from the base never becomes a
+conflict. A conflict occurs only when `ours` and `theirs` both change the same
+value from the same base value. Deleting a row that the other side changed is
+treated as a conflict, not silently ignored.
 
-### Strategi resolusi
+### Resolution strategy
 
-| Strategi         | Perilaku                                                          |
-| ---------------- | ----------------------------------------------------------------- |
-| `manual`         | mencetak daftar konflik dan keluar tanpa menulis commit            |
-| `ours`           | mempertahankan nilai branch aktif                                  |
-| `theirs`         | mengambil nilai branch yang digabung                               |
-| `last-write-wins`| mengambil sisi dengan `timestamp_unix_ms` terbaru                  |
+| Strategy           | Behavior                                                   |
+| ------------------ | ---------------------------------------------------------- |
+| `manual`           | prints the conflict list and exits without writing a commit |
+| `ours`             | keeps the value of the active branch                       |
+| `theirs`           | takes the value of the branch being merged                 |
+| `last-write-wins`  | takes the side with the newest `timestamp_unix_ms`         |
 
-## Alternatif yang dipertimbangkan
+## Alternatives Considered
 
-- **Copy tabel per branch.** Ditolak: melanggar O(1) dan menggandakan penyimpanan.
-- **Branch sebagai entri di dalam satu berkas refs.** Ditolak: satu berkas
-  bersama berarti dua operasi berhadapan mengunci berkas yang sama; berkas per
-  branch membuat `create` dan `delete` tidak saling ganggu.
-- **Merge dua arah tanpa base.** Ditolak: tanpa base tidak mungkin membedakan
-  "diubah di satu sisi" dari "diubah di kedua sisi", sehingga setiap perbedaan
-  menjadi konflik palsu.
-- **Delta penuh antar commit sebagai pengganti tree.** Ditolak di ADR-0006:
-  delta harus diverifikasi terhadap base, dan hilangnya base merusak audit trail.
+- **Copy tables per branch.** Rejected: it violates O(1) and duplicates storage.
+- **Branch as an entry inside a single refs file.** Rejected: one shared file
+  means two opposing operations lock the same file; one file per branch keeps
+  `create` and `delete` from getting in each other's way.
+- **Two-way merge without a base.** Rejected: without a base it is impossible to
+  distinguish "changed on one side" from "changed on both sides", so every
+  difference becomes a false conflict.
+- **Full deltas between commits as a replacement for the tree.** Rejected in
+  ADR-0006: a delta must be verified against its base, and losing the base
+  damages the audit trail.
 
-## Konsekuensi
+## Consequences
 
-- Operasi branch tetap O(1) terukur: membuat branch tidak menambah blok data
-  sama sekali.
-- `HEAD` tidak lagi hanya nama branch; `switch` menulis ulang `HEAD` secara
-  atomik dengan nama berkas sementara yang tidak pernah dibaca sebagai branch.
-- Branch yang dihapus tidak lagi bisa menjadi acuan nama, jadi pengguna perlu
-  menyimpan identifier commit bila ingin merujuk commit tersebut nanti.
-- Merge memerlukan pembacaan tiga versi tabel; conflicted merge tidak menulis
-  apa pun sehingga repo tetap bisa di-recovery.
+- Branch operations stay measurably O(1): creating a branch adds no data blocks
+  at all.
+- `HEAD` is no longer just a branch name; `switch` rewrites `HEAD` atomically
+  with a temporary file name that is never read as a branch.
+- A deleted branch can no longer serve as a name reference, so a user must keep
+  the commit identifier if they want to refer to that commit later.
+- Merge requires reading three versions of a table; a conflicted merge writes
+  nothing, so the repo remains recoverable.
 
-## Justifikasi
+## Justification
 
-Janji "Git for your data" hanya terbukti kalau branch dan merge benar-benar
-berfungsi; tanpa keduanya, fitur diff yang sudah selesai hanya bisa membandingkan
-sejarah linear.
+The promise "Git for your data" is only proven if branch and merge really work;
+without both, the finished diff feature can only compare linear history.
 
-## Tanggal
-## Penulis
+## Date
+## Author
 ## Review Date: 2026-12-03

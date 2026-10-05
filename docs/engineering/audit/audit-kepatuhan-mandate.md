@@ -1,220 +1,221 @@
-# Audit: kepatuhan aturan modularisasi
+# Audit: compliance with the modularization rules
 
-## 2026-10-04 — Pengukuran dan perbaikan kepatuhan
+## 2026-10-04 — Measuring compliance and repairing violations
 
-| Field    | Nilai                                                            |
-| -------- | ---------------------------------------------------------------- |
-| Waktu    | 2026-10-04                                                       |
-| Aksi     | Mengukur seluruh repo terhadap aturan modularisasi, lalu memperbaiki empat pelanggaran yang nyata |
-| Pelaku   | Miruameli                                                        |
-| Alasan   | Aturan modularisasi hanya berguna bila diukur; selama ini batas folder, import, dan arah layer hanya dijaga secara sambil lalu |
-| Terkait  | Issue #33, ADR-0003 (arsitektur 7-layer), PR #34                |
-| Dampak   | Tidak ada perubahan perilaku; 310 test lulus sebelum dan sesudah |
-| Rollback | `git revert` commit pada PR #34; tidak ada perubahan format data |
-
-### Cara pengukuran
-
-Seluruh angka di bawah dihitung dari isi repo, bukan dari ingatan:
-
-- SLOC dihitung sebagai baris yang tidak kosong dan bukan komentar (`//`,
-  `///`, `//!`).
-- Direct file dan direct subfolder dihitung per folder, bukan akumulasi path.
-- Arah layer dihitung dari setiap pernyataan `use crate::…` dan `use super::…`
-  yang dipetakan ke layer tujuannya.
-- Lingkaran dependensi dicari dengan penelusuran DFS pada graf modul.
-
-### Hasil sebelum dan sesudah
-
-| Aturan                                                | Sebelum | Sesudah |
-| ----------------------------------------------------- | ------- | ------- |
-| Berkas > 150 SLOC                                      | 0       | 0       |
-| Folder > 5 berkas langsung                              | 1       | 0       |
-| Folder > 5 subfolder                                    | 1       | 1 (disengaja) |
-| Fungsi > 50 baris                                       | 0       | 0       |
-| TODO/FIXME/HACK tanpa nomor issue                       | 0       | 0       |
-| Lingkaran dependensi modul                             | 0       | 0       |
-| Layer `domain` mengimpor `infrastructure`             | 2       | 0       |
-| Atribut `#[allow]` tanpa alasan                         | 1       | 0       |
-| Test                                                    | 306     | 310     |
-
-### Pelanggaran yang diperbaiki
-
-1. **`application/version-control/tests/` punya enam berkas langsung.** Tiga
-   test resolusi revisi dipindahkan ke `tests/revision/`, mengikuti pola yang
-   sudah dipakai `tests/tagging/`.
-2. **`domain/merge/tests/` mengimpor adapter filesystem.** `merge_base_tests.rs`
-   dan `commit_chain_fixture.rs` memakai `FileCommitRepository` dan
-   `FileBlockStore`; keduanya dipindahkan ke `crates/verge-core/tests/merge/`
-   sebagai test integrasi. Ini menghapus satu-satunya inversi layer yang
-   tersisa: `domain` kini hanya mengimpor `shared`.
-3. **`#[allow(clippy::too_many_arguments)]` pada `merge_writer.rs`.** Sembilan
-   argumen dikolapsikan menjadi tujuh tanpa atribut apa pun: header dan baris
-   gabung menjadi satu `TableRows`, dan dua ujung merge diambil dari
-   `MergeSides` yang sudah ada. Perilaku tidak berubah karena kedua sisi merge
-   tetap menjadi parent commit dengan urutan yang sama.
-4. **Dispatcher CLI mengimpor sepuluh perintah.** Enam perintah tabel kini
-   ditangani router kelompok di
-   `commands/table-versioning/dispatch.rs`, sehingga `cli_dispatcher.rs`
-   mengimpor lima perintah kelompok dan satu router tabel. Daftar nama perintah
-   tabel hidup di satu konstanta dengan fungsi `is_table_command`, sehingga
-   nama yang terdaftar tidak mungkin tidak memiliki cabang `match`.
-5. **Satu fungsi integrasi 57 baris.** `versioning.rs` memindahkan penyiapan
-   repository, graph, dan dua branch ke helper `skenario_branch_dan_tag()`.
-   Ketidaksamaan snapshot sebelum dan sesudah pemindahan dibuktikan test yang
-   sama.
-
-### Pengecualian yang tetap berlaku
-
-- **`domain/` punya tujuh subfolder.** `commit`, `ident`, `merge`, `storage`,
-  `table`, `time`, dan `tree` adalah konteks yang saling bebas; menggabungkannya
-  hanya menambah kedalaman folder tanpa mengurangi jumlah konsep. Kepemilikan
-  proyek menetapkan batas jumlah berkas per folder sebagai target, bukan angka
-  mutlak, dan alasannya tercatat di `docs/architecture.md`.
-- **`shared/` memakai nama yang masuk daftar nama generik.** Layer 6 pada
-  arsitektur 7-layer bernama `shared/`; mengganti namanya dengan `common/` atau
-  `cross-cutting/` tidak menambah kejelasan. Isinya bukan tumpukan utilitas:
-  hanya kernel hasil dan tipe galat.
-- **`shared` dan `config` mengimpor `domain`.** `VergeError` memuat `Digest`
-  sebagai isi galat; `config` memvalidasi `TableName`, `BlockId`, dan
-  `HexText` saat memetakan path. Keduanya hanya menyentuh value object murni.
-
-### Test yang ditambahkan
-
-- `table_command_tests.rs` membuktikan setiap nama perintah tabel dikenali,
-  perintah kelompok lain tidak dikenali, dan pesan galat menyebut perintah yang
-  benar-benar ada. Test ini menangkap kelas bug yang nyata: nama yang
-  ditambahkan ke daftar tetapi tidak memiliki cabang `match` akan berakhir
-  sebagai `unknown table command`.
-
-### Catatan proses
-
-- Pemeriksaan manual dan review pembaca tidak menemukan pelanggaran ini;
-  seluruh temuan berasal dari pengukuran. Indikator seperti "folder ini mulai banyak"
-  baru terlihat setelah direktori dihitung.
-- Dua dari lima pelanggaran (nomor 3 dan 4) muncul karena pengukuran, bukan
-  karena kegagalan test: keduanya tidak mengubah perilaku dan seluruh test
-  lulus sebelum dan sesudah.
-
----
-
-## 2026-10-04 — Penegakan aturan lewat gate otomatis
-
-| Field    | Nilai                                                                                                    |
-| -------- | -------------------------------------------------------------------------------------------------------- |
-| Waktu    | 2026-10-04                                                                                               |
-| Aksi     | Mengubah pengukuran manual menjadi job CI `structure` yang menolak PR                                      |
-| Pelaku   | Miruameli                                                                                                |
-| Alasan   | Pengukuran pada audit sebelumnya hanya hidup di percakapan; tidak ada artefak yang menyimpan hasilnya        |
-| Terkait  | Issue #39, Issue #41, PR #40                                                                              |
-| Dampak   | Tidak ada perubahan perilaku; 313 test lulus; gate baru menambah satu status check pada `main`            |
-| Rollback | Hapus job `structure` dari `.github/workflows/ci.yml`; tidak ada perubahan kode produksi                  |
-
-### Apa yang ditegakkan
-
-| Aturan                                                        | Batas                        |
-| ------------------------------------------------------------- | ---------------------------- |
-| SLOC per berkas `.rs`                                          | 150                          |
-| Berkas langsung per folder                                     | 5                            |
-| Subfolder per folder                                           | 5, atau 10 untuk root layer |
-| Field header wajib per berkas `.rs`                             | 11, masing-masing satu kali  |
-| `TODO`/`FIXME`/`HACK` tanpa referensi issue                     | 0                            |
-| Karakter di luar daftar tanda baca yang disetujui               | 0                            |
-
-### Cara memverifikasi gate-nya sendiri
-
-Gate struktur baru diuji dengan menyuntikkan delapan kelas kerusakan ke
-salinan repo, lalu menjalankan gate atas salinan itu:
-
-| Kerusakan yang disuntikkan                    | Hasil     |
-| -------------------------------------------- | --------- |
-| `License:` dihapus                            | tertangkap |
-| `Version:` terduplikasi                      | tertangkap |
-| `Related issues:` terduplikasi               | tertangkap |
-| `Related ADR:` dihapus                       | tertangkap |
-| Homoglif Cyrillic pada `KENAPA`              | tertangkap |
-| CJK nyasar pada komentar                      | tertangkap |
-| `TODO` tanpa referensi issue                 | tertangkap |
-| SLOC 155                                      | tertangkap |
-
-Setelah kedelapan kerusakan dipulihkan, gate kembali lulus dengan exit 0.
-Tanpa langkah ini, gate hanya diklaim bekerja dan tidak dibuktikan.
-
-### Batasan yang diketahui
-
-Terdapat **dua bentuk header** yang masih hidup berdampingan: bentuk kanonik
-satu field per baris (234 berkas) dan bentuk ringkas dengan pemisah `·`
-(32 berkas). Gate menerima keduanya selama bentuk ringkas masih ada;
-normalisasi dicatat pada Issue #41.
-
-Dua percobaan normalisasi otomatis pada sesi yang sama **gagal dan tidak
-di-commit**: pemecah berdasarkan `·` merusak nilai yang memuat koma sehingga
-baris `Dependencies` berisi `` `, ` `` alih-alih nama modul. Pelajaran yang
-diambil: normalisasi header bukan pekerjaan sekali-jalan; nilai setiap field
-harus diambil dari berkas itu sendiri dan diverifikasi sebelum dan sesudah.
-
-### Catatan proses
-
-- Commit gate struktur sempat mendarat di branch lokal `chore/header-konsisten`
-  yang dibuat untuk percobaan normalisasi header yang dibatalkan, bukan di
-  branch `ci/structure-gate`. Akibatnya PR #40 sempat tidak menampilkan
-  perubahan sama sekali. Perbaikannya: PR #38 di-merge lebih dulu, commit gate
-  di-cherry-pick ke atas `main`, lalu branch fitur di-force-push dengan
-  `--force-with-lease`. `--force-push` hanya dipakai pada branch fitur; `main`
-  tidak pernah di-force-push.
-- Dua percobaan normalisasi header otomatis gagal dan di-revert lewat
-  `git checkout -- crates` sebelum sempat ter-commit. Penyebabnya pemecah
-  berdasarkan `·` merusak nilai yang memuat koma. Normalisasi header bukan
-  pekerjaan sekali-jalan; ia perlu pemeriksaan nilai sebelum dan sesudah,
-  seperti yang tercatat pada Batasan yang diketahui di atas.
-
----
-
-## 2026-10-04 — Perluasan cakupan gate ke seluruh berkas ter-track
-
-| Field    | Nilai                                                                                          |
+| Field    | Value                                                                                          |
 | -------- | ---------------------------------------------------------------------------------------------- |
-| Waktu    | 2026-10-04                                                                                     |
-| Aksi     | Menutup dua celah cakupan gate: huruf non-Latin di luar `crates/`, dan batas folder di luar `crates/` |
-| Pelaku   | Miruameli                                                                                      |
-| Alasan   | Gate ada untuk menegakkan aturan, tetapi dua aturan tidak berlaku di luar `crates/` sehingga hanya separuh repo yang diawasi |
-| Terkait  | Issue #43, PR #44                                                                              |
-| Dampak   | Tidak ada perubahan perilaku produk; 313 test lulus; gate memindai 310 berkas teks ter-track   |
-| Rollback | Kembalikan `git checkout` pada PR #44; tidak ada perubahan format data                        |
+| Time     | 2026-10-04                                                                                     |
+| Action   | Measure the whole repository against the modularization rules, then fix the four real violations |
+| Actor    | Miruameli                                                                                      |
+| Reason   | The modularization rules are only useful when they are measured; until now the folder limit, imports, and layer direction were only kept on the side |
+| Related  | Issue #33, ADR-0003 (7-layer architecture), PR #34                                            |
+| Impact   | No behavior change; 310 tests passed before and after                                         |
+| Rollback | `git revert` the commit on PR #34; no data format changes                                    |
 
-### Dua celah yang ditemukan, dan cara membuktikannya
+### How it was measured
 
-| Celah                                                        | Cara dibuktikan                                              |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| Aturan non-ASCII hanya memindai `crates/**/*.rs`             | Satu baris berkarakter Cyrillic disisuntik ke `docs/roadmap.md`, gate tetap keluar exit 0 |
-| Aturan batas folder hanya memindai `crates/`                 | Empat modul gate dikembalikan ke root `.github/scripts/`, folder mencapai tujuh berkas langsung, gate tetap exit 0 |
+Every number below is computed from the contents of the repository, not from
+memory:
 
-Keduanya ditutup pada PR #44. Huruf non-Latin kini diperiksa pada seluruh
-berkas teks ter-track memakai daftar putih huruf Latin; batas folder kini juga
-mempakai `.github/scripts/` sebagai akar, dan akarnya sendiri ikut dihitung
-karena `rglob("*")` hanya mengembalikan turunan.
+- SLOC is counted as lines that are neither empty nor comments (`//`, `///`,
+  `//!`).
+- Direct files and direct subfolders are counted per folder, not accumulated
+  over paths.
+- Layer direction is computed from every `use crate::…` and `use super::…`
+  statement, mapped to its target layer.
+- Dependency cycles are searched for by DFS traversal over the module graph.
 
-### Kesalahan yang hampir lolos sebagai "lulus"
+### Before and after
 
-| Kesalahan                                                                                  | Akibatnya                                                                 |
-| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| Probe menyuntik teks ASCII `U+041A`, bukan huruf Cyrillic                                   | Gate "lulus" tanpa menguji apa pun                                        |
-| Probe memakai `git checkout -- .` yang memulihkan dari indeks, bukan `HEAD`                 | Damage satu kasus bocor ke kasus berikutnya; tiga kasus melaporkan lokasi salah |
-| Berkas `text_rules.py` sendiri mengandung dua huruf Hangul, dan belum dilacak git         | Gate meloloskannya justru pada saat gate baru dibuat                      |
-| Perluasan batas folder versi pertama tidak menghitung akar                                  | Tujuh berkas di `.github/scripts` tetap lolos                              |
+| Rule                                                | Before | After      |
+| --------------------------------------------------- | ------ | ---------- |
+| Files > 150 SLOC                                    | 0      | 0          |
+| Folder > 5 direct files                             | 1      | 0          |
+| Folder > 5 subfolders                               | 1      | 1 (intentional) |
+| Functions > 50 lines                                | 0      | 0          |
+| TODO/FIXME/HACK without an issue number             | 0      | 0          |
+| Module dependency cycles                            | 0      | 0          |
+| Layer `domain` importing `infrastructure`           | 2      | 0          |
+| `#[allow]` attributes without a reason              | 1      | 0          |
+| Tests                                               | 306    | 310        |
 
-Empat di antaranya adalah cacat pada alat verifikasi, bukan pada kode yang
-diperiksanya. Semuanya ditemukan karena probe dijalankan dan hasilnya dibaca,
-bukan karena pemeriksaan otomatisnya berjalan. Pelajaran yang diambil: gate
-yang baru dibuat wajib diuji dengan menyuntikkan kerusakan, dan probe itu
-sendiri wajib diperiksa apakah ia benar-benar menyuntik apa yang diklaim.
+### Violations that were fixed
 
-### Konsekuensi yang diterapkan
+1. **`application/version-control/tests/` had six direct files.** Three
+   revision-resolution tests were moved to `tests/revision/`, following the
+   pattern already used by `tests/tagging/`.
+2. **`domain/merge/tests/` imported the filesystem adapter.** `merge_base_tests.rs`
+   and `commit_chain_fixture.rs` used `FileCommitRepository` and
+   `FileBlockStore`; both were moved to `crates/verge-core/tests/merge/`
+   as integration tests. This removes the last remaining layer inversion:
+   `domain` now imports only `shared`.
+3. **`#[allow(clippy::too_many_arguments)]` on `merge_writer.rs`.** Nine
+   arguments were collapsed into seven with no attribute at all: the header and
+   the rows merge into a single `TableRows`, and the two merge ends are taken
+   from the `MergeSides` that already existed. Behavior did not change because
+   both merge sides still become the parent commit in the same order.
+4. **The CLI dispatcher imported ten commands.** The six table commands are now
+   handled by the group router in
+   `commands/table-versioning/dispatch.rs`, so `cli_dispatcher.rs`
+   imports five group commands and one table router. The list of table command
+   names lives in a single constant with the `is_table_command` function, so a
+   registered name cannot possibly lack a `match` arm.
+5. **One 57-line integration function.** `versioning.rs` moves the repository,
+   graph, and two-branch setup into the `skenario_branch_dan_tag()` helper.
+   Snapshot equality before and after the move is proven by the same test.
 
-- `tracked_text_files` memakai `--others --exclude-standard`, sehingga berkas
-  baru yang belum dilacak ikut diperiksa.
-- `sys.dont_write_bytecode` diset di gate agar proses read-only tidak menulis
-  `__pycache__/` ke dalam repo.
-- `check-structure.py` dipisah menjadi empat modul di `.github/scripts/structure/`;
-  berkas utama sempat naik ke 184 SLOC dan kini 115.
-- Empat modul tersebut dipindah agar `.github/scripts/` tidak melewati batas
-  lima berkas langsung.
+### Exceptions that still apply
+
+- **`domain/` has seven subfolders.** `commit`, `ident`, `merge`, `storage`,
+  `table`, `time`, and `tree` are mutually independent contexts; merging them
+  only adds folder depth without reducing the number of concepts. The project
+  owner sets the per-folder file-count limit as a target, not an absolute
+  number, and the reasoning is recorded in `docs/architecture.md`.
+- **`shared/` uses a name that is on the generic-name list.** Layer 6 of the
+  7-layer architecture is named `shared/`; renaming it to `common/` or
+  `cross-cutting/` adds no clarity. Its contents are not a utility pile: only
+  the result kernel and error types.
+- **`shared` and `config` import `domain`.** `VergeError` carries `Digest`
+  as error content; `config` validates `TableName`, `BlockId`, and
+  `HexText` while mapping paths. Both touch only pure value objects.
+
+### Tests that were added
+
+- `table_command_tests.rs` proves that every table command name is recognized,
+  that other group commands are not recognized, and that the error message
+  names a command that actually exists. This test catches a real class of bug: a
+  name added to the list without a `match` arm would end up reported as
+  `unknown table command`.
+
+### Process notes
+
+- Manual inspection and reader review did not find these violations; every
+  finding came from measurement. Indicators like "this folder is getting
+  crowded" only became visible after the directories were counted.
+- Two of the five violations (numbers 3 and 4) surfaced because of measurement,
+  not because of a failing test: neither changes behavior and all tests passed
+  before and after.
+
+---
+
+## 2026-10-04 — Enforcing the rules with an automatic gate
+
+| Field    | Value                                                                                                    |
+| -------- | -------------------------------------------------------------------------------------------------------- |
+| Time     | 2026-10-04                                                                                               |
+| Action   | Turn the manual measurement into a CI job `structure` that rejects PRs                                   |
+| Actor    | Miruameli                                                                                                |
+| Reason   | The measurement from the previous audit lived only in a conversation; no artifact preserved its results   |
+| Related  | Issue #39, Issue #41, PR #40                                                                              |
+| Impact   | No behavior change; 313 tests passed; the new gate adds one status check on `main`                       |
+| Rollback | Remove the `structure` job from `.github/workflows/ci.yml`; no production code changes                   |
+
+### What is enforced
+
+| Rule                                              | Limit                        |
+| ------------------------------------------------- | ---------------------------- |
+| SLOC per `.rs` file                              | 150                          |
+| Direct files per folder                           | 5                            |
+| Subfolders per folder                             | 5, or 10 for a root layer    |
+| Required header fields per `.rs` file             | 11, each exactly once        |
+| `TODO`/`FIXME`/`HACK` without an issue reference  | 0                            |
+| Characters outside the approved punctuation list  | 0                            |
+
+### How the gate verifies itself
+
+The new structure gate was tested by injecting eight classes of damage into a
+copy of the repository, then running the gate over that copy:
+
+| Injected damage                     | Result |
+| ----------------------------------- | ------ |
+| `License:` removed                  | caught |
+| `Version:` duplicated               | caught |
+| `Related issues:` duplicated        | caught |
+| `Related ADR:` removed              | caught |
+| Cyrillic homoglyph in `KENAPA`      | caught |
+| Stray CJK in a comment              | caught |
+| `TODO` without an issue reference   | caught |
+| SLOC 155                            | caught |
+
+After all eight damages were restored, the gate passed again with exit 0.
+Without this step the gate is only claimed to work, not proven to.
+
+### Known limitations
+
+**Two header forms** are still alive side by side: the canonical form with one
+field per line (234 files) and the compact form using `·` as the separator
+(32 files). The gate accepts both as long as the compact form still exists;
+normalization is recorded in Issue #41.
+
+Two automatic normalization attempts in the same session **failed and were not
+committed**: the `·`-based splitter broke values that contain commas, so the
+`Dependencies` line contained `` `, ` `` instead of module names. The lesson
+taken: header normalization is not one-shot work; the value of each field
+must be taken from the file itself and verified before and after.
+
+### Process notes
+
+- The structure gate commit briefly landed on the local branch
+  `chore/header-konsisten`, which was created for the cancelled header
+  normalization experiment, instead of on the branch `ci/structure-gate`. As a
+  result PR #40 briefly showed no changes at all. The fix: PR #38 was merged
+  first, the gate commit was cherry-picked onto `main`, then the feature branch
+  was force-pushed with `--force-with-lease`. `--force-push` is used only on the
+  feature branch; `main` is never force-pushed.
+- Two automatic header normalization attempts failed and were reverted via
+  `git checkout -- crates` before they could be committed. The cause was the
+  `·`-based splitter breaking values that contain commas. Header normalization
+  is not one-shot work; it needs value checks before and after, as recorded
+  under Known limitations above.
+
+---
+
+## 2026-10-04 — Extending gate coverage to every tracked file
+
+| Field    | Value                                                                                          |
+| -------- | ---------------------------------------------------------------------------------------------- |
+| Time     | 2026-10-04                                                                                     |
+| Action   | Close two gate coverage gaps: non-Latin letters outside `crates/`, and the folder limit outside `crates/` |
+| Actor    | Miruameli                                                                                      |
+| Reason   | The gate exists to enforce the rules, but two rules did not apply outside `crates/`, so only half of the repository was monitored |
+| Related  | Issue #43, PR #44                                                                              |
+| Impact   | No product behavior change; 313 tests passed; the gate scans 310 tracked text files             |
+| Rollback | Revert `git checkout` on PR #44; no data format changes                                      |
+
+### The two gaps, and how they were proven
+
+| Gap                                                    | How it was proven                                               |
+| ------------------------------------------------------ | --------------------------------------------------------------- |
+| The non-ASCII rule only scanned `crates/**/*.rs`       | One Cyrillic line was injected into `docs/roadmap.md`; the gate still exited 0 |
+| The folder-limit rule only scanned `crates/`           | The four gate modules were moved back to the `.github/scripts/` root, the folder reached seven direct files, the gate still exited 0 |
+
+Both were closed in PR #44. Non-Latin letters are now checked across every
+tracked text file using a Latin-letter whitelist; the folder limit now also uses
+`.github/scripts/` as a root, and the root itself is counted because
+`rglob("*")` returns only descendants.
+
+### Mistakes that nearly passed as "passed"
+
+| Mistake                                                                        | Consequence                                        |
+| ------------------------------------------------------------------------------ | -------------------------------------------------- |
+| The probe injected the ASCII text `U+041A` instead of a Cyrillic letter       | The gate "passed" without testing anything          |
+| The probe used `git checkout -- .`, which restores from the index, not from `HEAD` | One case's damage leaked into the next case; three cases reported the wrong location |
+| The `text_rules.py` file itself contained two Hangul letters and was not tracked by git | The gate let it through precisely when the new gate was created |
+| The first version of the folder-limit extension did not count the root          | Seven files in `.github/scripts` still passed       |
+
+All four are defects in the verification tool, not in the code it was checking.
+Every one was found because the probe was run and its output was read, not
+because the automatic check itself ran. The lesson taken: a newly created gate
+must be tested by injecting damage, and the probe itself must be checked for
+whether it really injects what it claims.
+
+### Consequences that were applied
+
+- `tracked_text_files` uses `--others --exclude-standard`, so new files that
+  are not yet tracked are checked too.
+- `sys.dont_write_bytecode` is set in the gate so that a read-only process does
+  not write `__pycache__/` into the repository.
+- `check-structure.py` was split into four modules in `.github/scripts/structure/`;
+  the main file briefly rose to 184 SLOC and is now 115.
+- Those four modules were moved so that `.github/scripts/` does not exceed the
+  limit of five direct files.

@@ -1,79 +1,79 @@
-# ADR-0006: Prolly tree untuk tabel
+# ADR-0006: Prolly tree for tables
 
 ## Status
 
 Accepted
 
-## Konteks
+## Context
 
-Milestone 2 menyimpan isi tabel sebagai satu blok penuh per tabel (ADR-0005).
-Konsekuensinya jujur tetapi tidak desirable: data yang tidak berubah tidak ditulis
-dua kali, tetapi perubahan satu byte menulis ulang seluruh tabel, dan diff hanya
-bisa membandingkan blok utuh sehingga tidak menghasilkan informasi perubahan
-per baris.
+Milestone 2 stored table contents as one full block per table (ADR-0005). The
+consequence is honest but undesirable: unchanged data is not written twice, but a
+one-byte change rewrites the whole table, and diff can only compare whole blocks,
+so it yields no per-row change information.
 
-Produk menjanjikan "row-level diff" dan "branching tanpa menyalin data".
-Keduanya menuntut struktur yang membagi tabel menjadi bagian-bagian kecil yang
-dapat dibandingkan dan dibagikan.
+The product promises "row-level diff" and "branching without copying data". Both
+demand a structure that divides a table into small parts that can be compared and
+shared.
 
-## Keputusan
+## Decision
 
-1. Isi tabel diparse menjadi header dan baris; kolom pertama menjadi kunci baris.
-2. Baris diurutkan menurut kunci dan kunci ganda diambil baris terakhirnya
-   (`last-write-wins`), sehingga urutannya deterministik dan tidak bergantung
-   pada urutan file.
-3. Baris dipartisi menjadi node daun dengan batas 4 KiB; node internal menunjuk
-   anak-anaknya. Akar selalu memuat node header sebagai anak pertama.
-4. Identitas setiap node = SHA-256 dari encoding kanoniknya, sehingga node dengan
-   isi sama selalu berbagi blok: mengubah satu baris hanya menulis ulang daun
-   yang memuat baris itu.
-5. `diff` membandingkan dua tabel secara merge walk pada kunci terurut, sehingga
-   hasilnya lengkap dan urutannya stabil.
+1. Table contents are parsed into a header and rows; the first column becomes the
+   row key.
+2. Rows are sorted by key, and duplicate keys take the last row
+   (`last-write-wins`), so the order is deterministic and independent of file
+   order.
+3. Rows are partitioned into leaf nodes with a 4 KiB limit; internal nodes point
+   to their children. The root always holds the header node as its first child.
+4. The identity of every node is the SHA-256 of its canonical encoding, so nodes
+   with equal contents always share one block: changing a single row rewrites
+   only the leaf that holds that row.
+5. `diff` compares two tables by a merge walk over the sorted keys, so its result
+   is complete and stably ordered.
 
-## Batas format tabel
+## Table Format Limits
 
-Tabel dibaca sebagai CSV sederhana: baris pertama adalah header, pemisah kolom
-adalah koma, dan baris wajib punya minimal dua kolom. Isi tabel yang tidak
-memenuhi aturan ditolak dengan nomor baris, bukan dilewati diam-diam.
+A table is read as simple CSV: the first line is the header, the column separator
+is a comma, and a line must have at least two columns. Table contents that do not
+satisfy the rules are rejected with a line number, not silently skipped.
 
-## Alternatif yang dipertimbangkan
+## Alternatives Considered
 
-- **Chunking blok per baris tanpa tree** — memberi sebagian dedup, tetapi tidak
-  memberi struktur untuk query, merge, dan penelusuran range.
-- **Delta penuh antar commit** — delta harus diverifikasi terhadap base; kalau
-  base hilang, audit trail ikut rusak.
-- **B-tree dengan balancing** — memberi penelusuran lebih cepat, tetapi
-  pembuktian kebenaran balancing jauh lebih besar dari yang dibutuhkan sekarang.
-- **Protobuf/Avro untuk baris** — menambah dependensi dan kompatibilitas versi
-  skema; format kanonik sendiri sudah cukup.
+- **Per-row block chunking without a tree** — gives partial dedup, but provides no
+  structure for query, merge, and range lookup.
+- **Full deltas between commits** — a delta must be verified against its base; if
+  the base is lost, the audit trail is damaged too.
+- **Balanced B-tree** — gives faster lookup, but proving the correctness of
+  balancing is far more work than is needed now.
+- **Protobuf/Avro for rows** — adds a dependency and schema version
+  compatibility; the canonical format of our own is already enough.
 
-## Konsekuensi
+## Consequences
 
-- Baris yang tidak berubah tidak ditulis ulang; blok daun dipakai ulang lintas
-  commit. Batas ini menghapus utang teknis yang tercatat di ADR-0005.
-- `verge diff` menghasilkan perubahan per baris dengan urutan stabil.
-- Snapshot yang sudah ditulis pada versi 0.1.0 berupa blok mentah dan **tidak**
-  dapat dibaca sebagai tree; `verge show` dan `verge log` pada repository lama
-  harus diimpor ulang. Ini adalah perubahan format yang tercatat di CHANGELOG.
-- Beban memori saat commit tetap sebanding dengan ukuran tabel karena seluruh
-  tabel diurai di memori sebelum dipartisi.
+- Unchanged rows are not rewritten; leaf blocks are reused across commits. This
+  limit removes the technical debt recorded in ADR-0005.
+- `verge diff` produces per-row changes with a stable order.
+- Snapshots written in version 0.1.0 are raw blocks and **cannot** be read as a
+  tree; `verge show` and `verge log` on an old repository must be imported again.
+  This is a recorded format change in the CHANGELOG.
+- Memory use at commit time stays proportional to table size, because the whole
+  table is parsed in memory before it is partitioned.
 
-## Justifikasi
+## Justification
 
-Kebutuhan
+Requirements:
 
-- dedup di tingkat baris agar perubahan kecil tidak menulis ulang tabel,
-- diff per baris yang dapat diverifikasi,
-- format yang dapat dibaca ulang tanpa state eksternal.
+- row-level dedup so a small change does not rewrite the table,
+- per-row diff that can be verified,
+- a format that can be read back without external state.
 
-Solusi ini memenuhi ketiganya dengan objek yang sama (blok content-addressed)
-dan tanpa menambah konsep penyimpanan baru.
+This solution meets all three with the same object (the content-addressed block)
+and without adding a new storage concept.
 
-## Tanggal
+## Date
 
 2026-10-03
 
-## Penulis
+## Author
 
 Miruameli
 

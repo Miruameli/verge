@@ -1,40 +1,40 @@
-# Kebijakan Keamanan
+# Security Policy
 
-## Melaporkan kerentanan
+## Reporting a vulnerability
 
-Laporkan kerentanan lewat **GitHub Security Advisory** pada repository ini
-(`Security` → `Report a vulnerability`), bukan issue publik. Isi laporan minimal:
+Report a vulnerability through **GitHub Security Advisory** on this repository
+(`Security` → `Report a vulnerability`), not through a public issue. Minimum
+report contents:
 
-- Deskripsi masalah dan dampaknya.
-- Langkah reproduksi yang minimal.
-- Versi atau commit yang terdampak.
-- Saran perbaikan bila Anda punya.
+- A description of the problem and its impact.
+- Minimal reproduction steps.
+- The affected version or commit.
+- A suggested fix, if you have one.
 
-Kami menjamin balasan dalam 7 hari kerja dan akan mengoordinasikan waktu
-perbaikan bersama pelapor sebelum publikasi.
+We guarantee a reply within 7 business days and will coordinate the fix
+schedule with the reporter before publication.
 
-## Klasifikasi dan target waktu
+## Severity and time targets
 
-| Severity | Target perbaikan |
-| -------- | ----------------- |
-| Critical | 24 jam           |
-| High     | 72 jam           |
-| Medium   | 1 minggu         |
-| Low      | 1 bulan          |
+| Severity | Fix target |
+| -------- | ---------- |
+| Critical | 24 hours   |
+| High     | 72 hours   |
+| Medium   | 1 week     |
+| Low      | 1 month    |
 
-## Prinsip yang dijaga di proyek ini
+## Principles upheld in this project
 
-- **Storage immutable.** Objek yang sudah ditulis tidak pernah berubah, dan
-  identifier-nya adalah hash SHA-256 dari isinya sehingga manipulasi dapat
-  dideteksi.
-- **Branch adalah pointer.** Berpindah branch tidak pernah menyalin atau menulis
-  ulang data historis.
-- **Tidak ada secret di repository.** `gitleaks` berjalan di pre-commit dan CI.
-- **Ketergantungan diaudit otomatis.** `cargo audit` dan dependabot menjaga
-  advisory baru ditangani cepat.
-- **`unsafe` dilarang** di seluruh crate engine (`forbid(unsafe_code)`).
+- **Immutable storage.** An object that has been written never changes, and its
+  identifier is the SHA-256 hash of its content, so tampering can be detected.
+- **A branch is a pointer.** Switching branches never copies or rewrites
+  historical data.
+- **No secrets in the repository.** `gitleaks` runs in pre-commit and in CI.
+- **Dependencies are audited automatically.** `cargo audit` and dependabot keep
+  new advisories handled quickly.
+- **`unsafe` is forbidden** across all engine crates (`forbid(unsafe_code)`).
 
-## Laporan insiden publik
+## Public incident reports
 
-Insiden yang sudah diperbaiki dan berdampak pada data pengguna dipublikasikan
-sebagai post-mortem blameless di `docs/engineering/audit.md`.
+An incident that has been fixed and affected user data is published as a
+blameless post-mortem in `docs/engineering/audit.md`.

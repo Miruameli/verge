@@ -1,150 +1,152 @@
-# ADR-0008: Time-travel `AS OF` dan tag immutable
+# ADR-0008: Time-travel `AS OF` and immutable tags
 
 ## Status
 
-Accepted — diterapkan pada v0.3.0.
+Accepted — applied in v0.3.0.
 
-## Konteks
+## Context
 
-v0.2.0 sudah bisa membaca isi tabel pada satu revisi (`verge show <REVISION>`)
-tetapi hanya bila pengguna mengetahui nama branch, `HEAD~N`, atau awalan hex.
-Dua keunggulan produk belum terpenuhi:
+v0.2.0 could already read table contents at a given revision
+(`verge show <REVISION>`), but only if the user knew the branch name, `HEAD~N`,
+or a hex prefix. Two product advantages were still unmet:
 
-1. **Time-travel query.** Menjawab "keadaan tabel pada 2026-10-01 10:00"
-   memerlukan pengguna mencatat `commit id` secara manual — justru hal yang
-   seharusnya diotomatisasi untuk audit dan debug.
-2. **Tag.** Namespace `.verge/refs/tags/` dibuat saat `init` tetapi tidak pernah
-   berisi apa pun, jadi tidak ada cara memberi nama pada titik waktu tertentu.
+1. **Time-travel query.** Answering "the state of the table at 2026-10-01
+   10:00" required the user to record a `commit id` by hand — exactly what
+   should be automated for auditing and debugging.
+2. **Tags.** The `.verge/refs/tags/` namespace is created by `init` but never
+   contains anything, so there is no way to give a name to a point in time.
 
-Tiga tantangan teknis yang harus diputuskan lebih dulu:
+Three technical challenges must be decided first:
 
-1. **Commit tidak berurutan pada branch yang sama.** Setelah merge, `HEAD`
-   menunjuk commit merge yang timestamp-nya paling baru, tetapi commit dari
-   branch yang digabung bisa bertimestamp jauh lebih lama. Memilih "commit
-   pertama yang ditemukan lebih lama dari waktu yang diminta" pada penelusuran
-   acak akan mengembalikan jawaban yang berbeda tergantung urutan penyimpanan.
-2. **Satu waktu bisa cocok dengan beberapa commit.** Dua commit berbeda dapat
-   memiliki milidetik yang sama, sehingga "paling baru" tidak selalu unik.
-3. **Waktu lokal bersifat ambigu.** `2026-10-01 10:00` tanpa zona waktu berarti
-   berbeda pada mesin berbeda, sehingga hasil audit tidak reproducible.
+1. **Commits are not ordered on the same branch.** After a merge, `HEAD` points
+   to the merge commit with the newest timestamp, but commits from the branch
+   that was merged can carry timestamps much older than that. Choosing "the
+   first commit found that is older than the requested time" during a random
+   lookup returns a different answer depending on storage order.
+2. **One instant can match several commits.** Two different commits can have the
+   same millisecond, so "the newest" is not always unique.
+3. **Local time is ambiguous.** `2026-10-01 10:00` without a time zone means
+   different things on different machines, so audit results are not
+   reproducible.
 
-## Keputusan
+## Decision
 
-### `AS OF <TIMESTAMP>` memilih commit paling baru pada rantai first-parent
+### `AS OF <TIMESTAMP>` selects the newest commit on the first-parent chain
 
-`AS OF T` memilih commit pertama pada rantai `first-parent` branch aktif yang
-memenuhi `timestamp_unix_ms <= T`. Karena penelusuran selalu dimulai dari
-`HEAD` dan berhenti pada commit pertama yang memenuhi batas, hasilnya **tidak
-bergantung pada urutan penyimpanan maupun pada branch mana yang lebih dulu
-dibaca**.
+`AS OF T` selects the first commit on the `first-parent` chain of the active
+branch that satisfies `timestamp_unix_ms <= T`. Because the walk always starts at
+`HEAD` and stops at the first commit that meets the bound, the result **does not
+depend on storage order or on which branch is read first**.
 
-Rantai `first-parent` dipilih, bukan seluruh DAG, dengan alasan: rantai
-`first-parent` adalah urutan keadaan yang benar-benar pernah aktif pada branch
-tersebut. Commit dari branch yang sudah digabung bukan "keadaan branch ini pada
-waktu itu" — ia baru menjadi bagian dari branch pada saat commit merge dibuat.
+The `first-parent` chain is chosen rather than the whole DAG, for this reason:
+the `first-parent` chain is the sequence of states that were actually active on
+that branch. Commits from a branch that has already been merged are not "the
+state of this branch at that time" — they only became part of the branch when
+the merge commit was created.
 
-### Tie-break ditentukan, bukan acak
+### The tie-break is defined, not random
 
-Bila beberapa commit memenuhi batas dengan milidetik yang sama, dipilih yang
-paling dekat dengan `HEAD`. Aturan ini dapat diulang: input yang sama pada
-repository yang sama selalu menghasilkan commit yang sama.
+When several commits meet the bound with the same millisecond, the one closest to
+`HEAD` is chosen. This rule is repeatable: the same input on the same repository
+always yields the same commit.
 
-### Hanya UTC
+### UTC only
 
-Bentuk yang diterima:
+The accepted forms:
 
-| Bentuk                        | Contoh                     |
-| ----------------------------- | -------------------------- |
-| RFC 3339 dengan offset `Z`    | `2026-10-01T10:00:00Z`     |
-| RFC 3339 dengan milidetik     | `2026-10-01T10:00:00.123Z` |
-| Unix milidetik didahului `@`  | `@1767225600000`           |
+| Form                           | Example                    |
+| ------------------------------ | -------------------------- |
+| RFC 3339 with a `Z` offset     | `2026-10-01T10:00:00Z`     |
+| RFC 3339 with milliseconds    | `2026-10-01T10:00:00.123Z` |
+| Unix milliseconds prefixed `@` | `@1767225600000`           |
 
-Offset selain nol ditolak. Konversi offset memerlukan tabel zona waktu yang
-tidak dimiliki engine, dan menerima waktu lokal membuat hasil audit bergantung
-pada mesin pembaca. Yang ditolak adalah zona waktu, bukan presisi: waktu dalam
-milidetik sejak epoch adalah bilangan bulat yang tidak bergantung pembaca.
+Any non-zero offset is rejected. Converting an offset requires a time zone table
+that the engine does not have, and accepting local time makes audit results
+dependent on the reading machine. What is rejected is the time zone, not the
+precision: a time in milliseconds since the epoch is an integer that does not
+depend on the reader.
 
-### Tag immutable
+### Immutable tags
 
-Tag adalah pointer seperti branch, dengan dua perbedaan:
+A tag is a pointer like a branch, with two differences:
 
-1. `verge tag create` **menolak** nama yang sudah ada. Tag tidak pernah digeser
-   diam-diam ke commit lain, karena tag yang berubah artinya berubah makna
-   audit trail: laporan yang menyebut `tag q2-report` harus tetap menunjuk
-   keadaan yang sama .
-2. `verge tag delete` menghapus pointer, bukan blok, sehingga data tetap
-   dapat dibaca lewat commit-id.
+1. `verge tag create` **rejects** a name that already exists. A tag is never
+   moved silently to another commit, because a tag that changes means a change
+   in the meaning of the audit trail: a report that cites `tag q2-report` must
+   keep pointing to the same state.
+2. `verge tag delete` removes the pointer, not the block, so the data can still
+   be read through the commit-id.
 
-Tag memakai `branch_name_policy` yang sama karena keduanya menjadi nama berkas
-di `refs/`.
+Tags use the same `branch_name_policy` because both become file names in
+`refs/`.
 
-### `--as-of` menerima tiga bentuk
+### `--as-of` accepts three forms
 
-Satu flag untuk tiga bentuk agar tidak ada jalur resolusi yang berbeda:
+One flag for three forms, so there is no separate resolution path:
 
-| Masukan              | Perlakuan                                     |
-| -------------------- | --------------------------------------------- |
-| `2026-10-01T10:00:00Z` | dipilah sebagai timestamp                    |
-| `@1767225600000`     | dipilah sebagai timestamp                    |
-| `refs/tags/<nama>`   | tag eksplisit, tanpa ambiguitas nama           |
-| `refs/heads/<nama>`  | branch eksplisit                              |
-| nama lain            | branch bila ada, tag bila tidak — ambigu bila keduanya ada |
+| Input                 | Handling                                    |
+| --------------------- | ------------------------------------------- |
+| `2026-10-01T10:00:00Z` | parsed as a timestamp                       |
+| `@1767225600000`     | parsed as a timestamp                       |
+| `refs/tags/<nama>`   | an explicit tag, no name ambiguity           |
+| `refs/heads/<nama>`  | an explicit branch                          |
+| any other name        | a branch if it exists, a tag if not — ambiguous if both exist |
 
-Prefiks `refs/` tersedia justru supaya ambiguitas dapat diselesaikan secara
-eksplisit oleh pengguna, bukan ditebak resolver.
+The `refs/` prefix is available precisely so that ambiguity can be resolved
+explicitly by the user, rather than guessed by the resolver.
 
-### Satu tabel per pemanggilan
+### One table per invocation
 
-`--as-of` berlaku untuk satu tabel, sama seperti `verge show`. Menjawab
-"keadaan semua tabel" berarti harus konsisten satu waktu di
-seluruh tabel, yang berbeda masalah dan layak terpisah.
+`--as-of` applies to a single table, just like `verge show`. Answering "the state
+of all tables" means having one instant be consistent across all tables, which is
+a different problem and deserves its own decision.
 
-## Alternatif yang dipertimbangkan
+## Alternatives Considered
 
-- **Mencari seluruh DAG, bukan `first-parent`.** Ditolak: commit dari branch
-  yang sudah digabung akan muncul sebagai "keadaan" pada waktu sebelum ia
-  bergabung, sehingga `AS OF` melaporkan keadaan yang tidak pernah aktif pada
-  branch tersebut.
-- **Menyimpan indeks commit per waktu.** Ditolak: index harus diperbarui setiap
-  commit dan dapat rusak, sedangkan `first-parent` sudah memberi jawaban dengan
-  batas yang jelas.
-- **Tag mutable dengan `tag create --force`.** Ditolak: label yang bisa berubah
-  membuat laporan yang menyebut `tag q2-report` menunjuk keadaan berbeda dari
-  yang pernah dibaca. Bila memang perlu, pengguna membuat tag baru.
-- **Menerima offset waktu dan konversi ke UTC.** Ditolak: membutuhkan basis
-  data zona waktu di dalam engine; batasannya lebih besar daripada nilai yang
-  didapat untuk CLI lokal yang menyimpan waktu dalam milidetik Unix.
-- **Timestamp dari `SystemTime::now()` tanpa validasi.** Ditolak: `AS OF`
-  menerima input pengguna, jadi harus divalidasi sebelum dipakai. Nilai yang
-  lebih besar dari `i64::MAX/1000` ditolak agar konversi ke milidetik tidak
+- **Search the whole DAG instead of `first-parent`.** Rejected: commits from a
+  branch that has already been merged would appear as a "state" at a time before
+  they were merged, so `AS OF` would report a state that was never active on that
+  branch.
+- **Store a per-time commit index.** Rejected: the index must be updated on every
+  commit and can be corrupted, while `first-parent` already gives an answer with
+  a clear bound.
+- **Mutable tags with `tag create --force`.** Rejected: a label that can change
+  makes a report that cites `tag q2-report` point to a different state from the
+  one that was ever read. If it is really needed, the user creates a new tag.
+- **Accept a time offset and convert to UTC.** Rejected: it requires a time zone
+  database inside the engine; that cost is larger than the value gained for a
+  local CLI that stores time in Unix milliseconds.
+- **Timestamp from `SystemTime::now()` without validation.** Rejected: `AS OF`
+  accepts user input, so it must be validated before use. Values greater than
+  `i64::MAX/1000` are rejected so that the conversion to milliseconds cannot
   overflow.
 
-## Konsekuensi
+## Consequences
 
-- `AS OF` menjadi deterministik sepenuhnya: input yang sama pada repository
-  yang sama selalu menghasilkan commit yang sama.
-- Commit dengan timestamp identik tidak dapat dibedakan lewat `AS OF`; tag
-  eksplisit (`refs/tags/<nama>`) adalah jalan keluarnya, dan itu memang
-  tujuannya.
-- `verge tag list` perlu menampilkan commit yang ditunjuk tag supaya pengguna
-  dapat memastikan tag tidak menyesatkan.
-- Tag tidak bisa dipakai sebagai nama branch, jadi `refs/` prefix eksplisit
-  tetap tersedia walaupun tidak wajib dipakai pada pemakaian normal.
+- `AS OF` becomes fully deterministic: the same input on the same repository
+  always yields the same commit.
+- Commits with identical timestamps cannot be told apart through `AS OF`; an
+  explicit tag (`refs/tags/<nama>`) is the way out, and that is exactly its
+  purpose.
+- `verge tag list` must show the commit that a tag points to, so the user can
+  be sure the tag is not misleading.
+- Tags cannot be used as branch names, so the explicit `refs/` prefix stays
+  available even though it is not required in normal use.
 
-## Amandemen ADR-0007
+## Amendment to ADR-0007
 
-Bagian "Merge base" pada ADR-0007 telah superseded oleh ADR-0009: merge base
-kini mengikuti seluruh parent, bukan hanya rantai `first-parent`. Keputusan itu
-dicatat sebagai ADR tersendiri agar ADR-0007 tidak lagi dibaca sebagai
-spesifikasi merge base yang berlaku.
+The "Merge base" section of ADR-0007 has been superseded by ADR-0009: the merge
+base now follows all parents, not only the `first-parent` chain. That decision is
+recorded as its own ADR so that ADR-0007 is no longer read as the specification
+of the merge base in force.
 
-## Justifikasi
+## Justification
 
-Time-travel tanpa `AS OF` berarti pengguna harus mencari `commit id` secara
-manual setiap kali ingin tahu keadaan lampau — dan justru pemeriksaan yang paling
-sering dilakukan saat audit. Tag immutable menutup celah kedua: memberi nama
-pada titik waktu tanpa risiko label berubah makna diam-diam.
+Time travel without `AS OF` means the user has to look up a `commit id` by hand
+every time they want to know a past state — and that is exactly the check done
+most often during an audit. Immutable tags close the second gap: giving a name
+to a point in time without the risk of a label silently changing meaning.
 
-## Tanggal: 2026-10-03
-## Penulis: Miruameli
+## Date: 2026-10-03
+## Author: Miruameli
 ## Review Date: 2026-12-03

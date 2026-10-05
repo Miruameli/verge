@@ -1,51 +1,52 @@
-# ADR-0002: Storage immutable content-addressed
+# ADR-0002: Immutable content-addressed storage
 
 ## Status
 
 Accepted
 
-## Konteks
+## Context
 
-Janji utama Verge adalah audit trail bawaan dan branching tanpa menyalin data.
-Keduanya menuntut objek yang tidak pernah berubah dan nama yang bisa diverifikasi
-tanpa mempercayai lapisan penyimpanan.
+Verge's core promise is a built-in audit trail and branching without copying
+data. Both require objects that never change and names that can be verified
+without trusting the storage layer.
 
-## Keputusan
+## Decision
 
-1. Setiap objek storage (blok, tree, commit) immutable setelah ditulis.
-2. Nama objek adalah SHA-256 dari encoding kanonik objek tersebut.
-3. Blok disimpan pada layout fan-out `objects/ab/cd/<hex>` supaya satu direktori
-   tidak pernah menampung ribuan entri.
-4. Penulisan memakai berkas sementara, `fsync`, lalu `rename`, sehingga blok
-   tidak pernah terlihat setengah tertulis.
-5. Branch adalah pointer bergerak ke sebuah commit; tag adalah pointer immutable.
+1. Every storage object (block, tree, commit) is immutable once written.
+2. An object's name is the SHA-256 of its canonical encoding.
+3. Blocks are stored in a fan-out layout `objects/ab/cd/<hex>` so that a single
+   directory never holds thousands of entries.
+4. Writes use a temporary file, `fsync`, then `rename`, so a block is never
+   visible half-written.
+5. A branch is a moving pointer to a commit; a tag is an immutable pointer.
 
-## Alternatif yang dipertimbangkan
+## Alternatives Considered
 
-- **Snapshot penuh per branch** — sederhana, tetapi menyalin data dan bertentangan
-  langsung dengan klaim "branching O(1)".
-- **Copy-on-write per tabel** — kuat, tetapi kompleks dan boros saat banyak branch
-  aktif.
-- **Object store tanpa content addressing** — butuh metadata eksternal untuk
-  integritas, sehingga audit trail tidak bisa diverifikasi mandiri.
+- **Full snapshot per branch** — simple, but it copies data and directly
+  contradicts the "O(1) branching" claim.
+- **Copy-on-write per table** — strong, but complex and wasteful when many
+  branches are active.
+- **Object store without content addressing** — requires external metadata for
+  integrity, so the audit trail cannot be verified on its own.
 
-## Konsekuensi
+## Consequences
 
-- Identitas data dapat diverifikasi kapan saja: hash ulang isi harus menghasilkan
-  nama yang sama.
-- Deduplikasi otomatis untuk snapshot yang isinya tidak berubah.
-- Blok yang tidak lagi terjangkau belum dihapus; pengumpulan blok berdasarkan
-  reachability direncanakan terpisah setelah mesin query siap.
+- Data identity can be verified at any time: re-hashing the content must
+  produce the same name.
+- Automatic deduplication for snapshots whose content did not change.
+- Unreachable blocks are not deleted yet; reachability-based block collection
+  is planned separately once the query engine is ready.
 
-## Justifikasi
+## Justification
 
-Content addressing adalah satu-satunya desain yang memberi audit trail,
-deduplikasi, dan branching murah sekaligus, tanpa tabel metadata terpisah.
+Content addressing is the only design that provides an audit trail,
+deduplication, and cheap branching at the same time, without a separate
+metadata table.
 
-## Tanggal
+## Date
 
 2026-10-03
 
-## Penulis
+## Author
 
-Miruameli
+Miruamel

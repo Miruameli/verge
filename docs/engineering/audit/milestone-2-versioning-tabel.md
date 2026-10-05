@@ -1,30 +1,32 @@
-# Audit: Milestone 2 — versioning data tabel
+# Audit: Milestone 2 — table data versioning
 
-## 2026-10-03 — Milestone 2: versioning data tabel
+## 2026-10-03 — Milestone 2: table data versioning
 
-| Field    | Nilai                                                                        |
-| -------- | ---------------------------------------------------------------------------- |
-| Waktu    | 2026-10-03                                                                   |
-| Aksi     | Merge PR #9 ke `main`: import, commit, log, dan time-travel read             |
-| Pelaku   | Miruameli                                                                    |
-| Alasan   | Menutup issue #8; data tabel baru bisa di-versioning setelah ini              |
-| Terkait  | Issue #8, PR #9, ADR-0005                                                    |
-| Dampak   | `verge show <commit>` dapat membaca isi tabel pada commit lama               |
-| Rollback | `git revert` commit merge; blok immutable yang sudah tertulis tidak rusak     |
+| Field  | Value                                                                 |
+| ------ | --------------------------------------------------------------------- |
+| Time   | 2026-10-03                                                            |
+| Action | Merge PR #9 into `main`: import, commit, log, and time-travel read   |
+| Actor  | Miruameli                                                             |
+| Reason | Close issue #8; table data can only be versioned after this          |
+| Related | Issue #8, PR #9, ADR-0005                                             |
+| Impact | `verge show <commit>` can read table contents from an old commit      |
+| Rollback | `git revert` on the merge commit; immutable blocks already written are not damaged |
 
-### Bukti
+### Evidence
 
-- 106 test lulus: 68 unit, 18 E2E CLI, 4 integrasi, 16 doctest.
-- Smoke run binary rilis: `init → import → commit → commit → log → show <lama>`
-  menghasilkan isi berbeda sesuai revisinya.
-- Tiga stage dengan isi identik menambah tepat satu blok di disk.
-- Byte commit yang diubah di luar Verge ditolak saat dibaca
+- 106 tests passed: 68 unit, 18 E2E CLI, 4 integration, 16 doctest.
+- Release binary smoke run: `init → import → commit → commit → log → show <old>`
+  produces different contents per revision.
+- Three stages with identical content add exactly one block on disk.
+- Commit bytes modified outside Verge are rejected when read
   (`VergeError::MalformedCommit`).
-- CI hijau: format, lint, test, audit RustSec, dan gitleaks.
+- CI green: format, lint, test, RustSec audit, and gitleaks.
 
-### Keputusan yang diambil
+### Decisions made
 
-- Isi tabel disimpan sebagai satu blok content-addressed; `tables/<nama>/working`
-  hanya menyimpan digest. Alasannya dan batasannya tercatat di ADR-0005.
-- `Commit` membawa nama tabel agar riwayat dapat disaring per tabel.
-- CLI menjadi composition root yang menyusun adapter, jam sistem, dan use case.
+- Table content is stored as a single content-addressed block;
+  `tables/<nama>/working` stores only the digest. The reason and its limits are
+  recorded in ADR-0005.
+- `Commit` carries the table name so history can be filtered per table.
+- The CLI becomes the composition root that assembles adapters, the system
+  clock, and use cases.

@@ -1,28 +1,28 @@
 # Audit Trail
 
-Catatan tindakan signifikan terhadap repository ini: waktu, aksi, alasan, pelaku,
-terkait issue atau PR, dampak, dan cara rollback.
+Record of significant actions on this repository: time, action, reason, actor,
+related issue or PR, impact, and rollback procedure.
 
-Setiap entri hidup di berkas sendiri supaya folder tidak menumpuk dan setiap
-entri mudah ditelusuri. Indeks ini adalah pintu masuk tunggal; entri baru
-menambah berkas di `audit/` dan satu baris tabel di bawah.
+Each entry lives in its own file so the folder does not pile up and every entry
+is easy to trace. This index is the single entry point; a new entry adds a file
+under `audit/` and one table row below.
 
-## Indeks entri
+## Entry index
 
-| Entri                                  | Isi                                                       |
-| [`audit/fondasi-m1.md`](audit/fondasi-m1.md) | Bootstrap repository, merge Milestone 1, proteksi branch |
-| [`audit/milestone-2-versioning-tabel.md`](audit/milestone-2-versioning-tabel.md) | Import, commit, log, dan time-travel read           |
-| [`audit/milestone-3-prolly-tree-diff.md`](audit/milestone-3-prolly-tree-diff.md) | Prolly tree, `verge diff`, dan versi 0.2.0         |
-| [`audit/milestone-4-branch-merge-time-travel.md`](audit/milestone-4-branch-merge-time-travel.md) | Branch O(1), merge tiga arah, `AS OF`, dan tag immutable |
-| [`audit/rilis/v0.1.0.md`](audit/rilis/v0.1.0.md) | Terbitan pertama, empat binary, checksum, SBOM           |
-| [`audit/rilis/v0.3.0.md`](audit/rilis/v0.3.0.md) | Terbitan Milestone 4 beserta pembuktiannya                |
-| [`audit/audit-kepatuhan-mandate.md`](audit/audit-kepatuhan-mandate.md) | Pengukuran aturan modularisasi dan lima perbaikannya |
+| Entry                                  | Contents                                                       |
+| [`audit/fondasi-m1.md`](audit/fondasi-m1.md) | Repository bootstrap, Milestone 1 merge, branch protection |
+| [`audit/milestone-2-versioning-tabel.md`](audit/milestone-2-versioning-tabel.md) | Import, commit, log, and time-travel read           |
+| [`audit/milestone-3-prolly-tree-diff.md`](audit/milestone-3-prolly-tree-diff.md) | Prolly tree, `verge diff`, and version 0.2.0         |
+| [`audit/milestone-4-branch-merge-time-travel.md`](audit/milestone-4-branch-merge-time-travel.md) | O(1) branch, three-way merge, `AS OF`, and immutable tag |
+| [`audit/rilis/v0.1.0.md`](audit/rilis/v0.1.0.md) | First release, four binaries, checksum, SBOM           |
+| [`audit/rilis/v0.3.0.md`](audit/rilis/v0.3.0.md) | Milestone 4 release and its proof                |
+| [`audit/audit-kepatuhan-mandate.md`](audit/audit-kepatuhan-mandate.md) | Measurement of the modularization rules and the five fixes |
 
-## Aturan penulisan entri
+## Entry writing rules
 
-- Setiap entri menyebut waktu, aksi, pelaku, alasan, issue/PR terkait, dampak,
-  bukti, dan rollback.
-- Bukti outperkosa: jumlah test, hasil quality gate, dan smoke run binary.
-  Klaim tanpa bukti tidak ditulis sebagai fakta.
-- Entri hanya ditambah, tidak ditulis ulang: kesalahan dikoreksi pada entri
-  baru yang menyebut entri lama.
+- Every entry states time, action, actor, reason, related issue/PR, impact,
+  evidence, and rollback.
+- Evidence is concrete: test counts, quality gate results, and binary smoke runs.
+  Claims without evidence are not written as fact.
+- Entries are only added, never rewritten: mistakes are corrected in a new entry
+  that names the old one.
