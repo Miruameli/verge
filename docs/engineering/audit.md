@@ -10,12 +10,14 @@ under `audit/` and one table row below.
 ## Entry index
 
 | Entry                                  | Contents                                                       |
+| -------------------------------------- | -------------------------------------------------------------- |
 | [`audit/fondasi-m1.md`](audit/fondasi-m1.md) | Repository bootstrap, Milestone 1 merge, branch protection |
 | [`audit/milestone-2-versioning-tabel.md`](audit/milestone-2-versioning-tabel.md) | Import, commit, log, and time-travel read           |
 | [`audit/milestone-3-prolly-tree-diff.md`](audit/milestone-3-prolly-tree-diff.md) | Prolly tree, `verge diff`, and version 0.2.0         |
 | [`audit/milestone-4-branch-merge-time-travel.md`](audit/milestone-4-branch-merge-time-travel.md) | O(1) branch, three-way merge, `AS OF`, and immutable tag |
 | [`audit/rilis/v0.1.0.md`](audit/rilis/v0.1.0.md) | First release, four binaries, checksum, SBOM           |
 | [`audit/rilis/v0.3.0.md`](audit/rilis/v0.3.0.md) | Milestone 4 release and its proof                |
+| [`audit/rilis/crates-io-backfill.md`](audit/rilis/crates-io-backfill.md) | Backfill scope corrected after testing packaging at each tag |
 | [`audit/audit-kepatuhan-mandate.md`](audit/audit-kepatuhan-mandate.md) | Measurement of the modularization rules and the five fixes |
 
 ## Entry writing rules

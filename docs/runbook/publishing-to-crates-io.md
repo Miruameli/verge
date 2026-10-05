@@ -2,12 +2,16 @@
 
 ## Purpose
 
-Publish a release of `verge-core` and `verge-cli` to the public crates.io
-registry so users can install them with `cargo add` and `cargo install`.
+Publish `verge-core` to the public crates.io registry so users can depend on it
+with `cargo add`.
 
 This runbook covers the **backfill** of the three historical releases
 (`v0.1.0`, `v0.2.0`, `v0.3.0`) that were tagged on GitHub but never published
 to crates.io, and the normal process for every release after that.
+
+Only `verge-core` is backfilled. `verge-cli` cannot be, for a reason specific to
+those three tags; it is published normally from `0.4.0` onwards. See "Backfill
+scope" before starting.
 
 ## Prerequisites
 
@@ -45,12 +49,23 @@ repository.
    be packaged. Publishing the CLI first fails with
    `no matching package named 'verge-core' found`.
 
+   This ordering rule applies from `0.4.0` onwards. It does **not** explain the
+   historical tags, which fail for a different and prior reason; see "Backfill
+   scope" below.
+
+5. **`verge-cli` cannot be backfilled.** All three tags declare
+   `verge-core = { path = "../verge-core" }` with no `version` field, and a
+   path dependency without a version cannot be packaged. This is a property of
+   those manifests, not of the registry, and no ordering of uploads avoids it.
+
 ## Content fidelity
 
 The backfill publishes the code from each historical tag, not a reconstruction.
-This was verified on 2026-10-05: `cargo package` succeeds at all three tags,
-and unpacking the resulting `.crate` file and diffing its `src/` directory
-against `git archive <tag>/src` produces no differences.
+This was verified on 2026-10-05 for `verge-core`, which is the only crate the
+backfill covers: `cargo package -p verge-core` succeeds at all three tags
+(109, 141 and 216 files), and unpacking the resulting `.crate` file and
+diffing its `src/` directory against `git archive <tag>/src` produces no
+differences.
 
 ```
 v0.1.0  Packaged 109 files, 218.6 KiB (47.0 KiB compressed)
@@ -79,36 +94,66 @@ For each version, run the core crate first:
    structure) before uploading, so a green run also proves the tag is
    releasable.
 
-3. Only after that run succeeds, publish the CLI for the same version:
+3. Publish the CLI for the same version, once `verge-core` for that version is
+   on the registry. The same `gh workflow run` call applies with
+   `-f crate=verge-cli`. This step does not apply to `0.1.0`, `0.2.0` or
+   `0.3.0`: see "Backfill scope" below.
 
-   ```
-   gh workflow run publish-crate.yml \
-     --repo Miruameli/verge \
-     -f crate=verge-cli \
-     -f version=0.1.0
-   ```
-
-4. Repeat steps 1 to 3 for `0.2.0`, then for `0.3.0`.
+4. Repeat steps 1 to 3 for `0.2.0`, then for `0.3.0`. For those three versions,
+   step 3 is skipped.
 
 The workflow refuses to run when the version in the manifest does not match the
 version requested in the input, which prevents publishing a tarball whose
 contents disagree with the number users pin.
 
+### Backfill scope
+
+**`verge-core` can be backfilled. `verge-cli` cannot, at any of the three
+tags.** This is a manifest defect, not a registry-ordering problem.
+
+All three tags carry:
+
+```toml
+verge-core = { path = "../verge-core" }
+```
+
+That path dependency has no `version` field, so `cargo package` refuses before
+it ever reaches the network:
+
+```
+error: all dependencies must have a version specified when packaging.
+```
+
+The `version` field exists only on `main`; it was never on a tag. Verified with
+`cargo package -p verge-cli` in a clean worktree at each tag: identical failure
+at `v0.1.0`, `v0.2.0` and `v0.3.0`. Running the unpatched manifest with
+`--offline`, where the registry cannot be contacted at all, produces the same
+error, which is what rules out registry ordering as the cause.
+
+Patching only the `version` field changes the error to
+`no matching package named 'verge-core' found`, which is the registry-ordering
+problem the older revision of this runbook used to name. That is a second
+blocker behind the first, not the blocker itself.
+
+**Known limitation.** After the backfill, `cargo add verge-cli --version 0.3.0`
+will not resolve. `verge-cli` becomes installable from `0.4.0`, published from
+`main`. The alternative — patching the manifest during publish so the CLI can be
+backfilled too — would mean publishing a package whose contents differ from its
+tag, so it was rejected. Every published artifact is byte-identical to its tag.
+
 ### Backfill pre-flight
 
-Before the first run, confirm the historical tags can still be packaged:
+Before the first run, confirm the tag can still be packaged:
 
 ```
 git worktree add /tmp/verge-backfill v0.1.0
 cd /tmp/verge-backfill
-cargo publish -p verge-core --dry-run --allow-dirty
+cargo package -p verge-core --allow-dirty
 git worktree remove /tmp/verge-backfill
 ```
 
-`verge-cli` at the historical tags cannot be dry-run before `verge-core` is on
-the registry, because cargo resolves the CLI's dependency from crates.io. That
-failure is expected and is not a defect; it resolves itself once step 1
-completes.
+Expect `Packaged 109 files` for `v0.1.0`. A failure here means the tag is not
+releasable; stop and investigate rather than retrying the upload.
 
 ## Verification
 
@@ -121,10 +166,12 @@ After each publish:
    cargo add verge-core@0.1.0
    ```
 
-3. A full local verification, from outside the repository:
+3. A full local verification, from outside the repository. During the backfill
+   this applies to `verge-core` only; the `verge-cli` install check starts at
+   `0.4.0`, because the historical CLI versions cannot be published:
 
    ```
-   cargo install verge-cli --version 0.1.0 --locked
+   cargo install verge-cli --version 0.4.0 --locked
    verge --version
    ```
 
