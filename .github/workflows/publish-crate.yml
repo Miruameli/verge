@@ -26,6 +26,14 @@ on:
         description: "Version to publish, for example 0.3.0"
         required: true
         type: string
+      ref:
+        description: >-
+          Git ref to publish. Defaults to the tag v<version>, which is what a
+          backfill needs. Set it explicitly only to publish a commit that has
+          no tag.
+        required: false
+        type: string
+        default: "v${{ inputs.version }}"
 
 # Least privilege: the job only needs to read the repository. crates.io
 # publishing authenticates with the registry token, not with GitHub write
@@ -44,7 +52,13 @@ jobs:
     name: publish ${{ inputs.crate }} ${{ inputs.version }}
     runs-on: ubuntu-latest
     steps:
+      # KENAPA: `ref` wajib diisi. Tanpa itu checkout mengambil ref yang
+      #         dipakai untuk dispatch (biasanya `main`), sehingga permintaan
+      #         publish 0.3.0 akan mengunggah isi `main` berlabel 0.3.0 --
+      #         dan versi crates.io tidak bisa pernah diperbaiki.
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
 
       # KENAPA: nilai toolchain di sini wajib sama dengan `channel` di
       #         rust-toolchain.toml (1.82); ini duplikasi yang disengaja
@@ -68,6 +82,19 @@ jobs:
             exit 1
           fi
 
+      - name: Show what is about to be published
+        # WHY: publish tidak bisa dibatalkan, jadi ref dan isi yang akan
+        #      diunggah harus terlihat di log sebelum terjadi, bukan
+        #      diasumsikan dari nama versinya.
+        run: |
+          set -euo pipefail
+          echo "crate     : ${{ inputs.crate }}"
+          echo "version   : ${{ inputs.version }}"
+          echo "ref       : ${{ inputs.ref }}"
+          echo "commit    : $(git rev-parse HEAD)"
+          echo "subject   : $(git log -1 --format=%s)"
+          echo "tree hash : $(git rev-parse HEAD^{tree})"
+
       - name: Run the full gate before publishing
         # WHY: a permanent upload must not be the first time a problem is
         #      discovered. The same gates as pull requests run first.
@@ -76,7 +103,21 @@ jobs:
           cargo fmt --all --check
           cargo clippy --all-targets --all-features -- -D warnings
           cargo test --all --locked
-          python3 .github/scripts/structure/check-structure.py
+
+      - name: Run the structure gate when it exists at this ref
+        # WHY: `check-structure.py` hanya ada sejak setelah ketiga tag historis
+        #      dibuat. Menjalankannya tanpa syarat membuat publish dari tag
+        #      selalu gagal, padahal isi tag sudah tidak bisa diaudit dengan
+        #      gate yang belum ada saat tag itu dibuat. Lewati dengan
+        #      pemberitahuan eksplisit supaya tidak ada yang mengira
+        #      semua gate berjalan.
+        run: |
+          set -euo pipefail
+          if [ -f .github/scripts/structure/check-structure.py ]; then
+            python3 .github/scripts/structure/check-structure.py
+          else
+            echo "::warning::structure gate absent at ${{ inputs.ref }} (added after the historical tags); fmt, clippy and tests ran"
+          fi
 
       - name: Publish to crates.io
         run: cargo publish -p ${{ inputs.crate }} --locked
