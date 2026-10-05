@@ -24,8 +24,10 @@ scope" before starting.
 
 ## Constraints that cannot be worked around
 
-Read these before starting. They are properties of the registry, not of this
-repository.
+Read these before starting. Some are properties of the registry itself, others
+are properties of the manifests in this repository. The distinction matters:
+registry constraints cannot be engineered away, but manifest constraints are
+known before the first upload.
 
 1. **A publish is permanent.** The version can never be overwritten and the
    uploaded code can never be deleted. The only remedy for a bad upload is
@@ -66,6 +68,34 @@ backfill covers: `cargo package -p verge-core` succeeds at all three tags
 (109, 141 and 216 files), and unpacking the resulting `.crate` file and
 diffing its `src/` directory against `git archive <tag>/src` produces no
 differences.
+
+### What backfilling costs: page metadata
+
+Byte-identical is a guarantee about *code*, not about *metadata*. The three
+tags predate the packaging work, so their manifests declare only `description`
+and `license`. Verified on 2026-10-05 by reading each tag's manifest:
+
+| Field | `v0.1.0`-`v0.3.0` | `main` (from `0.4.0`) |
+| --- | --- | --- |
+| `description`, `license` | yes | yes |
+| `readme` | no | yes |
+| `keywords`, `categories` | no | yes |
+| `homepage` | no | yes |
+
+So the backfilled pages will have **no README, no keywords and no categories**.
+Concretely: `cargo search` and `cargo add` will not surface these versions well,
+because crates.io search weighs keywords and categories. The crates.io page
+itself will render with a description and licence only.
+
+This is permanent. A crates.io version cannot be re-uploaded, so full metadata
+cannot be added to `0.1.0`-`0.3.0` later. The only alternative is not publishing
+them at all.
+
+**Decision: accept it.** The purpose of the backfill is that the historical
+code is installable by exact version for anyone following the changelog.
+Discoverability is the thing being traded away, and it is recoverable from
+`0.4.0` onwards. This section exists so that the byte-identical claim above is
+read as the two-sided guarantee it is.
 
 ```
 v0.1.0  Packaged 109 files, 218.6 KiB (47.0 KiB compressed)

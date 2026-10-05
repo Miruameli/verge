@@ -53,6 +53,19 @@ the one property the backfill exists to provide.
 
 Stated limitation: `cargo add verge-cli --version 0.3.0` will not resolve.
 
+Third limitation, and the one that is permanent rather than merely
+unavoidable: the backfilled pages carry **no README, no `keywords` and no
+`categories`**. Those fields were added to the workspace manifest after the
+three tags were cut, and a crates.io version cannot be re-uploaded. So
+`0.1.0`-`0.3.0` are permanently less discoverable than `0.4.0` onwards, and
+that is the price of byte-identical content. Accepted deliberately: the
+backfill exists so historical versions are installable by exact version, and
+discoverability is recoverable from `0.4.0`.
+
+This is recorded next to the byte-identical claim on purpose. Read alone, that
+claim sounds like a pure guarantee; it is a trade, and the cost is named here
+and in the runbook rather than left for a user to discover on the crate page.
+
 ### Evidence
 
 - `verge-core` packages cleanly at all three tags: 109, 141 and 216 files.
