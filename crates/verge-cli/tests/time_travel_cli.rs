@@ -16,5 +16,7 @@
 //! Related ADR:
 //!   - ADR-0008 (Time-travel AS OF dan tag immutable)
 
-#[path = "time_travel/mod.rs"]
+// KENAPA: folder mengikuti kebab-case seperti `merging/` dan `versioning/`,
+//         nama modul tetap snake_case agar `#[path]` tidak perlu ditulis ulang.
+#[path = "time-travel/mod.rs"]
 mod time_travel;

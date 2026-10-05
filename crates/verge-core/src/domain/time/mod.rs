@@ -19,6 +19,9 @@
 //! Related ADR:
 //!   - ADR-0008 (Time-travel AS OF dan tag immutable)
 
+// KENAPA: nama folder mengikuti kebab-case, nama modul tetap snake_case
+//         supaya path publik `domain::time::value_objects::*` tidak berubah.
+#[path = "value-objects/mod.rs"]
 pub mod value_objects;
 
 #[cfg(test)]
