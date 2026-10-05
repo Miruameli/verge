@@ -28,12 +28,12 @@ on:
         type: string
       ref:
         description: >-
-          Git ref to publish. Defaults to the tag v<version>, which is what a
-          backfill needs. Set it explicitly only to publish a commit that has
-          no tag.
-        required: false
+          Git ref whose code will be published, for example v0.1.0.
+          Deliberately required with no default: an irreversible upload must
+          name its source explicitly. GitHub does not allow an input default
+          to reference another input, so there is no safe default to give.
+        required: true
         type: string
-        default: "v${{ inputs.version }}"
 
 # Least privilege: the job only needs to read the repository. crates.io
 # publishing authenticates with the registry token, not with GitHub write
