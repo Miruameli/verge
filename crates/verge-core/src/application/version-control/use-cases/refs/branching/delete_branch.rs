@@ -81,7 +81,7 @@ pub struct DeletedBranch {
 /// assert_eq!(deleted.name, "eksperimen");
 /// ```
 pub fn delete_branch(input: &DeleteBranchInput, refs: &dyn RefPointer) -> Result<DeletedBranch> {
-    if refs.head_branch().map_or(false, |head| head == input.name) {
+    if refs.head_branch().is_ok_and(|head| head == input.name) {
         return Err(VergeError::BranchInUse(input.name.clone()));
     }
     let was_at = refs.resolve(&input.name)?;

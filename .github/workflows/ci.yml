@@ -3,7 +3,7 @@
 # KENAPA: setiap PR melewati gate yang sama seperti di lokal, sehingga
 #         "hijau di laptop" bukan bukti.
 # CATATAN: nilai `toolchain` di bawah wajib sama dengan `channel` di
-#         `rust-toolchain.toml` (1.82); ini satu-satunya duplikasi yang
+#         `rust-toolchain.toml` (1.98); ini satu-satunya duplikasi yang
 #         disengaja karena action CI memerlukan input eksplisit.
 name: ci
 
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.82"
+          toolchain: "1.98"
           components: rustfmt
       - run: cargo fmt --all --check
 
@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.82"
+          toolchain: "1.98"
           components: clippy
       - run: cargo clippy --all-targets --all-features -- -D warnings
 
@@ -64,7 +64,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.82"
+          toolchain: "1.98"
       - run: cargo test --all --locked
 
   audit:

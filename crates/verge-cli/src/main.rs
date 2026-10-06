@@ -30,14 +30,14 @@ mod interfaces;
 #[path = "shared/mod.rs"]
 mod shared;
 
+#[path = "config/mod.rs"]
+mod config;
+
 /// Menjalankan CLI dan mengembalikan exit code.
 ///
 /// Returns:
-/// - ExitCode — `SUCCESS` bila perintah selesai, `FAILURE` bila ada error yang
+/// - `ExitCode` — `SUCCESS` bila perintah selesai, `FAILURE` bila ada error yang
 ///   sudah dicetak ke stderr.
-
-#[path = "config/mod.rs"]
-mod config;
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     match interfaces::cli::cli_dispatcher::dispatch(&args) {

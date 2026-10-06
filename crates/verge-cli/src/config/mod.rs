@@ -11,7 +11,7 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - config/cli_usage.rs
+//!   - `config/cli_usage.rs`
 //!
 //! Related issues:
 //!   - #1 (Milestone 1)

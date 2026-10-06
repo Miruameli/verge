@@ -78,9 +78,7 @@ pub(crate) fn leaf_ids(world: &FakeWorld) -> Vec<BlockId> {
         .keys()
         .copied()
         .filter(|id| {
-            decode(&world.get(id).expect("blok tes tersimpan"))
-                .map(|node| node.is_leaf())
-                .unwrap_or(false)
+            decode(&world.get(id).expect("blok tes tersimpan")).is_ok_and(|node| node.is_leaf())
         })
         .collect()
 }

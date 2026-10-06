@@ -142,7 +142,7 @@ impl RefPointer for FileRefPointer {
     /// [`UnknownBranch`](VergeError::UnknownBranch) bila pointer tidak ada.
     fn delete(&self, branch: &str) -> Result<()> {
         let path = self.pointer_path(branch)?;
-        if self.head_branch().map_or(false, |head| head == branch) {
+        if self.head_branch().is_ok_and(|head| head == branch) {
             return Err(VergeError::BranchInUse(branch.to_owned()));
         }
         pointer_file::remove(&path)
