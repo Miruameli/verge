@@ -78,6 +78,9 @@ Binaries are published for Linux (x86_64, aarch64), macOS (arm64), and Windows
 (x86_64), each with a `SHA256SUMS` and a CycloneDX SBOM. On any other platform
 the installer says so and points you at `cargo install verge-cli`.
 
+Installing, or supporting someone else's machine? The triage reference is
+[`docs/runbook/installing-verge.md`](docs/runbook/installing-verge.md).
+
 ## Quick Start
 
 ```bash

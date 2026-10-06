@@ -17,6 +17,11 @@ and versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 
 - Restored the `audit/rilis/crates-io-backfill.md` row in the audit entry index. It was replaced instead of appended when the v0.4.0 row was added, leaving the backfill record unreachable from the index.
 
+
+### Documentation
+
+- An install runbook, `docs/runbook/installing-verge.md`: prerequisites, the four published targets, every installer option, what the script refuses to do, how to verify an install, and a triage section keyed on the exact messages the scripts print. Most triage entries were produced by running `INSTALL.sh` and `uninstall.sh` against a temporary prefix, including a deliberately corrupted archive, which aborts before anything reaches the prefix; the one entry that cannot be triggered here is marked `read from source`. The installer work above claimed a runbook that did not exist; the README `Install` section now links to it.
+
 ## [0.4.0] — 2026-10-06
 
 ### Changed
