@@ -107,9 +107,14 @@ version check, the fmt/clippy/test gate, and the conditional structure gate
 - Sparse index `index.crates.io/ve/rg/verge-core` carries all three `vers`
   strings, so the versions are resolvable, not merely listed.
 - Byte fidelity: each published `.crate` downloaded from `static.crates.io`,
-  unpacked, and its `src/` diffed against `git archive <tag>` — zero
+  unpacked, and its `src/` diffed against `git archive <tag>` -- zero
   differences at all three versions. Compressed sizes match the pre-publish
   record exactly: 47.0K, 66.5K, 103.2K.
+- Provenance: each `.crate` carries `.cargo_vcs_info.json` whose `git.sha1`
+  matches the tag commit exactly -- decisive proof cargo packaged the tag
+  itself, stronger than the directory diff above: `0.1.0` is `84e2a3f`,
+  `0.2.0` is `384409a`, `0.3.0` is `1d09f98` (each verified equal to
+  `git rev-parse v<version>^{commit}`).
 - `cargo add verge-core@0.1.0` resolves from a scratch project.
 - Pre-backfill blockers encountered and cleared: HTTP 422 from `inputs` in a
   workflow input `default` (fixed by required `ref`, PR #62), and HTTP 400
