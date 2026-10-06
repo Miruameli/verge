@@ -3,7 +3,7 @@
 # KENAPA: kebijakan rilis melarang rilis tanpa binary lintas platform, checksum
 #         SHA256, dan SBOM; tag tanpa artefak tidak boleh lahir.
 # CATATAN: `toolchain` di bawah wajib sama dengan `channel` di
-#         `rust-toolchain.toml` (1.82) agar binary yang terbit sama dengan
+#         `rust-toolchain.toml` (1.98) agar binary yang terbit sama dengan
 #         yang diverifikasi quality gate.
 name: release
 
@@ -58,7 +58,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.82"
+          toolchain: "1.98"
           targets: ${{ matrix.target }}
       - name: Cache cargo
         uses: actions/cache@v4

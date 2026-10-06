@@ -61,11 +61,11 @@ jobs:
           ref: ${{ inputs.ref }}
 
       # KENAPA: nilai toolchain di sini wajib sama dengan `channel` di
-      #         rust-toolchain.toml (1.82); ini duplikasi yang disengaja
+      #         rust-toolchain.toml (1.98); ini duplikasi yang disengaja
       #         karena action CI memerlukan input eksplisit.
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.82"
+          toolchain: "1.98"
 
       - name: Verify the manifest version matches the requested version
         # WHY: publishing a version number that does not exist in the manifest
