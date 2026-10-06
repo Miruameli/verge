@@ -145,7 +145,8 @@ permissions, so that branch cannot be triggered here.
 
 **Install**
 
-- `<prefix>/bin/verge exists and is not writable` (`read from source`)
+- `<prefix>/bin/verge exists and is not writable; pass a different --prefix`
+  (`read from source`)
   The prefix belongs to another user. Re-run with a prefix you own, for
   example `--prefix "$HOME/.local"`.
 - `verge is not on PATH; run the installer first`
