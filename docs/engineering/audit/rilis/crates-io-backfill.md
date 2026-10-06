@@ -1,4 +1,4 @@
-# Audit: crates.io backfill preparation
+# Audit: crates.io backfill (scope, execution, evidence)
 
 ## 2026-10-05 — Backfill scope corrected from empirical packaging tests
 
@@ -75,3 +75,44 @@ and in the runbook rather than left for a user to discover on the crate page.
   extracting the archive rather than trusting the exit code.
 - No code was changed. Structure gate, 313 tests and `cargo fmt --check` all
   pass.
+
+## 2026-10-06 — Backfill executed: verge-core 0.1.0, 0.2.0, 0.3.0 live
+
+| Field | Value |
+| ----- | ----- |
+| Time | 2026-10-06 |
+| Action | Dispatched `publish-crate` once per version with `-f ref=v<version>`; verified each on the registry before the next |
+| Actor | Miruameli |
+| Reason | Historical code installable by exact version; byte-identical to tags |
+| Related | Issue #55, PR #60, PR #62, PR #63, issue #64, PR #65 |
+| Impact | `verge-core` 0.1.0, 0.2.0, 0.3.0 live on crates.io; `verge-cli` historical versions remain unpublished by decision |
+| Rollback | Publish is permanent; `cargo yank` only remedy for a bad upload — not used, artifacts verified identical |
+
+### Runs
+
+| Version | Run | Result |
+| --- | --- | --- |
+| `0.1.0` | `37424200262` | success |
+| `0.2.0` | `37424463127` | success |
+| `0.3.0` | `37424612686` | success |
+
+Each run checked out its tag via the required `ref` input, passed the manifest
+version check, the fmt/clippy/test gate, and the conditional structure gate
+(absent at historical tags, skipped with an explicit warning), then uploaded.
+
+### Evidence
+
+- Registry API lists all three versions with `2026-10-06` timestamps
+  (backdate impossible by registry design).
+- Sparse index `index.crates.io/ve/rg/verge-core` carries all three `vers`
+  strings, so the versions are resolvable, not merely listed.
+- Byte fidelity: each published `.crate` downloaded from `static.crates.io`,
+  unpacked, and its `src/` diffed against `git archive <tag>` — zero
+  differences at all three versions. Compressed sizes match the pre-publish
+  record exactly: 47.0K, 66.5K, 103.2K.
+- `cargo add verge-core@0.1.0` resolves from a scratch project.
+- Pre-backfill blockers encountered and cleared: HTTP 422 from `inputs` in a
+  workflow input `default` (fixed by required `ref`, PR #62), and HTTP 400
+  from an unverified account email (verified 2026-10-06, PR #63). No partial
+  upload ever landed; the registry returned valid 404 until the first green
+  publish.
