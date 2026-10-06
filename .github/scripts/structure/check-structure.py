@@ -46,6 +46,7 @@ import sys
 sys.dont_write_bytecode = True
 
 from header_rules import header_problems  # noqa: E402
+from audit_rules import audit_problems  # noqa: E402
 from text_rules import (  # noqa: E402
     homoglyph_problems,
     marker_problems,
@@ -133,6 +134,7 @@ def main() -> int:
         problems += marker_problems(path, text)
         problems += non_ascii_problems(path, text)
     problems += folder_problems()
+    problems += audit_problems()
 
     # Aturan 6 berlaku pada seluruh berkas teks ter-track, bukan hanya `.rs`:
     # kontaminasi huruf di `.md` dan `.yml` lolos dari gate sebelum aturan ini

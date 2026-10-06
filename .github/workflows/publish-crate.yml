@@ -82,6 +82,21 @@ jobs:
             exit 1
           fi
 
+      - name: Check CLI core literal matches workspace (CLI publishes only)
+        # WHY: the mismatch the `versions` CI job guards, re-checked at the
+        #      irreversible point. The manifest gate above verifies the
+        #      published crate's own version, not that the CLI dependency
+        #      literal tracks the workspace.
+        run: |
+          set -euo pipefail
+          if [ "${{ inputs.crate }}" = "verge-cli" ]; then
+            if [ -f .github/scripts/check-versions.py ]; then
+              python3 .github/scripts/check-versions.py
+            else
+              echo "::warning::version gate absent at ${{ inputs.ref }}; skipping"
+            fi
+          fi
+
       - name: Show what is about to be published
         # WHY: publish tidak bisa dibatalkan, jadi ref dan isi yang akan
         #      diunggah harus terlihat di log sebelum terjadi, bukan

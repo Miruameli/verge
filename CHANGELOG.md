@@ -4,6 +4,17 @@ All notable changes to this project are recorded in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/id/1.1.0/),
 and versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- A `versions` quality gate: `.github/scripts/check-versions.py` asserts the `verge-core` version literal in `crates/verge-cli/Cargo.toml` equals `workspace.package.version`. It runs as a CI job and as a `publish-crate.yml` step for CLI publishes, so a workspace bump that forgets the literal fails before any tag or upload. The job is registered in branch-protection required checks.
+- An audit-index consistency check: `.github/scripts/structure/audit_rules.py` (wired into `check-structure.py`, so it rides the existing `structure` job) fails when an `audit/**/*.md` file has no index row or an index row has no file. Issue #77 tracks this after PR #75 orphaned the backfill record with all gates green.
+
+### Fixed
+
+- Restored the `audit/rilis/crates-io-backfill.md` row in the audit entry index. It was replaced instead of appended when the v0.4.0 row was added, leaving the backfill record unreachable from the index.
+
 ## [0.4.0] — 2026-10-06
 
 ### Changed

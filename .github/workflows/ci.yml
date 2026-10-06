@@ -46,6 +46,18 @@ jobs:
       - name: Gate struktur repository
         run: python3 .github/scripts/structure/check-structure.py
 
+  versions:
+    name: versions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        # KENAPA: literal `version` untuk `verge-core` di `verge-cli/Cargo.toml`
+        #         tidak memakai `workspace = true`; bump workspace yang lupa
+        #         literal itu menerbitkan CLI menaut core lama, dan publish
+        #         tidak bisa dibatalkan.
+      - name: Cek literal versi CLI sama dengan workspace
+        run: python3 .github/scripts/check-versions.py
+
   lint:
     name: lint
     runs-on: ubuntu-latest
