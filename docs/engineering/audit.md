@@ -18,7 +18,7 @@ under `audit/` and one table row below.
 | [`audit/rilis/v0.1.0.md`](audit/rilis/v0.1.0.md) | First release, four binaries, checksum, SBOM           |
 | [`audit/rilis/v0.2.0.md`](audit/rilis/v0.2.0.md) | Milestone 3 release, recorded retrospectively        |
 | [`audit/rilis/v0.3.0.md`](audit/rilis/v0.3.0.md) | Milestone 4 release and its proof                |
-| [`audit/rilis/crates-io-backfill.md`](audit/rilis/crates-io-backfill.md) | Backfill scope corrected after testing packaging at each tag |
+| [`audit/rilis/v0.4.0.md`](audit/rilis/v0.4.0.md) | First registry release: core + CLI 0.4.0, byte-identical |
 | [`audit/audit-kepatuhan-mandate.md`](audit/audit-kepatuhan-mandate.md) | Measurement of the modularization rules and the five fixes |
 
 ## Entry writing rules
