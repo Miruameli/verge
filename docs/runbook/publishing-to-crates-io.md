@@ -21,14 +21,16 @@ scope" before starting.
       never committed.
 - [x] Both crate names are free on crates.io. `verge-core` and `verge-cli`
       were verified available on 2026-10-05.
-- [ ] The crates.io account owning `CARGO_REGISTRY_TOKEN` has a **verified**
+- [x] The crates.io account owning `CARGO_REGISTRY_TOKEN` has a **verified**
       email address
       (<https://crates.io/settings/profile>). Without it every upload fails
       at the last step with `400 Bad Request: A verified email address is
       required`, after all gates have passed. Found the hard way on
       2026-10-05: run `37341155506` (`verge-core 0.1.0`) went green through
       fmt, clippy, 106 tests and the manifest check, then failed only at
-      `cargo publish`. Nothing was uploaded (crates.io still 404).
+      `cargo publish`. Verified 2026-10-06; the backfill below is the proof
+      (three green publishes, audited in
+      `docs/engineering/audit/rilis/crates-io-backfill.md`).
 
 ## Constraints that cannot be worked around
 
@@ -155,20 +157,30 @@ For each version, run the core crate first:
 3. Publish the CLI for the same version, once `verge-core` for that version is
    on the registry. The same `gh workflow run` call applies with
    `-f crate=verge-cli` and `-f ref=<tag>`. Do not dispatch the CLI the
-   moment the core upload finishes: the crates.io index lags the upload, and
-   a CLI publish that cannot see its dependency fails. Poll until the core
-   version is indexed, then dispatch:
+   moment the core upload finishes: the cargo sparse index lags the upload,
+   and a CLI publish that cannot see its dependency fails with
+   `no matching package named 'verge-core' found`. Poll the sparse index
+   itself until the core version appears, then dispatch. Polling the
+   crates.io API is not enough: the API can report the version while the
+   index cargo actually reads still lacks it.
 
    ```
    for i in $(seq 1 20); do
      sleep 30
-     code=$(curl -s -A "verge-backfill-check/1.0 (repo Miruameli/verge)" \
-       -o /dev/null -w "%{http_code}" \
-       "https://crates.io/api/v1/crates/verge-core/0.4.0")
-     echo "[$i] HTTP $code"
-     [ "$code" = 200 ] && break
+     if curl -s -A "verge-backfill-check/1.0 (repo Miruameli/verge)" \
+       "https://index.crates.io/ve/rg/verge-core" \
+       | grep -q '"vers":"0.4.0"'; then
+       echo "[$i] 0.4.0 indexed"
+       break
+     fi
+     echo "[$i] not yet indexed"
    done
    ```
+
+   (The `ve/rg` path comes from the index layout: crates with four or more
+   characters in the name live under `<first-two>/<next-two>/<name>`.)
+   Stronger alternative, proving resolvability end to end instead of index
+   presence: `cargo add verge-core@0.4.0 --dry-run` from a scratch project.
 
    This step does not apply to `0.1.0`, `0.2.0` or `0.3.0`: see "Backfill
    scope" below.
@@ -179,6 +191,23 @@ For each version, run the core crate first:
 The workflow refuses to run when the version in the manifest does not match the
 version requested in the input, which prevents publishing a tarball whose
 contents disagree with the number users pin.
+
+### Backfill status: done 2026-10-06
+
+The `0.1.0`-`0.3.0` backfill completed. Steps 1-2 above were run once per
+version with `-f ref=v<version>`; step 3 was skipped per the scope below.
+
+| Version | Run | Result |
+| --- | --- | --- |
+| `0.1.0` | `37424200262` | success, live on crates.io |
+| `0.2.0` | `37424463127` | success, live on crates.io |
+| `0.3.0` | `37424612686` | success, live on crates.io |
+
+Byte fidelity was verified after the fact, not assumed from green runs:
+each published `.crate` was downloaded from `static.crates.io`, unpacked,
+and its `src/` diffed against `git archive <tag>` — zero differences at all
+three versions. Full audit in
+`docs/engineering/audit/rilis/crates-io-backfill.md`.
 
 ### Backfill scope
 
