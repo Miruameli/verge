@@ -1,15 +1,23 @@
-//! File: `tree_node_tests.rs`
+//! File: `node_codec_tests.rs`
 //!
 //! Deskripsi: Test encoding kanonik node tree.
 //! Layer: domain/tree/nodes
 //! Tanggung jawab: Membuktikan byte node deterministik dan menolak byte rusak.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
-//! Version: 0.1.0 · License: Apache-2.0
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-03
+//! Version: 0.1.0
+//! License: Apache-2.0
 //!
-//! Dependencies: `tree_node.rs`, `tree_node_codec.rs`
-//! Related issues: #18 (Milestone 3)
-//! Related ADR: ADR-0006 (Prolly tree untuk tabel)
+//! Dependencies:
+//!   - `tree_node.rs`, `tree_node_codec.rs`
+//!
+//! Related issues:
+//!   - #18 (Milestone 3)
+//!
+//! Related ADR:
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 use crate::domain::ident::value_objects::digest::Digest;
 use crate::domain::tree::nodes::tree_node::TreeNode;

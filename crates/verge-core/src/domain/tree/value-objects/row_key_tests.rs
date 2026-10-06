@@ -4,12 +4,20 @@
 //! Layer: domain/tree/value-objects
 //! Tanggung jawab: Membuktikan urutan kunci deterministik.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
-//! Version: 0.1.0 · License: Apache-2.0
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-03
+//! Version: 0.1.0
+//! License: Apache-2.0
 //!
-//! Dependencies: `row_key.rs`
-//! Related issues: #18 (Milestone 3)
-//! Related ADR: ADR-0006 (Prolly tree untuk tabel)
+//! Dependencies:
+//!   - `row_key.rs`
+//!
+//! Related issues:
+//!   - #18 (Milestone 3)
+//!
+//! Related ADR:
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 use crate::domain::tree::value_objects::row_key::RowKey;
 

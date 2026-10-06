@@ -4,12 +4,22 @@
 //! Layer: application/version-control/use-cases/recording
 //! Tanggung jawab: Membuktikan rantai commit, validasi metadata, dan dedup.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
-//! Version: 0.1.0 · License: Apache-2.0
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-03
+//! Version: 0.1.0
+//! License: Apache-2.0
 //!
-//! Dependencies: `record_commit.rs`
-//! Related issues: #8 (Milestone 2) · #18 (Milestone 3)
-//! Related ADR: ADR-0005 · ADR-0006 (Prolly tree untuk tabel)
+//! Dependencies:
+//!   - `record_commit.rs`
+//!
+//! Related issues:
+//!   - #8 (Milestone 2)
+//!   - #18 (Milestone 3)
+//!
+//! Related ADR:
+//!   - ADR-0005
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 use crate::application::version_control::fakes::world::FakeWorld;
 use crate::application::version_control::use_cases::record_commit::{

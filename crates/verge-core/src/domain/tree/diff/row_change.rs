@@ -4,12 +4,20 @@
 //! Layer: domain/tree/diff
 //! Tanggung jawab: Membedakan baris tambah, ubah, dan hapus.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
-//! Version: 0.1.0 · License: Apache-2.0
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-03
+//! Version: 0.1.0
+//! License: Apache-2.0
 //!
-//! Dependencies: (tidak ada)
-//! Related issues: #18 (Milestone 3)
-//! Related ADR: ADR-0006 (Prolly tree untuk tabel)
+//! Dependencies:
+//!   - (tidak ada)
+//!
+//! Related issues:
+//!   - #18 (Milestone 3)
+//!
+//! Related ADR:
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 /// Jenis perubahan pada satu baris.
 ///
