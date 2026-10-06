@@ -57,6 +57,14 @@ jobs:
         #         tidak bisa dibatalkan.
       - name: Cek literal versi CLI sama dengan workspace
         run: python3 .github/scripts/check-versions.py
+      # WHY: the first installer draft shipped three naming bugs because it
+      #      guessed the artifact convention instead of checking the one
+      #      `package-release.sh` and `release.yml` actually use. This gate
+      #      compares them, so the two cannot drift apart silently.
+      - name: Cek installer selaras dengan alur rilis
+        run: python3 .github/scripts/install/check-installer.py
+      - name: Cek sintaks skrip shell untuk pengguna
+        run: sh -n INSTALL.sh && sh -n uninstall.sh
 
   lint:
     name: lint

@@ -35,6 +35,49 @@ each with `SHA256SUMS` and a CycloneDX SBOM per target.
 
 Full roadmap: [`docs/roadmap.md`](docs/roadmap.md).
 
+## Install
+
+One command. No compiler, no `sudo`, no shell-profile edits:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Miruameli/verge/main/INSTALL.sh | sh
+```
+
+It downloads the binary for your platform, checks it against the release
+`SHA256SUMS`, and installs it to `~/.local/bin`. If that directory is not on
+your `PATH` yet, the script prints the exact line to add — it never edits your
+shell profile for you.
+
+Other options:
+
+```bash
+sh INSTALL.sh --dry-run            # show the plan, download nothing
+sh INSTALL.sh --version 0.4.0      # pin a specific release
+sh INSTALL.sh --prefix /usr/local  # install somewhere else
+```
+
+Removing it:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Miruameli/verge/main/uninstall.sh | sh
+```
+
+Or, if you kept the repository checkout:
+
+```bash
+sh uninstall.sh
+```
+
+Already have Rust? `cargo install verge-cli` works too.
+
+> Prefer to review before running? Download the script first:
+> `curl -fsSLO https://raw.githubusercontent.com/Miruameli/verge/main/INSTALL.sh`
+> then read it and run `sh INSTALL.sh`.
+
+Binaries are published for Linux (x86_64, aarch64), macOS (arm64), and Windows
+(x86_64), each with a `SHA256SUMS` and a CycloneDX SBOM. On any other platform
+the installer says so and points you at `cargo install verge-cli`.
+
 ## Quick Start
 
 ```bash
