@@ -24,4 +24,4 @@ anyhow.workspace = true
 #         dan `cargo publish` gagal dengan "all dependencies must have a
 #         version specified when packaging". Nilai harus sama dengan
 #         versi crate yang sedang dirilis.
-verge-core = { version = "0.3.0", path = "../verge-core" }
+verge-core = { version = "0.4.0", path = "../verge-core" }
