@@ -4,12 +4,22 @@
 //! Layer: shared/exceptions
 //! Tanggung jawab: Menjaga pesan error ringkas dan tanpa detail internal.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-04
-//! Version: 0.4.0 · License: Apache-2.0
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-04
+//! Version: 0.4.0
+//! License: Apache-2.0
 //!
-//! Dependencies: `verge_error.rs`
-//! Related issues: #1 (Milestone 1), #18 (Milestone 3), #31 (Tabel tag pada pesan galat)
-//! Related ADR: ADR-0002 (Storage immutable content-addressed)
+//! Dependencies:
+//!   - `verge_error.rs`
+//!
+//! Related issues:
+//!   - #1 (Milestone 1)
+//!   - #18 (Milestone 3)
+//!   - #31 (Tabel tag pada pesan galat)
+//!
+//! Related ADR:
+//!   - ADR-0002 (Storage immutable content-addressed)
 
 use core::fmt;
 

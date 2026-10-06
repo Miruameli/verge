@@ -4,12 +4,20 @@
 //! Layer: domain/tree/value-objects
 //! Tanggung jawab: Membuktikan penguraian, pengurutan, dan round-trip tanpa kehilangan data.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
-//! Version: 0.1.0 · License: Apache-2.0
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-03
+//! Version: 0.1.0
+//! License: Apache-2.0
 //!
-//! Dependencies: `table_codec.rs`, `../nodes/tree_node.rs`
-//! Related issues: #18 (Milestone 3)
-//! Related ADR: ADR-0006 (Prolly tree untuk tabel)
+//! Dependencies:
+//!   - `table_codec.rs`, `../nodes/tree_node.rs`
+//!
+//! Related issues:
+//!   - #18 (Milestone 3)
+//!
+//! Related ADR:
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 use crate::domain::tree::table_codec::TableRows;
 use crate::domain::tree::tree_builder::build_plan;

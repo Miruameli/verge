@@ -5,13 +5,21 @@
 //! Tanggung jawab: Memilih commit terbaru pada rantai first-parent yang tidak
 //!   melewati waktu yang diminta, untuk satu tabel.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-06
-//! Version: 0.1.0 · License: Apache-2.0
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-06
+//! Version: 0.1.0
+//! License: Apache-2.0
 //!
-//! Dependencies: `domain/commit/repositories/ports/*.rs`,
-//!   `domain/table/value_objects/table_name.rs`
-//! Related issues: #25 (Milestone 4)
-//! Related ADR: ADR-0008 (Time-travel AS OF dan tag immutable), ADR-0011 (batas pindai 10.000 commit)
+//! Dependencies:
+//!   - `domain/commit/repositories/ports/*.rs`, `domain/table/value_objects/table_name.rs`
+//!
+//! Related issues:
+//!   - #25 (Milestone 4)
+//!
+//! Related ADR:
+//!   - ADR-0008 (Time-travel AS OF dan tag immutable)
+//!   - ADR-0011 (batas pindai 10.000 commit)
 
 use crate::domain::commit::repositories::ports::commit_repository::CommitRepository;
 use crate::domain::commit::value_objects::commit_id::CommitId;

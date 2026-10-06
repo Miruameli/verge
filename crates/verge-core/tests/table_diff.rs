@@ -4,12 +4,20 @@
 //! Layer: tests
 //! Tanggung jawab: Membuktikan perubahan baris antar commit di disk nyata.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
-//! Version: 0.1.0 · License: Apache-2.0
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-03
+//! Version: 0.1.0
+//! License: Apache-2.0
 //!
-//! Dependencies: `support/mod.rs`
-//! Related issues: #18 (Milestone 3)
-//! Related ADR: ADR-0006 (Prolly tree untuk tabel)
+//! Dependencies:
+//!   - `support/mod.rs`
+//!
+//! Related issues:
+//!   - #18 (Milestone 3)
+//!
+//! Related ADR:
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 mod support;
 

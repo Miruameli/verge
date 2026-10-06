@@ -4,10 +4,22 @@
 //! Layer: infrastructure/table/file-system
 //! Tanggung jawab: Membuktikan staging hanya menunjuk akar dan menjaga pointer.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
-//! Version: 0.1.0 · License: Apache-2.0 · Dependencies: `file_table_workspace.rs`
-//! Related issues: #8 (Milestone 2), #18 (Milestone 3)
-//! Related ADR: ADR-0005 (blok content-addressed), ADR-0006 (prolly tree)
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-03
+//! Version: 0.1.0
+//! License: Apache-2.0
+//!
+//! Dependencies:
+//!   - `file_table_workspace.rs`
+//!
+//! Related issues:
+//!   - #8 (Milestone 2)
+//!   - #18 (Milestone 3)
+//!
+//! Related ADR:
+//!   - ADR-0005 (blok content-addressed)
+//!   - ADR-0006 (prolly tree)
 
 use std::fs;
 use std::path::PathBuf;

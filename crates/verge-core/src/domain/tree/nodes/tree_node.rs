@@ -4,12 +4,20 @@
 //! Layer: domain/tree/nodes
 //! Tanggung jawab: Menyimpan baris secara terpartisi dengan identifier stabil.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
-//! Version: 0.1.0 · License: Apache-2.0
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-03
+//! Version: 0.1.0
+//! License: Apache-2.0
 //!
-//! Dependencies: `../value-objects/table_row.rs`
-//! Related issues: #18 (Milestone 3)
-//! Related ADR: ADR-0006 (Prolly tree untuk tabel)
+//! Dependencies:
+//!   - `../value-objects/table_row.rs`
+//!
+//! Related issues:
+//!   - #18 (Milestone 3)
+//!
+//! Related ADR:
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 use crate::domain::storage::value_objects::block_id::BlockId;
 use crate::domain::tree::value_objects::table_row::TableRow;

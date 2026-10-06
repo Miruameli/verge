@@ -4,12 +4,20 @@
 //! Layer: domain/tree/nodes
 //! Tanggung jawab: Membuktikan daun berbagi blok dan tidak ada baris hilang.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
-//! Version: 0.1.0 · License: Apache-2.0
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-03
+//! Version: 0.1.0
+//! License: Apache-2.0
 //!
-//! Dependencies: `tree_node.rs`, `tree_node_codec.rs`, `tree_builder.rs`
-//! Related issues: #18 (Milestone 3)
-//! Related ADR: ADR-0006 (Prolly tree untuk tabel)
+//! Dependencies:
+//!   - `tree_node.rs`, `tree_node_codec.rs`, `tree_builder.rs`
+//!
+//! Related issues:
+//!   - #18 (Milestone 3)
+//!
+//! Related ADR:
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 use crate::domain::ident::value_objects::digest::Digest;
 use crate::domain::tree::nodes::tree_node::LEAF_SIZE_LIMIT;

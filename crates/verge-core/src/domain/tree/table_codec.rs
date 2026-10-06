@@ -4,12 +4,20 @@
 //! Layer: domain/tree
 //! Tanggung jawab: Memisahkan kunci baris dan menjaga tabel dapat dibaca kembali.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
-//! Version: 0.1.0 · License: Apache-2.0
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-03
+//! Version: 0.1.0
+//! License: Apache-2.0
 //!
-//! Dependencies: `value-objects/row_key.rs`, `value-objects/table_row.rs`
-//! Related issues: #18 (Milestone 3)
-//! Related ADR: ADR-0006 (Prolly tree untuk tabel)
+//! Dependencies:
+//!   - `value-objects/row_key.rs`, `value-objects/table_row.rs`
+//!
+//! Related issues:
+//!   - #18 (Milestone 3)
+//!
+//! Related ADR:
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 // Pembacaan baris dipisah ke modul anak agar berkas ini hanya menyisakan API publik.
 #[path = "table_codec_rows.rs"]

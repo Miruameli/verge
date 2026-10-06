@@ -4,12 +4,22 @@
 //! Layer: tests
 //! Tanggung jawab: Membuktikan import, commit, log, snapshot, dan dedup di disk nyata.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
-//! Version: 0.1.0 · License: Apache-2.0
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-03
+//! Version: 0.1.0
+//! License: Apache-2.0
 //!
-//! Dependencies: `support/mod.rs`
-//! Related issues: #8 (Milestone 2), #18 (Milestone 3)
-//! Related ADR: ADR-0005 (blok content-addressed), ADR-0006 (prolly tree)
+//! Dependencies:
+//!   - `support/mod.rs`
+//!
+//! Related issues:
+//!   - #8 (Milestone 2)
+//!   - #18 (Milestone 3)
+//!
+//! Related ADR:
+//!   - ADR-0005 (blok content-addressed)
+//!   - ADR-0006 (prolly tree)
 
 mod support;
 

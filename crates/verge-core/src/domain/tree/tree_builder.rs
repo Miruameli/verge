@@ -4,12 +4,20 @@
 //! Layer: domain/tree
 //! Tanggung jawab: Mempartisi baris menjadi blok yang dapat dipakai ulang.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
-//! Version: 0.1.0 · License: Apache-2.0
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-03
+//! Version: 0.1.0
+//! License: Apache-2.0
 //!
-//! Dependencies: `nodes/tree_node.rs`, `nodes/tree_node_codec.rs`
-//! Related issues: #18 (Milestone 3)
-//! Related ADR: ADR-0006 (Prolly tree untuk tabel)
+//! Dependencies:
+//!   - `nodes/tree_node.rs`, `nodes/tree_node_codec.rs`
+//!
+//! Related issues:
+//!   - #18 (Milestone 3)
+//!
+//! Related ADR:
+//!   - ADR-0006 (Prolly tree untuk tabel)
 
 use crate::domain::ident::value_objects::digest::Digest;
 use crate::domain::storage::value_objects::block_id::BlockId;

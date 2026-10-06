@@ -5,13 +5,20 @@
 //! Tanggung jawab: Memisahkan bentuk revisi dari penyebutan port, sehingga
 //!   klasifikasi dapat diuji tanpa storage.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
-//! Version: 0.1.0 · License: Apache-2.0
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-03
+//! Version: 0.1.0
+//! License: Apache-2.0
 //!
-//! Dependencies: `domain/ident/value_objects/parse_hex_error.rs`,
-//!   `domain/time/value_objects/timestamp.rs`
-//! Related issues: #25 (Milestone 4)
-//! Related ADR: ADR-0008 (Time-travel AS OF dan tag immutable)
+//! Dependencies:
+//!   - `domain/ident/value_objects/parse_hex_error.rs`, `domain/time/value_objects/timestamp.rs`
+//!
+//! Related issues:
+//!   - #25 (Milestone 4)
+//!
+//! Related ADR:
+//!   - ADR-0008 (Time-travel AS OF dan tag immutable)
 
 use crate::domain::ident::value_objects::digest::Digest;
 use crate::domain::ident::value_objects::digest_text::parse_hex;

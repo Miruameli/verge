@@ -5,13 +5,20 @@
 //! Tanggung jawab: Menerjemahkan bentuk revisi yang sudah diklasifikasi menjadi
 //!   commit melalui port ref, tag, dan commit.
 //!
-//! Author: Miruameli · Created: 2026-10-03 · Modified: 2026-10-03
-//! Version: 0.1.0 · License: Apache-2.0
+//! Author: Miruameli
+//! Created: 2026-10-03
+//! Modified: 2026-10-03
+//! Version: 0.1.0
+//! License: Apache-2.0
 //!
-//! Dependencies: `revision_target.rs`, `instant_commit_lookup.rs`,
-//!   `domain/commit/repositories/ports/*.rs`
-//! Related issues: #25 (Milestone 4)
-//! Related ADR: ADR-0008 (Time-travel AS OF dan tag immutable)
+//! Dependencies:
+//!   - `revision_target.rs`, `instant_commit_lookup.rs`, `domain/commit/repositories/ports/*.rs`
+//!
+//! Related issues:
+//!   - #25 (Milestone 4)
+//!
+//! Related ADR:
+//!   - ADR-0008 (Time-travel AS OF dan tag immutable)
 
 use crate::application::version_control::instant_commit_lookup::{
     find_commit_at_or_before, InstantLookup,

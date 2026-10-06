@@ -13,6 +13,10 @@ and versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 - A one-command installer, `INSTALL.sh`, plus `uninstall.sh`. `INSTALL.sh` detects the platform, downloads the matching release asset, verifies it against the release `SHA256SUMS` (with no flag to skip verification), and installs to `~/.local/bin` without `sudo` and without editing a shell profile. It supports `--version`, `--prefix`, `--dry-run`, and `--check`, and falls back to `cargo install verge-cli` with a clear message on platforms that have no release binary. `uninstall.sh` refuses to delete any file that does not identify itself as Verge.
 - An installer/release consistency gate: `.github/scripts/install/check-installer.py` asserts that the published-target allowlist in `INSTALL.sh` equals the `release.yml` build matrix and that the archive and checksum naming assumptions still hold. It runs in the existing `versions` CI job. The first draft of the installer shipped three bugs that this gate now prevents: a `v`-prefixed asset name that 404'd on every install, a `SHA256SUMS` match that never accounted for the `./` prefix `find` writes, and a blacklist platform guard that let Intel Macs through to a 404.
 
+### Changed
+
+- The 32 files that still used the compact header form (several fields on one line, separated by `·`) now use the canonical form, one field per line. No code line changed: all 599 changed lines under `crates/` are `//!` lines. `header_rules.py` no longer accepts the compact form, so it cannot come back unnoticed. Only the field that started a line is counted, so a value may still contain commas, backticks, or `·`. `crates/verge-core/src/domain/tree/nodes/tests/node_codec_tests.rs` also had a `File` value that contradicted its own filename; it now names the file it is in. Issue #41.
+
 ### Fixed
 
 - Restored the `audit/rilis/crates-io-backfill.md` row in the audit entry index. It was replaced instead of appended when the v0.4.0 row was added, leaving the backfill record unreachable from the index.
