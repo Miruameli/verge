@@ -4,18 +4,37 @@ All notable changes to this project are recorded in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/id/1.1.0/),
 and versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] — 2026-10-06
 
 ### Changed
 
+- `verge tag list` prints the table column for every tag, taken from the commit
+  the tag points to. `TagEntry` changed from a three-element tuple to a named
+  struct `TagEntry { name, commit, table, summary }`.
 - The error raised when a revision points to a commit of another table now uses
   the `CommitBelongsToOtherTable` variant, which names the revision, the table
   the commit belongs to, and the requested table; previously `verge query`,
   `verge show`, `verge diff`, and `verge merge` reported `invalid reference`, so
   a valid tag was also mistaken for a broken one.
-- `verge tag list` prints the table column for every tag, taken from the commit
-  the tag points to. `TagEntry` changed from a three-element tuple to a named
-  struct `TagEntry { name, commit, table, summary }`.
+- The toolchain pin moved from Rust 1.82 to 1.98 (language edition stays 2021);
+  see ADR-0010. Local gates and CI now run the same compiler.
+- `AS OF` and hex-prefix search now document their 10,000-commit traversal
+  bound; see ADR-0011. No behaviour changed.
+
+### Migration
+
+- `TagEntry` consumers: replace tuple destructuring with field access. The old
+  `let (name, commit, summary) = entry;` becomes
+  `let (name, commit, summary) = (entry.name, entry.commit, entry.summary);`
+  and the new `entry.table` field names the table the tagged commit belongs
+  to. This is the only breaking API change in 0.4.0.
+- `VergeError::CommitBelongsToOtherTable` needs no migration: the enum is
+  `#[non_exhaustive]`, so matching on a new variant was never exhaustive and
+  existing `match` arms keep compiling. Callers that want the better message
+  only need to stop mapping it to `invalid reference`.
+- `verge-cli` is published to crates.io for the first time at 0.4.0
+  (`cargo install verge-cli --version 0.4.0 --locked`); the binary stays named
+  `verge`.
 
 ### Fixed
 
@@ -49,6 +68,7 @@ and versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html
   The four gate modules were moved to `.github/scripts/structure/` so that
   `.github/scripts/` stays within the five direct file limit — a violation the
   gate could not previously catch because its root was not scanned.
+
 
 ## [0.3.0] — 2026-10-04
 
@@ -169,7 +189,8 @@ Shipped earlier in the same version:
   `gitleaks`, `cargo audit`, and dependabot.
 
 
-[Unreleased]: https://github.com/Miruameli/verge/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Miruameli/verge/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Miruameli/verge/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/Miruameli/verge/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Miruameli/verge/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Miruameli/verge/releases/tag/v0.1.0

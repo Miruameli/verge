@@ -29,7 +29,7 @@ works today:
 | Immutable tags                | Done — `verge tag create/list/delete`  |
 | SQL + Verge extensions        | Planned — M5                           |
 
-Latest release: [`v0.3.0`](https://github.com/Miruameli/verge/releases/tag/v0.3.0) —
+Latest release: [`v0.4.0`](https://github.com/Miruameli/verge/releases/tag/v0.4.0) —
 binaries for linux (x86_64, aarch64), macOS (arm64), and Windows (x86_64),
 each with `SHA256SUMS` and a CycloneDX SBOM per target.
 
