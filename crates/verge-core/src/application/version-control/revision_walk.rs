@@ -6,7 +6,7 @@
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
+//! Modified: 2026-10-06
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
@@ -17,7 +17,7 @@
 //!   - #25 (Milestone 4)
 //!
 //! Related ADR:
-//!   - ADR-0008 (Time-travel AS OF dan tag immutable)
+//!   - ADR-0008 (Time-travel AS OF dan tag immutable), ADR-0011 (batas pindai 10.000 commit)
 
 use crate::application::version_control::revision_resolver::head_of_head_branch;
 use crate::domain::commit::repositories::ports::commit_repository::CommitRepository;
@@ -30,8 +30,9 @@ use crate::shared::kernel::result::Result;
 /// Batas commit yang diperiksa saat mencari awalan hex.
 ///
 /// KENAPA: pencarian awalan menelusuri rantai first-parent; batas ini menjaga
-/// biaya tetap wajar dan batas pencarian ini ketara bagi pengguna alih-alih
-/// diam-diam mengembalikan hasil yang mungkin salah.
+/// biaya tetap wajar. Melewati batas mengakhiri pencarian dan mengembalikan
+/// `InvalidRef` biasa, yang tidak dapat dibedakan dari awalan yang memang
+/// tidak ada; lihat ADR-0011 butir 3.
 const MAX_SCAN: usize = 10_000;
 
 /// Menelusuri `HEAD~N` pada rantai first-parent branch aktif.
