@@ -125,17 +125,53 @@ For each version, run the core crate first:
    gh workflow run publish-crate.yml \
      --repo Miruameli/verge \
      -f crate=verge-core \
-     -f version=0.1.0
+     -f version=0.1.0 \
+     -f ref=v0.1.0
    ```
+
+   `ref` is required and has no default. Name the tag explicitly (usually
+   `v<version>`): without it the checkout takes the ref the workflow was
+   dispatched from (normally `main`) and uploads the wrong code under the
+   right number. That failure mode is permanent and cannot be yanked away.
 
 2. Wait for it to finish. It re-runs the full gate (format, clippy, tests,
    structure) before uploading, so a green run also proves the tag is
-   releasable.
+   releasable. A green run that still shows a red `Publish to crates.io`
+   step is an account or network problem, not a code problem: before
+   retrying, ask the registry whether the upload already landed, because a
+   retry of a version that exists dies with "already uploaded":
+
+   ```
+   curl -s -A "verge-backfill-check/1.0 (repo Miruameli/verge)" \
+     -o /dev/null -w "HTTP %{http_code}\n" \
+     "https://crates.io/api/v1/crates/verge-core/0.1.0"
+   ```
+
+   `200` means the version is live and there is nothing to retry.
+   `404` means the upload never happened and retrying is safe. Use an
+   explicit `User-Agent`: a bare `curl` gets a misleading `403` from the
+   crates.io front door.
 
 3. Publish the CLI for the same version, once `verge-core` for that version is
    on the registry. The same `gh workflow run` call applies with
-   `-f crate=verge-cli`. This step does not apply to `0.1.0`, `0.2.0` or
-   `0.3.0`: see "Backfill scope" below.
+   `-f crate=verge-cli` and `-f ref=<tag>`. Do not dispatch the CLI the
+   moment the core upload finishes: the crates.io index lags the upload, and
+   a CLI publish that cannot see its dependency fails. Poll until the core
+   version is indexed, then dispatch:
+
+   ```
+   for i in $(seq 1 20); do
+     sleep 30
+     code=$(curl -s -A "verge-backfill-check/1.0 (repo Miruameli/verge)" \
+       -o /dev/null -w "%{http_code}" \
+       "https://crates.io/api/v1/crates/verge-core/0.4.0")
+     echo "[$i] HTTP $code"
+     [ "$code" = 200 ] && break
+   done
+   ```
+
+   This step does not apply to `0.1.0`, `0.2.0` or `0.3.0`: see "Backfill
+   scope" below.
 
 4. Repeat steps 1 to 3 for `0.2.0`, then for `0.3.0`. For those three versions,
    step 3 is skipped.
@@ -238,4 +274,4 @@ gh secret set CARGO_REGISTRY_TOKEN --repo Miruameli/verge < /path/to/new/token
 chmod 600 /path/to/new/token
 ```
 
-## Last Updated: 2026-10-05
+## Last Updated: 2026-10-06
