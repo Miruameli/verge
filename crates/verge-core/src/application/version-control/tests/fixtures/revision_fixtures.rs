@@ -10,6 +10,13 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `application/version-control/fakes/world.rs`
+//!   - `application/version-control/use-cases/recording/record_commit.rs`
+//!   - `application/version-control/use-cases/stage_table.rs`
+//!   - `domain/ident/value-objects/digest_text.rs`
+//!   - `domain/table/value-objects/table_name.rs`
+//!
 //! Related issues:
 //!   - #18 (Milestone 3)
 //!

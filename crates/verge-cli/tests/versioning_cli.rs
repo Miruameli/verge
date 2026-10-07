@@ -10,6 +10,9 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `versioning/`
+//!
 //! Related issues:
 //!   - #8 (Milestone 2)
 //!   - #18 (Milestone 3)

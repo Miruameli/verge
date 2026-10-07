@@ -10,6 +10,14 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `application/version-control/fakes/world.rs`
+//!   - `create_branch.rs`
+//!   - `domain/commit/repositories/ports/ref_pointer.rs`
+//!   - `domain/ident/value-objects/digest.rs`
+//!   - `domain/ident/value-objects/digest_text.rs`
+//!   - `shared/kernel/result.rs`
+//!
 //! Related issues:
 //!   - #22 (Milestone 4)
 //!

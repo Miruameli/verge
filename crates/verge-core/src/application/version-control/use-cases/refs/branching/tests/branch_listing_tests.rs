@@ -10,6 +10,10 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `fixtures/mod.rs`
+//!   - `delete_branch.rs`, `list_branches.rs`
+//!
 //! Related issues:
 //!   - #22 (Milestone 4)
 //!

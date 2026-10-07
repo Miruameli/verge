@@ -45,6 +45,9 @@ and versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 ### Fixed
 
 - Restored the `audit/rilis/crates-io-backfill.md` row in the audit entry index. It was replaced instead of appended when the v0.4.0 row was added, leaving the backfill record unreachable from the index.
+- The `structure` gate now enforces the `Dependencies:` header field required by
+  `CONTRIBUTING.md`. Twenty-three `.rs` files that were missing the field now
+  carry it, and `header_rules.py` rejects any future file that omits it. Issue #84.
 
 
 ### Documentation
