@@ -10,6 +10,9 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `revision_fixtures.rs`
+//!
 //! Related issues:
 //!   - #18 (Milestone 3)
 //!   - #22 (Milestone 4)

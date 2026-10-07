@@ -10,6 +10,11 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `merge_branch.rs`
+//!   - `merge_reader.rs`
+//!   - `merge_writer.rs`
+//!
 //! Related issues:
 //!   - #22 (Milestone 4)
 //!

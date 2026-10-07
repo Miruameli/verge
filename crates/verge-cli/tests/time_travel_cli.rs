@@ -10,6 +10,9 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `time-travel/mod.rs`
+//!
 //! Related issues:
 //!   - #25 (Milestone 4)
 //!

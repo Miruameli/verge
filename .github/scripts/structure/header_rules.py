@@ -32,6 +32,7 @@ HEADER_FIELDS = (
     "Modified:",
     "Version:",
     "License:",
+    "Dependencies:",
     "Related issues:",
     "Related ADR:",
 )
