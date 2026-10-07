@@ -12,7 +12,7 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - `query_read_cli.rs`, `query_error_cli.rs`, `query_fixtures.rs`
+//!   - `query_read_cli.rs`, `query_error_cli.rs`, `query_sql_cli.rs`, `query_fixtures.rs`
 //!
 //! Related issues:
 //!   - #25 (Milestone 4)
@@ -25,3 +25,4 @@ pub(super) use super::support;
 mod query_error_cli;
 pub(super) mod query_fixtures;
 mod query_read_cli;
+mod query_sql_cli;

@@ -32,6 +32,7 @@ use verge_core::infrastructure::commit::file_system::refs::file_tag_pointer::Fil
 use verge_core::infrastructure::storage::file_system::file_block_store::FileBlockStore;
 
 use crate::config::cli_usage::USAGE;
+use crate::interfaces::cli::commands::table_versioning::queries::sql::query_sql::run_sql_query;
 use crate::interfaces::cli::commands::table_versioning::{
     flag, object_store, split_args, workspace_layout,
 };
@@ -51,8 +52,8 @@ use crate::shared::kernel::result::Result;
 /// nama tabel tidak valid, atau tidak ada commit pada waktu tersebut.
 pub fn run_query(args: &[String]) -> Result<()> {
     let (positional, options) = split_args("query", &["--table", "--as-of"], args)?;
-    if !positional.is_empty() {
-        anyhow::bail!("`query` takes no positional argument\n\n{USAGE}");
+    if positional.len() > 1 {
+        anyhow::bail!("`query` takes at most one positional argument (SQL query)\n\n{USAGE}");
     }
     let raw_table = flag("query", &options, "--table")?
         .ok_or_else(|| anyhow::anyhow!("`query` requires `--table <NAME>`\n\n{USAGE}"))?;
@@ -66,6 +67,10 @@ pub fn run_query(args: &[String]) -> Result<()> {
     let commits = FileCommitRepository::new(store.clone());
     let refs = FileRefPointer::new(layout.clone());
     let tags = FileTagPointer::new(layout);
+    if let Some(sql) = positional.first() {
+        return run_sql_query(sql, table, as_of, &refs, &tags, &commits, &store);
+    }
+
     let content = query_table(
         &QueryTableInput {
             table,

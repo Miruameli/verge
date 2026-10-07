@@ -28,6 +28,7 @@ use std::path::PathBuf;
 mod display;
 
 use crate::domain::ident::value_objects::digest::Digest;
+use crate::domain::sql::ast::SqlError;
 use crate::domain::table::value_objects::table_name::TableName;
 use crate::shared::exceptions::parse_digest_error::ParseDigestError;
 
@@ -142,6 +143,13 @@ pub enum VergeError {
         /// Alasan penolakan yang aman ditampilkan ke pengguna.
         detail: &'static str,
     },
+    /// Error dari parser SQL (lexer/parser).
+    SqlParse {
+        /// Offset byte di input SQL.
+        offset: usize,
+        /// Penjelasan singkat.
+        message: String,
+    },
 }
 
 impl std::error::Error for VergeError {
@@ -157,6 +165,15 @@ impl std::error::Error for VergeError {
 impl From<std::io::Error> for VergeError {
     fn from(source: std::io::Error) -> Self {
         Self::Io(source)
+    }
+}
+
+impl From<SqlError> for VergeError {
+    fn from(err: SqlError) -> Self {
+        Self::SqlParse {
+            offset: err.offset,
+            message: err.message,
+        }
     }
 }
 
