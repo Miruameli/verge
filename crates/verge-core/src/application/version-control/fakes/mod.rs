@@ -11,7 +11,7 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!//!   - `world.rs`
+//!   - `world.rs`
 //!
 //! Related issues:
 //!   - #8 (Milestone 2)

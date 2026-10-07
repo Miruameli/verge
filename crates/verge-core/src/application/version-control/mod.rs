@@ -11,7 +11,7 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!//!   - `dtos/mod.rs`
+//!   - `dtos/mod.rs`
 //!   - `use-cases/mod.rs`
 //!
 //! Related issues:
