@@ -20,6 +20,7 @@ backtick di dalam nilai tidak pernah ditafsirkan sebagai pemisah field.
 from __future__ import annotations
 
 import pathlib
+import re
 
 HEADER_FIELDS = (
     "File:",
@@ -38,6 +39,13 @@ HEADER_FIELDS = (
 HEADER_SCAN_LINES = 30
 
 FIELD_SEPARATOR = "·"
+
+# `//!` (penanda inner-doc) yang langsung diikuti `//!` lagi berarti ganda:
+# bukan satu field, melainkan dua penanda doc bertumpuk. Garis pemisah
+# rustdoc `//!////` (marker diikuti empat slash) tetap sah, karena setelah
+# `//!` berikutnya adalah `////`, bukan `//!`. `^//!(?://!)` hanya cocok
+# pada gandaan `//!`+`//!`; `//!!` (empat karakter) tak tertangkap.
+DOUBLED_MARKER = re.compile(r"^//!(?://!)")
 
 
 def fields_in_line(body: str) -> list[str]:
@@ -58,11 +66,19 @@ def fields_in_line(body: str) -> list[str]:
 
 
 def header_problems(path: pathlib.Path, text: str) -> list[str]:
-    """Field header yang hilang, berulang, atau berbagi satu baris."""
+    """Field header yang hilang, berulang, berbagi satu baris, atau punya
+    penanda `//!` ganda (dua marker bertumpuk di satu baris)."""
     problems = []
     counts: dict[str, int] = {}
     for number, line in enumerate(text.splitlines()[:HEADER_SCAN_LINES], start=1):
         if not line.startswith("//!"):
+            continue
+        if DOUBLED_MARKER.match(line):
+            problems.append(
+                f"{path}:{number}: `//!` bertemu `//!` lagi (penanda ganda), "
+                f"bukan field header; ganti jadi `//!` tunggal atau pisahkan "
+                f"`//!` ke baris lain"
+            )
             continue
         found = fields_in_line(line[3:])
         if len(found) > 1:
