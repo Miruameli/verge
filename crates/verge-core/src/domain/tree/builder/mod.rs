@@ -1,29 +1,31 @@
-//! File: `tree_builder.rs`
+//! File: `mod.rs`
 //!
 //! Deskripsi: Pembangun prolly tree dari baris tabel terurut.
-//! Layer: domain/tree
+//! Layer: domain/tree/builder
 //! Tanggung jawab: Mempartisi baris menjadi blok yang dapat dipakai ulang.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
+//! Modified: 2026-10-08
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
 //! Dependencies:
 //!   - `nodes/tree_node.rs`, `nodes/tree_node_codec.rs`
+//!   - `codec/mod.rs` (TableRows)
 //!
 //! Related issues:
 //!   - #18 (Milestone 3)
+//!   - #97 (domain/tree split)
 //!
 //! Related ADR:
 //!   - ADR-0006 (Prolly tree untuk tabel)
 
+use super::codec::TableRows;
 use crate::domain::ident::value_objects::digest::Digest;
 use crate::domain::storage::value_objects::block_id::BlockId;
 use crate::domain::tree::nodes::tree_node::{TreeNode, LEAF_SIZE_LIMIT};
 use crate::domain::tree::nodes::tree_node_codec::encode;
-use crate::domain::tree::table_codec::TableRows;
 use crate::domain::tree::value_objects::table_row::TableRow;
 use crate::shared::exceptions::verge_error::VergeError;
 use crate::shared::kernel::result::Result;

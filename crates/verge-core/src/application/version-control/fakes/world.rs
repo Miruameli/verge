@@ -28,9 +28,9 @@ use std::path::PathBuf;
 use crate::domain::commit::value_objects::commit_id::CommitId;
 use crate::domain::storage::value_objects::block_id::BlockId;
 use crate::domain::table::value_objects::table_name::TableName;
+use crate::domain::tree::builder::build_plan;
+use crate::domain::tree::codec::TableRows;
 use crate::domain::tree::nodes::tree_node_codec::encode;
-use crate::domain::tree::table_codec::TableRows;
-use crate::domain::tree::tree_builder::build_plan;
 
 // Implementasi port dipisah ke modul anak agar berkas ini hanya mendeskripsikan state.
 #[path = "world_ports.rs"]

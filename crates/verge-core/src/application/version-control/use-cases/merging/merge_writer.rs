@@ -26,9 +26,9 @@ use crate::domain::commit::repositories::ports::commit_repository::CommitReposit
 use crate::domain::commit::repositories::ports::ref_pointer::RefPointer;
 use crate::domain::commit::value_objects::commit_id::CommitId;
 use crate::domain::storage::ports::block_store::Store;
+use crate::domain::tree::builder::build_plan;
+use crate::domain::tree::codec::TableRows;
 use crate::domain::tree::nodes::tree_node_codec::encode as encode_node;
-use crate::domain::tree::table_codec::TableRows;
-use crate::domain::tree::tree_builder::build_plan;
 use crate::shared::kernel::result::Result;
 
 /// Menulis tabel gabungan sebagai commit merge lalu memindahkan branch aktif.

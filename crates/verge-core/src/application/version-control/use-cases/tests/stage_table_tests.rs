@@ -23,7 +23,7 @@ use crate::application::version_control::fakes::world::{any_path, FakeWorld};
 use crate::application::version_control::use_cases::stage_table::{stage_table, StageTableInput};
 use crate::domain::table::ports::table_workspace::TableWorkspace;
 use crate::domain::table::value_objects::table_name::TableName;
-use crate::domain::tree::table_reader::read_table;
+use crate::domain::tree::codec::table_reader::read_table;
 use crate::shared::exceptions::verge_error::VergeError;
 
 use super::{bulk_table, leaf_ids, stage};

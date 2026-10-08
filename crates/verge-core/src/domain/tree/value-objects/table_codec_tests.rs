@@ -19,8 +19,8 @@
 //! Related ADR:
 //!   - ADR-0006 (Prolly tree untuk tabel)
 
-use crate::domain::tree::table_codec::TableRows;
-use crate::domain::tree::tree_builder::build_plan;
+use crate::domain::tree::builder::build_plan;
+use crate::domain::tree::codec::TableRows;
 use crate::shared::exceptions::verge_error::VergeError;
 
 #[test]

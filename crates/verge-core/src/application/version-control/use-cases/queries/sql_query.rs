@@ -42,7 +42,7 @@ use crate::domain::sql::parser::parse_sql;
 use crate::domain::sql::planner::plan_select;
 use crate::domain::storage::ports::block_store::Store;
 use crate::domain::table::value_objects::table_name::TableName;
-use crate::domain::tree::table_reader::read_table;
+use crate::domain::tree::codec::table_reader::read_table;
 use crate::infrastructure::query::ScanBudget;
 use crate::shared::exceptions::verge_error::VergeError;
 use crate::shared::kernel::result::Result;

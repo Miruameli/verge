@@ -26,7 +26,7 @@
 
 use crate::domain::merge::merge_strategy::MergeStrategy;
 use crate::domain::merge::rows::row_merge::merge_rows;
-use crate::domain::tree::table_codec::TableRows;
+use crate::domain::tree::codec::TableRows;
 use crate::domain::tree::value_objects::table_row::TableRow;
 
 /// Bentuk hasil merge agar assertion test tetap pendek.

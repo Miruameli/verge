@@ -28,7 +28,7 @@ use crate::domain::commit::repositories::ports::ref_pointer::RefPointer;
 use crate::domain::commit::repositories::ports::tag_pointer::TagPointer;
 use crate::domain::storage::ports::block_store::Store;
 use crate::domain::table::value_objects::table_name::TableName;
-use crate::domain::tree::table_reader::read_table;
+use crate::domain::tree::codec::table_reader::read_table;
 use crate::shared::exceptions::verge_error::VergeError;
 use crate::shared::kernel::result::Result;
 
