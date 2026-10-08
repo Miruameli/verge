@@ -1,6 +1,6 @@
 //! File: `mod.rs`
 //!
-//! Deskripsi: Domain SQL query engine — lexer, parser, AST, dan eksekusi.
+//! Deskripsi: Domain SQL query engine — lexer, parser, AST, planner, dan eksekusi.
 //! Layer: domain/sql
 //! Tanggung jawab: Mendeklarasikan submodule SQL yang dipakai engine query.
 //!
@@ -11,16 +11,19 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - `token.rs`, `lexer/mod.rs`, `ast.rs`, `executor.rs`, `parser/`
+//!   - `token.rs`, `lexer/mod.rs`, `ast.rs`, `executor.rs`, `eval.rs`, `planner/`, `parser/`
 //!
 //! Related issues:
 //!   - #30 (Milestone 5)
+//!   - #92 (M5 Part 2: planner dan Verge extensions)
 //!
 //! Related ADR:
 //!   - ADR-0012 (SQL parser semantics and limits)
 
 pub mod ast;
+pub mod eval;
 pub mod executor;
 pub mod lexer;
 pub mod parser;
+pub mod planner;
 pub mod token;

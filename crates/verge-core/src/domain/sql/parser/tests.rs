@@ -86,3 +86,24 @@ fn keyword_case_insensitive() {
     let stmt = parse("select * from users");
     assert_eq!(stmt.table, "users");
 }
+
+#[test]
+fn table_valued_function() {
+    let stmt = parse("SELECT * FROM commits()");
+    assert_eq!(stmt.table, "commits");
+    assert!(stmt.is_table_function);
+}
+
+#[test]
+fn regular_table_not_function() {
+    let stmt = parse("SELECT * FROM users");
+    assert_eq!(stmt.table, "users");
+    assert!(!stmt.is_table_function);
+}
+
+#[test]
+fn function_dengan_where() {
+    let stmt = parse("SELECT commit_id FROM commits() WHERE table = 'users'");
+    assert!(stmt.is_table_function);
+    assert!(stmt.where_clause.is_some());
+}

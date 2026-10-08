@@ -12,6 +12,7 @@
 //!
 //! Dependencies:
 //!   - `sql_query_tests.rs`
+//!   - `sql_commits_tests.rs`
 //!   - `super::super::commit` (helper)
 //!
 //! Related issues:
@@ -21,4 +22,5 @@
 //!   - ADR-0006 (Prolly tree untuk tabel)
 //!   - ADR-0012 (SQL parser semantics and limits)
 
+mod sql_commits_tests;
 mod sql_query_tests;

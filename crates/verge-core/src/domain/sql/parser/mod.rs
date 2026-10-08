@@ -11,7 +11,7 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - `lexer.rs`, `ast.rs`, `token.rs`, `expr.rs`
+//!   - `lexer.rs`, `ast.rs`, `token.rs`, `expr.rs`, `clauses.rs`
 //!
 //! Related issues:
 //!   - #30 (Milestone 5)
@@ -23,6 +23,7 @@ use super::ast::{ColumnList, Expr, SelectStatement, SqlError};
 use super::lexer::lex;
 use super::token::{Keyword, Token, TokenKind};
 
+mod clauses;
 mod expr;
 
 /// Batas kedalaman nesting ekspresi WHERE.
@@ -50,7 +51,7 @@ pub fn parse_sql(sql: &str) -> Result<SelectStatement, SqlError> {
     Ok(stmt)
 }
 
-/// Parser rekursif-ke-kiri untuk token-token SQL.
+/// Parser rekursi-ke-kiri untuk token-token SQL.
 pub struct Parser<'a> {
     tokens: &'a [Token],
     pos: usize,
@@ -107,11 +108,14 @@ impl<'a> Parser<'a> {
     }
 
     /// Mem-parse `SELECT ... FROM ... [WHERE ...] [AS OF ...]`.
+    ///
+    /// Nama tabel boleh berupa table-valued function: `commits()`.
     fn parse_select(&mut self) -> Result<SelectStatement, SqlError> {
         self.expect_keyword(Keyword::Select, "query harus dimulai dengan SELECT")?;
         let columns = self.parse_column_list()?;
         self.expect_keyword(Keyword::From, "SELECT harus diikuti FROM")?;
         let table = self.parse_identifier("nama tabel")?;
+        let is_function = self.parse_optional_parens()?;
         let where_clause = self.parse_where_clause(0)?;
         let as_of = self.parse_as_of()?;
         Ok(SelectStatement {
@@ -119,6 +123,7 @@ impl<'a> Parser<'a> {
             table,
             where_clause,
             as_of,
+            is_table_function: is_function,
         })
     }
 
@@ -148,39 +153,6 @@ impl<'a> Parser<'a> {
             Ok(Some(self.parse_expression(depth)?))
         } else {
             Ok(None)
-        }
-    }
-
-    /// Mem-parse `AS OF <value>` jika ada.
-    fn parse_as_of(&mut self) -> Result<Option<String>, SqlError> {
-        if self.peek().kind == TokenKind::Keyword(Keyword::As) {
-            self.advance();
-            self.expect_keyword(Keyword::Of, "`AS` harus diikuti `OF`")?;
-            let when = self.parse_when_value()?;
-            Ok(Some(when))
-        } else {
-            Ok(None)
-        }
-    }
-
-    /// Mem-parse nilai AS OF: string literal, parameter, atau identifier.
-    fn parse_when_value(&mut self) -> Result<String, SqlError> {
-        let tok = self.peek();
-        match &tok.kind {
-            TokenKind::String(s) | TokenKind::Identifier(s) => {
-                let s = s.clone();
-                self.advance();
-                Ok(s)
-            }
-            TokenKind::Parameter(p) => {
-                let p = p.clone();
-                self.advance();
-                Ok(p)
-            }
-            _ => Err(SqlError::at(
-                tok.offset,
-                "`AS OF` mengharapkan string, parameter, atau nama",
-            )),
         }
     }
 

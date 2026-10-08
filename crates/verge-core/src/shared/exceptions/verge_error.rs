@@ -177,6 +177,15 @@ impl From<SqlError> for VergeError {
     }
 }
 
+impl From<crate::domain::sql::planner::PlanError> for VergeError {
+    fn from(err: crate::domain::sql::planner::PlanError) -> Self {
+        Self::SqlParse {
+            offset: 0,
+            message: err.message,
+        }
+    }
+}
+
 impl From<ParseDigestError> for VergeError {
     fn from(source: ParseDigestError) -> Self {
         Self::InvalidDigest(source)

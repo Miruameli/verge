@@ -33,7 +33,7 @@ use crate::shared::exceptions::verge_error::VergeError;
 use super::super::commit;
 
 /// Menjalankan SQL query pada tabel `users` di HEAD via `FakeWorld`.
-fn run_sql(world: &FakeWorld, sql: &str) -> Vec<u8> {
+pub(super) fn run_sql(world: &FakeWorld, sql: &str) -> Vec<u8> {
     sql_query(
         &SqlQueryInput {
             table: TableName::parse("users").unwrap(),

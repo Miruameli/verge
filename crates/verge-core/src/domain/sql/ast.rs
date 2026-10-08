@@ -121,4 +121,6 @@ pub struct SelectStatement {
     pub where_clause: Option<Expr>,
     /// Nilai `AS OF`, bila ada (di-format yang sama dengan `--as-of` CLI).
     pub as_of: Option<String>,
+    /// Apakah `table` adalah table-valued function (mis. `commits()`).
+    pub is_table_function: bool,
 }
