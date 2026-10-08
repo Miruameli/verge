@@ -12,6 +12,9 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `shared/exceptions/verge_error.rs`
+//!
 //! Related issues:
 //!   - #90 (M5 Part 3: executor resource limits)
 //!   - #92 (M5 Part 2: SQL executor)

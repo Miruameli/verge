@@ -11,6 +11,9 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `budget.rs`
+//!
 //! Related issues:
 //!   - #90 (M5 Part 3: resource limits)
 //!

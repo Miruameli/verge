@@ -10,11 +10,15 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `infrastructure/query/budget.rs`
+//!   - `shared/exceptions/verge_error.rs`
+//!
 //! Related issues:
-//!     - #90 (M5 Part 3: executor resource limits)
-
+//!   - #90 (M5 Part 3: executor resource limits)
+//!
 //! Related ADR:
-//!     - ADR-0014 (Executor resource limits)
+//!   - ADR-0014 (Executor resource limits)
 
 use std::time::Duration;
 
