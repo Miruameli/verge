@@ -1,7 +1,7 @@
-//! File: `eval.rs`
+//! File: `mod.rs`
 //!
 //! Deskripsi: Evaluasi ekspresi WHERE pada baris tabel.
-//! Layer: domain/sql
+//! Layer: domain/sql/core
 //! Tanggung jawab: Menyelesaikan operand, membandingkan nilai, dan
 //! mengevaluasi ekspresi biner untuk filter WHERE.
 //!
@@ -17,6 +17,7 @@
 //! Related issues:
 //!   - #30 (Milestone 5)
 //!   - #92 (M5 Part 2: planner dan Verge extensions)
+//!   - #96 (domain/sql split)
 //!
 //! Related ADR:
 //!   - ADR-0012 (SQL parser semantics and limits)

@@ -1,7 +1,7 @@
-//! File: `ast.rs`
+//! File: `mod.rs`
 //!
 //! Deskripsi: Tipe AST dan error untuk SQL query engine.
-//! Layer: domain/sql
+//! Layer: domain/sql/core
 //! Tanggung jawab: Mendefinisikan `SelectStatement`, `Expr`, `SqlValue`, dan `SqlError`.
 //!
 //! Author: Miruameli
@@ -15,6 +15,7 @@
 //!
 //! Related issues:
 //!   - #30 (Milestone 5)
+//!   - #96 (domain/sql split)
 //!
 //! Related ADR:
 //!   - ADR-0012 (SQL parser semantics and limits)
