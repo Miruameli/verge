@@ -10,6 +10,16 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `fixtures/revision_fixtures.rs`
+//!   - `revision_resolver.rs`
+//!   - `application/version-control/use-cases/read_snapshot.rs`
+//!   - `application/version-control/use-cases/recording/record_commit.rs`
+//!   - `application/version-control/use-cases/stage_table.rs`
+//!   - `domain/ident/value-objects/digest_text.rs`
+//!   - `domain/table/value-objects/table_name.rs`
+//!   - `shared/exceptions/verge_error.rs`
+//!
 //! Related issues:
 //!   - #18 (Milestone 3)
 //!   - #22 (Milestone 4)

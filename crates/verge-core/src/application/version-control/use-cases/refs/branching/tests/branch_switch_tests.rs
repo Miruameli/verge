@@ -10,6 +10,12 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `fixtures/mod.rs`
+//!   - `switch_branch.rs`
+//!   - `domain/commit/repositories/ports/ref_pointer.rs`
+//!   - `shared/exceptions/verge_error.rs`
+//!
 //! Related issues:
 //!   - #22 (Milestone 4)
 //!

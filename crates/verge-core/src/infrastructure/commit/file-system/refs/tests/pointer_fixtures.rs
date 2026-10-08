@@ -10,6 +10,14 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `config/repository_layout.rs`
+//!   - `domain/commit/repositories/ports/ref_pointer.rs`
+//!   - `domain/ident/value-objects/digest.rs`
+//!   - `domain/ident/value-objects/digest_text.rs`
+//!   - `infrastructure/commit/file-system/refs/file_ref_pointer.rs`
+//!   - `shared/exceptions/verge_error.rs`
+//!
 //! Related issues:
 //!   - #1 (Milestone 1)
 //!   - #22 (Milestone 4)

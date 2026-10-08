@@ -10,6 +10,9 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `conflict_tests.rs`, `merged_output_tests.rs`, `strategy_tests.rs`, `support.rs`
+//!
 //! Related issues:
 //!   - #22 (Milestone 4)
 //!

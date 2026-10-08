@@ -10,6 +10,14 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `fixtures/mod.rs`
+//!   - `application/version-control/fakes/world.rs`
+//!   - `domain/commit/repositories/ports/ref_pointer.rs`
+//!   - `domain/ident/value-objects/digest.rs`
+//!   - `domain/ident/value-objects/digest_text.rs`
+//!   - `shared/exceptions/verge_error.rs`
+//!
 //! Related issues:
 //!   - #22 (Milestone 4)
 //!

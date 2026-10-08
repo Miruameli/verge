@@ -10,6 +10,9 @@
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
+//! Dependencies:
+//!   - `create_branch.rs`, `delete_branch.rs`, `list_branches.rs`, `switch_branch.rs`, `tests/`
+//!
 //! Related issues:
 //!   - #22 (Milestone 4)
 //!
