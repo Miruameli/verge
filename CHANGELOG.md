@@ -28,6 +28,11 @@ and versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html
   the 10 000-commit scan limit (ADR-0011).
 - The `sql_query` use case now routes through the planner: `parse → plan → execute_plan`.
   `execute_query` (the old single-pass path) is retained for direct callers.
+- Executor resource limits (M5 Part 3): a `ScanBudget` (`infrastructure/query/budget.rs`)
+  tracks output memory (default 64 MiB) and wall-clock time (default 10 s) and is checked
+  per-row in `execute_plan` and per-commit in `build_commit_rows`. When a limit is exceeded,
+  execution stops early with `VergeError::QueryResourceLimit`. This prevents resource-
+  exhaustion queries on large tables or deep commit histories. ADR-0014.
 
 ### Changed
 

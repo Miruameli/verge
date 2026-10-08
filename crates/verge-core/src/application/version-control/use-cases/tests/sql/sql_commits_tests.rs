@@ -17,12 +17,14 @@
 //!
 //! Related issues:
 //!   - #30 (Milestone 5)
+//!   - #90 (M5 Part 3: resource limits)
 //!   - #92 (M5 Part 2)
 //!
 //! Related ADR:
 //!   - ADR-0006 (Prolly tree untuk tabel)
-//!   - ADR-0011 (`SCAN_LIMIT` untuk traversal commit)
+//!   - ADR-0011 (Batas 10.000 commit time-travel)
 //!   - ADR-0013 (SQL planner dan table-valued function)
+//!   - ADR-0014 (Executor resource limits)
 
 use crate::application::version_control::fakes::world::FakeWorld;
 

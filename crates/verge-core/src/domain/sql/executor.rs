@@ -7,6 +7,7 @@
 //! Author: Miruameli
 //! Created: 2026-10-08
 //! Modified: 2026-10-08
+
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
@@ -14,18 +15,26 @@
 //!   - `ast.rs`
 //!   - `eval.rs` (evaluasi WHERE)
 //!   - `domain/tree/table_codec.rs`, `domain/tree/value-objects/table_row.rs`
+//!   - `infrastructure/query/budget.rs` (`ScanBudget`)
+//!   - `shared/exceptions/verge_error.rs`
 //!
 //! Related issues:
 //!   - #30 (Milestone 5)
+//!   - #90 (M5 Part 3: executor resource limits)
+//!   - #92 (M5 Part 2: planner, inline AS OF, `commits()` TVF)
 //!
 //! Related ADR:
 //!   - ADR-0006 (Prolly tree untuk tabel)
+//!   - ADR-0011 (Batas 10.000 commit time-travel)
 //!   - ADR-0012 (SQL parser semantics and limits)
+//!   - ADR-0014 (Executor resource limits)
 
-use super::ast::{ColumnList, SelectStatement, SqlError};
+use super::ast::SqlError;
 use super::eval::eval_expr;
 use crate::domain::tree::table_codec::TableRows;
 use crate::domain::tree::value_objects::table_row::TableRow;
+use crate::infrastructure::query::ScanBudget;
+use crate::shared::exceptions::verge_error::VergeError;
 
 /// Memecah header CSV menjadi nama kolom.
 ///
@@ -76,52 +85,6 @@ fn write_selected<'a>(out: &mut Vec<u8>, indices: &[usize], resolve: impl Fn(usi
     }
     out.push(b'\n');
 }
-
-/// Menjalankan query SQL terhadap `rows` dan mengembalikan CSV hasil.
-///
-/// - Header dipakai untuk memetakan nama kolom ke indeks.
-/// - WHERE (jika ada) menyaring baris.
-/// - Proyeksi kolom memilih kolom berdasarkan daftar SELECT.
-///
-/// # Errors
-/// Mengembalikan `SqlError` bila header kolom tidak valid UTF-8,
-/// kolom yang dipilih tidak ada di header, kolom duplikat dalam proyeksi,
-/// atau evaluasi WHERE gagal.
-pub fn execute_query(rows: &TableRows, stmt: &SelectStatement) -> Result<Vec<u8>, SqlError> {
-    let names = header_columns(rows.header())?;
-    let num_cols = names.len();
-
-    let indices: Vec<usize> = match &stmt.columns {
-        ColumnList::All => (0..num_cols).collect(),
-        ColumnList::Named(cols) => cols
-            .iter()
-            .map(|c| {
-                names
-                    .iter()
-                    .position(|n| n == c)
-                    .ok_or_else(|| SqlError::at(0, format!("kolom `{c}` tidak ditemukan")))
-            })
-            .collect::<Result<Vec<_>, _>>()?,
-    };
-
-    let mut out = Vec::new();
-    write_selected(&mut out, &indices, |i| names[i].as_bytes());
-
-    for row in rows.rows() {
-        let cols = row_values(row, num_cols);
-        let pass = match &stmt.where_clause {
-            Some(expr) => eval_expr(expr, &cols, &names)?,
-            None => true,
-        };
-        if !pass {
-            continue;
-        }
-        write_selected(&mut out, &indices, |i| cols.get(i).copied().unwrap_or(b""));
-    }
-
-    Ok(out)
-}
-
 /// Menjalankan `ExecutionPlan` terhadap `rows` dan mengembalikan CSV hasil.
 ///
 /// Berbeda dengan `execute_query`, kolom sudah diselesaikan ke indeks
@@ -129,12 +92,15 @@ pub fn execute_query(rows: &TableRows, stmt: &SelectStatement) -> Result<Vec<u8>
 ///
 /// # Errors
 ///
-/// Mengembalikan `SqlError` bila header tidak valid UTF-8, atau evaluasi
-/// WHERE gagal.
+/// Mengembalikan `VergeError` bila:
+/// - header tidak valid UTF-8 (`SqlError` → `SqlParse`),
+/// - evaluasi WHERE gagal (`SqlError` → `SqlParse`),
+/// - batas memori atau waktu terlampaui (`QueryResourceLimit`).
 pub fn execute_plan(
     rows: &TableRows,
     plan: &super::planner::ExecutionPlan,
-) -> Result<Vec<u8>, SqlError> {
+    budget: &mut ScanBudget,
+) -> Result<Vec<u8>, VergeError> {
     let names = header_columns(rows.header())?;
     let num_cols = names.len();
     let indices = &plan.select_indices;
@@ -142,6 +108,7 @@ pub fn execute_plan(
     let mut out = Vec::new();
     write_selected(&mut out, indices, |i| names[i].as_bytes());
     for row in rows.rows() {
+        budget.check_time()?;
         let cols = row_values(row, num_cols);
         let pass = match filter {
             Some(expr) => eval_expr(expr, &cols, &names)?,
@@ -150,7 +117,9 @@ pub fn execute_plan(
         if !pass {
             continue;
         }
+        let before = out.len();
         write_selected(&mut out, indices, |i| cols.get(i).copied().unwrap_or(b""));
+        budget.track_memory(out.len() - before)?;
     }
     Ok(out)
 }

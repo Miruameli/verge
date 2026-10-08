@@ -150,6 +150,13 @@ pub enum VergeError {
         /// Penjelasan singkat.
         message: String,
     },
+    /// Query melebihi batas sumber daya (memori atau waktu).
+    QueryResourceLimit {
+        /// Tipe limit yang terlampaui: "memory" atau "time".
+        limit_type: &'static str,
+        /// Penjelasan singkat untuk pengguna.
+        detail: String,
+    },
 }
 
 impl std::error::Error for VergeError {
