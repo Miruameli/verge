@@ -24,6 +24,7 @@
 pub mod commit;
 pub mod ident;
 pub mod merge;
+pub mod sql;
 pub mod storage;
 #[path = "table/mod.rs"]
 pub mod table;

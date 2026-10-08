@@ -11,11 +11,36 @@ and versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 - A `versions` quality gate: `.github/scripts/check-versions.py` asserts the `verge-core` version literal in `crates/verge-cli/Cargo.toml` equals `workspace.package.version`. It runs as a CI job and as a `publish-crate.yml` step for CLI publishes, so a workspace bump that forgets the literal fails before any tag or upload. The job is registered in branch-protection required checks.
 - An audit-index consistency check: `.github/scripts/structure/audit_rules.py` (wired into `check-structure.py`, so it rides the existing `structure` job) fails when an `audit/**/*.md` file has no index row or an index row has no file. Issue #77 tracks this after PR #75 orphaned the backfill record with all gates green.
 - A one-command installer, `INSTALL.sh`, plus `uninstall.sh`. `INSTALL.sh` detects the platform, downloads the matching release asset, verifies it against the release `SHA256SUMS` (with no flag to skip verification), and installs to `~/.local/bin` without `sudo` and without editing a shell profile. It supports `--version`, `--prefix`, `--dry-run`, and `--check`, and falls back to `cargo install verge-cli` with a clear message on platforms that have no release binary. `uninstall.sh` refuses to delete any file that does not identify itself as Verge.
-- An installer/release consistency gate: `.github/scripts/install/check-installer.py` asserts that the published-target allowlist in `INSTALL.sh` equals the `release.yml` build matrix and that the archive and checksum naming assumptions still hold. It runs in the existing `versions` CI job. The first draft of the installer shipped three bugs that this gate now prevents: a `v`-prefixed asset name that 404'd on every install, a `SHA256SUMS` match that never accounted for the `./` prefix `find` writes, and a blacklist platform guard that let Intel Macs through to a 404.
+- An SQL query engine for `verge query --table <NAME> --as-of <WHEN> "<SQL>"`: a lexer, recursive-descent parser, and executor that evaluate `WHERE` and project `SELECT` columns against table rows read from the block store. Supports `SELECT *`, `SELECT col1, col2`, `WHERE` with `=`, `!=`, `<>`, `<`, `>`, `<=`, `>=` combined with `AND`/`OR`, string/number/parameter literals, and `AS OF <WHEN>`. The `--as-of` flag resolves the revision before query execution; the SQL `SELECT` statement itself carries no `AS OF`. Comma-separated CSV format is unchanged (no quoting). M5 Part 1 closes #30.
+- An SQL planner (`domain/sql/planner/`) that converts the `SelectStatement` AST into
+  an `ExecutionPlan` with column indices resolved against the table header before execution,
+  separating validation from execution. `PlanError` chains to `SqlError` to `VergeError`
+  via `From` impls. ADR-0013.
+- Inline `AS OF` in SQL: `SELECT ... FROM <table> AS OF '<revision>'` now takes precedence
+  over the CLI `--as-of` flag. Both are forwarded to the existing `resolve_revision` — the
+  SQL `AS OF` value overrides; the CLI value is only a fallback. This lets one command read
+  multiple tables at different revisions.
+- A `commits()` table-valued function: `SELECT * FROM commits()` returns the first-parent
+  commit chain from the resolved revision as a virtual table with columns
+  `commit_id, parent_ids, table, author, timestamp, message`. `WHERE` filtering works on
+  the virtual columns. `parent_ids` uses `;` as separator (comma is the column delimiter per
+  ADR-0006); `message` is the last column so it may contain commas. Traversal is bounded by
+  the 10 000-commit scan limit (ADR-0011).
+- The `sql_query` use case now routes through the planner: `parse → plan → execute_plan`.
+  `execute_query` (the old single-pass path) is retained for direct callers.
+- Executor resource limits (M5 Part 3): a `ScanBudget` (`infrastructure/query/budget.rs`)
+  tracks output memory (default 64 MiB) and wall-clock time (default 10 s) and is checked
+  per-row in `execute_plan` and per-commit in `build_commit_rows`. When a limit is exceeded,
+  execution stops early with `VergeError::QueryResourceLimit`. This prevents resource-
+  exhaustion queries on large tables or deep commit histories. ADR-0014.
 
 ### Changed
 
 - The 32 files that still used the compact header form (several fields on one line, separated by `·`) now use the canonical form, one field per line. No code line changed: all 599 changed lines under `crates/` are `//!` lines. `header_rules.py` no longer accepts the compact form, so it cannot come back unnoticed. Only the field that started a line is counted, so a value may still contain commas, backticks, or `·`. `crates/verge-core/src/domain/tree/nodes/tests/node_codec_tests.rs` also had a `File` value that contradicted its own filename; it now names the file it is in. Issue #41.
+- Three `domain/sql` source files were split to stay under the 150 SLOC gate:
+  `executor.rs` → `executor.rs` + `eval.rs` (evaluation logic), `parser/mod.rs` →
+  `parser/mod.rs` + `clauses.rs` (AS OF / parens parsing methods). `sql_query_tests.rs`
+  was split into `sql_query_tests.rs` + `sql_commits_tests.rs` (commits() tests).
 
 ### Fixed
 

@@ -16,6 +16,7 @@
 //!   - `read_snapshot_tests.rs`
 //!   - `stage_table_tests.rs`
 //!   - `recording/record_commit_tests.rs`
+//!   - `sql/sql_query_tests.rs`
 //!
 //! Related issues:
 //!   - #18 (Milestone 3)
@@ -30,6 +31,9 @@ mod stage_table_tests;
 
 #[path = "recording/mod.rs"]
 mod recording;
+
+#[path = "sql/mod.rs"]
+mod sql;
 
 use crate::application::version_control::dtos::recorded_commit::RecordedCommit;
 use crate::application::version_control::dtos::staged_table::StagedTable;

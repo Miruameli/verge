@@ -119,6 +119,12 @@ impl fmt::Display for VergeError {
             Self::InvalidCommitField { field, detail } => {
                 write!(f, "invalid commit {field}: {detail}")
             }
+            Self::SqlParse { offset, message } => {
+                write!(f, "SQL query error at byte {offset}: {message}")
+            }
+            Self::QueryResourceLimit { limit_type, detail } => {
+                write!(f, "query resource limit exceeded ({limit_type}): {detail}")
+            }
         }
     }
 }

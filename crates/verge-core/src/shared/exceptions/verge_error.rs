@@ -28,6 +28,7 @@ use std::path::PathBuf;
 mod display;
 
 use crate::domain::ident::value_objects::digest::Digest;
+use crate::domain::sql::ast::SqlError;
 use crate::domain::table::value_objects::table_name::TableName;
 use crate::shared::exceptions::parse_digest_error::ParseDigestError;
 
@@ -142,6 +143,20 @@ pub enum VergeError {
         /// Alasan penolakan yang aman ditampilkan ke pengguna.
         detail: &'static str,
     },
+    /// Error dari parser SQL (lexer/parser).
+    SqlParse {
+        /// Offset byte di input SQL.
+        offset: usize,
+        /// Penjelasan singkat.
+        message: String,
+    },
+    /// Query melebihi batas sumber daya (memori atau waktu).
+    QueryResourceLimit {
+        /// Tipe limit yang terlampaui: "memory" atau "time".
+        limit_type: &'static str,
+        /// Penjelasan singkat untuk pengguna.
+        detail: String,
+    },
 }
 
 impl std::error::Error for VergeError {
@@ -157,6 +172,24 @@ impl std::error::Error for VergeError {
 impl From<std::io::Error> for VergeError {
     fn from(source: std::io::Error) -> Self {
         Self::Io(source)
+    }
+}
+
+impl From<SqlError> for VergeError {
+    fn from(err: SqlError) -> Self {
+        Self::SqlParse {
+            offset: err.offset,
+            message: err.message,
+        }
+    }
+}
+
+impl From<crate::domain::sql::planner::PlanError> for VergeError {
+    fn from(err: crate::domain::sql::planner::PlanError) -> Self {
+        Self::SqlParse {
+            offset: 0,
+            message: err.message,
+        }
     }
 }
 
