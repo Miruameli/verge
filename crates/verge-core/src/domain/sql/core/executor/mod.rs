@@ -1,13 +1,12 @@
-//! File: `executor.rs`
+//! File: `mod.rs`
 //!
 //! Deskripsi: Evaluasi WHERE dan proyeksi kolom pada table rows.
-//! Layer: domain/sql
+//! Layer: domain/sql/core
 //! Tanggung jawab: Menyaring baris berdasarkan ekspresi WHERE dan memilih kolom.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-08
 //! Modified: 2026-10-08
-
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
@@ -22,6 +21,7 @@
 //!   - #30 (Milestone 5)
 //!   - #90 (M5 Part 3: executor resource limits)
 //!   - #92 (M5 Part 2: planner, inline AS OF, `commits()` TVF)
+//!   - #96 (domain/sql split)
 //!
 //! Related ADR:
 //!   - ADR-0006 (Prolly tree untuk tabel)
