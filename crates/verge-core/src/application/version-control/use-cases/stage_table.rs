@@ -29,9 +29,9 @@ use crate::domain::storage::ports::block_store::Store;
 use crate::domain::table::ports::table_source::{TableSource, MAX_TABLE_BYTES};
 use crate::domain::table::ports::table_workspace::TableWorkspace;
 use crate::domain::table::value_objects::table_name::TableName;
+use crate::domain::tree::builder::build_plan;
+use crate::domain::tree::codec::TableRows;
 use crate::domain::tree::nodes::tree_node_codec::encode;
-use crate::domain::tree::table_codec::TableRows;
-use crate::domain::tree::tree_builder::build_plan;
 use crate::shared::exceptions::verge_error::VergeError;
 use crate::shared::kernel::result::Result;
 

@@ -1,25 +1,27 @@
 //! File: `table_codec_rows.rs`
 //!
 //! Deskripsi: Pembacaan, normalisasi, dan pembacaan field tabel.
-//! Layer: domain/tree
+//! Layer: domain/tree/codec
 //! Tanggung jawab: Mengubah byte tabel menjadi baris terurut dan unik.
 //!
 //! Author: Miruameli
 //! Created: 2026-10-03
-//! Modified: 2026-10-03
+//! Modified: 2026-10-08
 //! Version: 0.1.0
 //! License: Apache-2.0
 //!
 //! Dependencies:
 //!   - `value-objects/row_key.rs`, `value-objects/table_row.rs`
+//!   - `table_codec.rs` (super module)
 //!
 //! Related issues:
 //!   - #18 (Milestone 3)
+//!   - #97 (domain/tree split)
 //!
 //! Related ADR:
 //!   - ADR-0006 (Prolly tree untuk tabel)
 
-use crate::domain::tree::table_codec::{TableRows, SEPARATOR};
+use super::{TableRows, SEPARATOR};
 
 use crate::domain::tree::value_objects::row_key::RowKey;
 use crate::domain::tree::value_objects::table_row::TableRow;
@@ -30,7 +32,7 @@ use crate::shared::kernel::result::Result;
 ///
 /// Baris dengan kunci sama digantikan baris terakhir, sesuai perilaku
 /// `last-write-wins` saat tabel diimpor dua kali dengan kunci yang sama.
-pub(super) fn normalize(rows: Vec<TableRow>) -> Vec<TableRow> {
+pub fn normalize(rows: Vec<TableRow>) -> Vec<TableRow> {
     let mut sorted: Vec<TableRow> = Vec::with_capacity(rows.len());
     for row in rows {
         match sorted.binary_search_by_key(&row.key(), |existing| &existing.key) {
@@ -45,7 +47,7 @@ pub(super) fn normalize(rows: Vec<TableRow>) -> Vec<TableRow> {
 ///
 /// Nilai menyimpan seluruh kolom setelah kunci, termasuk pemisah kolom pertama,
 /// sehingga baris dapat disusun kembali tanpa kehilangan informasi format.
-pub(super) fn parse_row(line_number: usize, line: &[u8]) -> Result<TableRow> {
+pub fn parse_row(line_number: usize, line: &[u8]) -> Result<TableRow> {
     let Some(separator) = line.iter().position(|byte| *byte == SEPARATOR) else {
         return Err(malformed(line_number, "row has no column separator"));
     };
@@ -63,38 +65,35 @@ pub(super) fn parse_row(line_number: usize, line: &[u8]) -> Result<TableRow> {
 }
 
 /// Membangun error tabel dengan nomor baris dan alasan yang aman ditampilkan.
-pub(super) fn malformed(line: usize, reason: &'static str) -> VergeError {
+pub fn malformed(line: usize, reason: &'static str) -> VergeError {
     VergeError::MalformedTable { line, reason }
 }
 
-impl TableRows {
-    /// Mengembalikan jumlah baris data.
-    #[must_use]
-    pub fn len(&self) -> usize {
-        self.rows.len()
+/// Membaca baris tabel dari byte mentah.
+///
+/// Format:
+/// - Baris 0: header (kolom dipisah ',')
+/// - Baris 1..N: data (kolom dipisah ',')
+/// - Setiap baris diakhiri newline '\n'
+///
+/// Returns (header_vec, rows_vec)
+pub fn parse_rows(data: &[u8]) -> Result<TableRows> {
+    let mut lines = data.split(|&b| b == b'\n');
+    let header_line = lines.next().ok_or_else(|| VergeError::MalformedTable {
+        line: 0,
+        reason: "Tabel kosong: tidak ada header",
+    })?;
+    let header = header_line.to_vec();
+
+    let mut rows = Vec::new();
+    for (line_num, line) in lines.enumerate() {
+        if line.is_empty() {
+            continue;
+        }
+        // Parse row using parse_row
+        let row = parse_row(line_num + 1, line)?;
+        rows.push(row);
     }
 
-    /// Melaporkan apakah tabel tidak memiliki baris data.
-    #[must_use]
-    pub fn is_empty(&self) -> bool {
-        self.rows.is_empty()
-    }
-
-    /// Mengembalikan baris pada posisi tertentu.
-    #[must_use]
-    pub fn get(&self, index: usize) -> Option<&TableRow> {
-        self.rows.get(index)
-    }
-
-    /// Mengembalikan seluruh baris.
-    #[must_use]
-    pub fn rows(&self) -> &[TableRow] {
-        &self.rows
-    }
-
-    /// Mengembalikan header tabel apa adanya.
-    #[must_use]
-    pub fn header(&self) -> &[u8] {
-        &self.header
-    }
+    Ok(TableRows::new(header))
 }

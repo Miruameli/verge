@@ -29,7 +29,7 @@ use crate::domain::merge::merge_strategy::MergeStrategy;
 use crate::domain::merge::rows::row_merge::merge_rows;
 use crate::domain::storage::ports::block_store::Store;
 use crate::domain::table::value_objects::table_name::TableName;
-use crate::domain::tree::table_codec::TableRows;
+use crate::domain::tree::codec::TableRows;
 use crate::shared::exceptions::verge_error::VergeError;
 use crate::shared::kernel::result::Result;
 

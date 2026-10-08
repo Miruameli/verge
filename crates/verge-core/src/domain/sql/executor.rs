@@ -31,7 +31,7 @@
 
 use super::ast::SqlError;
 use super::eval::eval_expr;
-use crate::domain::tree::table_codec::TableRows;
+use crate::domain::tree::codec::TableRows;
 use crate::domain::tree::value_objects::table_row::TableRow;
 use crate::infrastructure::query::ScanBudget;
 use crate::shared::exceptions::verge_error::VergeError;

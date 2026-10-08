@@ -26,8 +26,8 @@ use crate::domain::commit::value_objects::commit_id::CommitId;
 use crate::domain::ident::value_objects::digest_text::HexText;
 use crate::domain::storage::ports::block_store::Store;
 use crate::domain::table::value_objects::table_name::TableName;
-use crate::domain::tree::table_codec::TableRows;
-use crate::domain::tree::table_reader::read_table;
+use crate::domain::tree::codec::table_reader::read_table;
+use crate::domain::tree::codec::TableRows;
 use crate::shared::exceptions::verge_error::VergeError;
 use crate::shared::kernel::result::Result;
 

@@ -31,7 +31,7 @@
 
 use crate::domain::commit::repositories::ports::commit_repository::CommitRepository;
 use crate::domain::commit::value_objects::commit_id::CommitId;
-use crate::domain::tree::table_codec::TableRows;
+use crate::domain::tree::codec::TableRows;
 use crate::domain::tree::value_objects::row_key::RowKey;
 use crate::domain::tree::value_objects::table_row::TableRow;
 use crate::infrastructure::query::ScanBudget;

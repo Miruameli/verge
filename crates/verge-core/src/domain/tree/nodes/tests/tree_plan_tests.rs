@@ -20,10 +20,10 @@
 //!   - ADR-0006 (Prolly tree untuk tabel)
 
 use crate::domain::ident::value_objects::digest::Digest;
+use crate::domain::tree::builder::build_plan;
+use crate::domain::tree::codec::TableRows;
 use crate::domain::tree::nodes::tree_node::LEAF_SIZE_LIMIT;
 use crate::domain::tree::nodes::tree_node_codec::encode;
-use crate::domain::tree::table_codec::TableRows;
-use crate::domain::tree::tree_builder::build_plan;
 use crate::domain::tree::value_objects::row_key::RowKey;
 use crate::domain::tree::value_objects::table_row::TableRow;
 

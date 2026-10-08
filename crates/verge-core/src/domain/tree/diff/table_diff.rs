@@ -11,16 +11,17 @@
 //! License: Apache-2.0
 //!
 //! Dependencies:
-//!   - `../table_codec.rs`
+//!   - `../codec/mod.rs`
 //!
 //! Related issues:
 //!   - #18 (Milestone 3)
+//!   - #97 (domain/tree split)
 //!
 //! Related ADR:
 //!   - ADR-0006 (Prolly tree untuk tabel)
 
+use crate::domain::tree::codec::TableRows;
 use crate::domain::tree::diff::row_change::RowChange;
-use crate::domain::tree::table_codec::TableRows;
 use crate::domain::tree::value_objects::table_row::TableRow;
 
 /// Hasil perbandingan dua tabel.
