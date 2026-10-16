@@ -30,4 +30,4 @@ module_name_repetitions = "allow"
 
 [workspace.dependencies]
 anyhow = "1"
-sha2 = "0.10"
+sha2 = "0.11"
